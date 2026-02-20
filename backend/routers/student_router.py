@@ -211,8 +211,8 @@ async def post_question(
     )
     if not session_row:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
-    if session_row["status"] != "active":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Session is {session_row['status']}, not active")
+    if session_row["status"] not in ("active", "released"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Lecture is {session_row['status']}; Q&A is closed")
 
     return await rag_service.handle_question(
         session_id=session_id,
@@ -220,6 +220,7 @@ async def post_question(
         content=body.content,
         db=db,
         personality=body.personality,
+        anonymous=body.anonymous,
     )
 
 
@@ -281,13 +282,17 @@ async def get_session_report(
             COALESCE((SELECT COUNT(*) FROM answer_feedback af
                       WHERE af.answer_id = a.id AND af.feedback = 'up'), 0)   AS thumbs_up,
             COALESCE((SELECT COUNT(*) FROM answer_feedback af
-                      WHERE af.answer_id = a.id AND af.feedback = 'down'), 0) AS thumbs_down
+                      WHERE af.answer_id = a.id AND af.feedback = 'down'), 0) AS thumbs_down,
+            (SELECT af.feedback FROM answer_feedback af
+             WHERE af.answer_id = a.id AND af.student_id = $2
+             LIMIT 1)     AS my_feedback
         FROM questions q
         LEFT JOIN answers a ON a.question_id = q.id
         WHERE q.session_id = $1
         ORDER BY q.asked_at ASC
         """,
         session_id,
+        current_user["id"],
     )
 
     if not rows:
@@ -345,6 +350,7 @@ async def get_session_report(
             anonymous_name=_animal_name(str(row["student_id"]), sorted_student_ids),
             answer=answer,
             feedback=feedback,
+            my_feedback=row["my_feedback"],
         )
 
     # Cluster questions by topic via GPT (runs in thread pool to not block event loop)
@@ -453,6 +459,7 @@ async def get_questions(
             q.content     AS question_content,
             q.asked_at,
             q.student_id,
+            q.anonymous,
             a.id          AS answer_id,
             a.content     AS answer_content,
             a.model_used,
@@ -504,6 +511,7 @@ async def get_questions(
             content=row["question_content"],
             asked_at=row["asked_at"],
             student_id=str(row["student_id"]),
+            anonymous=row["anonymous"],
             answer=answer,
         ))
 

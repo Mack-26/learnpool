@@ -21,8 +21,8 @@ export async function checkSession(sessionId: string): Promise<SessionCheckRespo
   return res.data
 }
 
-export async function postQuestion(sessionId: string, content: string, personality: Personality = 'supportive'): Promise<QuestionOut> {
-  const res = await client.post<QuestionOut>(`/api/student/sessions/${sessionId}/questions`, { content, personality })
+export async function postQuestion(sessionId: string, content: string, personality: Personality = 'supportive', anonymous: boolean = false): Promise<QuestionOut> {
+  const res = await client.post<QuestionOut>(`/api/student/sessions/${sessionId}/questions`, { content, personality, anonymous })
   return res.data
 }
 

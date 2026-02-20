@@ -56,6 +56,7 @@ export interface QuestionOut {
   content: string
   asked_at: string
   student_id: string
+  anonymous: boolean
   answer: AnswerOut | null
 }
 
@@ -72,6 +73,7 @@ export interface ReportQuestionOut {
   anonymous_name: string
   answer: AnswerOut | null
   feedback: AnswerFeedbackOut | null
+  my_feedback: 'up' | 'down' | null
 }
 
 export interface TopicGroup {

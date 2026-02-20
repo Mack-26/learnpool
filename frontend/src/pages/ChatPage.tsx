@@ -34,7 +34,7 @@ function DocumentPanel({ sessionId, width }: { sessionId: string; width: number 
     >
       <div className="p-3 border-b border-border shrink-0">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Session Documents
+          Lecture Documents
         </h3>
       </div>
 
@@ -113,6 +113,11 @@ function MessageBubble({
       >
         <div className="max-w-[75%] rounded-2xl px-4 py-3 gradient-primary text-white">
           <p className="text-sm">{question.content}</p>
+          {question.anonymous && (
+            <p className="text-xs opacity-70 mt-1 flex items-center gap-1">
+              <EyeOff className="h-3 w-3" /> Asked anonymously
+            </p>
+          )}
         </div>
       </motion.div>
 
@@ -273,7 +278,7 @@ export default function ChatPage() {
   })
 
   const mutation = useMutation({
-    mutationFn: (content: string) => postQuestion(sessionId!, content, personality),
+    mutationFn: (content: string) => postQuestion(sessionId!, content, personality, anonymous),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['questions', sessionId] }),
   })
 
@@ -290,12 +295,14 @@ export default function ChatPage() {
   }
 
   const isActive = check?.session_status === 'active'
+  const isEnded = check?.session_status === 'ended'
+  const canChat = !isEnded  // active + released (upcoming) lectures allow Q&A
 
   if (checkLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64 text-muted-foreground">
-          Loading session…
+          Loading lecture…
         </div>
       </DashboardLayout>
     )
@@ -309,16 +316,24 @@ export default function ChatPage() {
         {/* Top bar */}
         <header className="h-14 border-b border-border bg-card flex items-center justify-between px-5 shrink-0">
           <div className="flex items-center gap-4">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate(-1)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              className="text-xs"
             >
-              ← Back
-            </button>
+              <LogOut className="h-3.5 w-3.5 mr-1" />
+              Leave
+            </Button>
             {isActive ? (
-              <Badge className="gradient-primary text-white border-0 animate-pulse text-xs">
-                ● Live
-              </Badge>
+              <>
+                <Badge className="gradient-primary text-white border-0 animate-pulse text-xs">
+                  ● Live
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  The professor is notified each time a new question comes in
+                </span>
+              </>
             ) : check && (
               <span className="text-xs text-muted-foreground capitalize">
                 {check.session_status}
@@ -337,15 +352,6 @@ export default function ChatPage() {
               <span className="text-xs text-muted-foreground">Anonymous</span>
               <Switch checked={anonymous} onCheckedChange={setAnonymous} />
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(`/sessions/${sessionId}`)}
-              className="text-xs"
-            >
-              <LogOut className="h-3.5 w-3.5 mr-1" />
-              Leave
-            </Button>
           </div>
         </header>
 
@@ -384,7 +390,7 @@ export default function ChatPage() {
 
             {/* Input */}
             <div className="p-4 border-t border-border bg-card shrink-0">
-              {isActive ? (
+              {canChat ? (
                 <form
                   onSubmit={(e) => { e.preventDefault(); handleSend() }}
                   className="flex items-center gap-2"
@@ -392,7 +398,7 @@ export default function ChatPage() {
                   <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={mutation.isPending ? 'Generating answer…' : 'Ask a question about this session…'}
+                    placeholder={mutation.isPending ? 'Generating answer…' : 'Ask a question about this lecture…'}
                     disabled={mutation.isPending}
                     className="flex-1"
                     onKeyDown={(e) => {
@@ -410,7 +416,7 @@ export default function ChatPage() {
                 </form>
               ) : (
                 <p className="text-center text-sm text-muted-foreground">
-                  This session is {check?.session_status}. Questions are read-only.
+                  This lecture has ended. Questions are read-only.
                 </p>
               )}
             </div>

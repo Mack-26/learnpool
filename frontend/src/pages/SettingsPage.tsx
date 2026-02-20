@@ -1,4 +1,3 @@
-import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Smile, BookOpen, Zap } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -31,9 +30,7 @@ const personalities: {
   },
 ]
 
-export default function SessionSettingsPage() {
-  const { sessionId } = useParams<{ sessionId: string }>()
-  const navigate = useNavigate()
+export default function SettingsPage() {
   const { personality, setPersonality } = useSettingsStore()
 
   return (
@@ -44,12 +41,6 @@ export default function SessionSettingsPage() {
         transition={{ duration: 0.4 }}
         className="max-w-xl"
       >
-        <button
-          onClick={() => navigate(`/sessions/${sessionId}`)}
-          className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 transition-colors"
-        >
-          ← Back to Session
-        </button>
         <h1 className="text-2xl font-bold text-foreground mb-1">AI Settings</h1>
         <p className="text-muted-foreground mb-6">
           Choose how the AI responds to your questions. Your choice is applied invisibly — only you benefit from it.

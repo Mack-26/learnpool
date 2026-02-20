@@ -21,7 +21,7 @@ export default function ClassListPage() {
         transition={{ duration: 0.4 }}
       >
         <h1 className="text-2xl font-bold text-foreground mb-1">My Classes</h1>
-        <p className="text-muted-foreground mb-6">Select a class to view its sessions</p>
+        <p className="text-muted-foreground mb-6">Select a class to view its lectures</p>
 
         {isLoading && (
           <p className="text-muted-foreground">Loading classes…</p>

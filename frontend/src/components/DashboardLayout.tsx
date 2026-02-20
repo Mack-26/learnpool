@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { icon: BookOpen, label: 'My Classes', path: '/classes' },
+    { icon: Settings, label: 'AI Settings', path: '/settings' },
   ]
 
   return (

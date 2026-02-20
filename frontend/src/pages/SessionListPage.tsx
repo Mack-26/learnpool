@@ -41,13 +41,13 @@ export default function SessionListPage() {
           ← Back to Classes
         </button>
 
-        <h1 className="text-2xl font-bold text-foreground mb-1">Sessions</h1>
-        <p className="text-muted-foreground mb-6">Click a session to join the AI chat</p>
+        <h1 className="text-2xl font-bold text-foreground mb-1">Lectures</h1>
+        <p className="text-muted-foreground mb-6">Click a lecture to join the Q&A</p>
 
-        {isLoading && <p className="text-muted-foreground">Loading sessions…</p>}
-        {error && <p className="text-destructive text-sm">Failed to load sessions.</p>}
+        {isLoading && <p className="text-muted-foreground">Loading lectures…</p>}
+        {error && <p className="text-destructive text-sm">Failed to load lectures.</p>}
         {sessions && sessions.length === 0 && (
-          <p className="text-muted-foreground">No sessions yet for this class.</p>
+          <p className="text-muted-foreground">No lectures yet for this class.</p>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

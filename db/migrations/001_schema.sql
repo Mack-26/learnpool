@@ -192,6 +192,7 @@ CREATE TABLE questions (
     session_id UUID        NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
     student_id UUID        NOT NULL REFERENCES users(id)    ON DELETE RESTRICT,
     content    TEXT        NOT NULL,
+    anonymous  BOOLEAN     NOT NULL DEFAULT false,
     asked_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

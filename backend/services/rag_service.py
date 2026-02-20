@@ -27,15 +27,17 @@ async def handle_question(
     content: str,
     db: asyncpg.Connection,
     personality: str = "supportive",
+    anonymous: bool = False,
 ) -> QuestionOut:
     """Full 9-step RAG pipeline: save question → embed → retrieve → generate → save answer+citations → return."""
 
     # Step 1: Save question
     q_row = await db.fetchrow(
-        "INSERT INTO questions (session_id, student_id, content) VALUES ($1, $2, $3) RETURNING id, asked_at",
+        "INSERT INTO questions (session_id, student_id, content, anonymous) VALUES ($1, $2, $3, $4) RETURNING id, asked_at",
         session_id,
         student_id,
         content,
+        anonymous,
     )
     question_id = str(q_row["id"])
 
@@ -135,6 +137,7 @@ async def handle_question(
         content=content,
         asked_at=q_row["asked_at"],
         student_id=student_id,
+        anonymous=anonymous,
         answer=AnswerOut(
             answer_id=answer_id,
             content=answer_text,

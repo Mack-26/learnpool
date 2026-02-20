@@ -16,7 +16,7 @@ export default function MessageList({ questions }: Props) {
   if (questions.length === 0) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 15 }}>
-        Ask the first question for this session.
+        Ask the first question for this lecture.
       </div>
     )
   }

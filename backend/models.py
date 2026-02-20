@@ -14,6 +14,7 @@ class LoginRequest(BaseModel):
 class PostQuestionRequest(BaseModel):
     content: str = Field(..., min_length=5, max_length=2000)
     personality: str = Field(default="supportive", pattern="^(supportive|normal|funny)$")
+    anonymous: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +79,7 @@ class QuestionOut(BaseModel):
     content: str
     asked_at: datetime
     student_id: str
+    anonymous: bool = False
     answer: AnswerOut | None = None
 
 
@@ -95,6 +97,7 @@ class ReportQuestionOut(BaseModel):
     anonymous_name: str     # e.g. "Anonymous Lion"
     answer: AnswerOut | None = None
     feedback: AnswerFeedbackOut | None = None
+    my_feedback: str | None = None  # 'up', 'down', or None if student hasn't voted
 
 
 class TopicGroup(BaseModel):
