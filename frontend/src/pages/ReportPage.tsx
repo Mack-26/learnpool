@@ -8,6 +8,11 @@ import {
 import { useCallback, useMemo, useState } from 'react'
 import { getSessionReport, submitFeedback } from '../api/sessions'
 import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
+import { useState } from 'react'
+import { getSessionReport } from '../api/sessions'
+import { getProfessorSessionReport } from '../api/professor'
+import { useAuthStore } from '../store/authStore'
+import type { ReportQuestionOut, TopicGroup } from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
 
@@ -266,13 +271,15 @@ function TopicGroupCard({
 export default function ReportPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
-
-  const queryKey = ['session-report', sessionId]
+  const role = useAuthStore((s) => s.user?.role)
 
   const { data, isLoading, error } = useQuery({
-    queryKey,
-    queryFn: () => getSessionReport(sessionId!),
+    queryKey: ['session-report', sessionId, role],
+    queryFn: () =>
+      role === 'professor'
+        ? getProfessorSessionReport(sessionId!)
+        : getSessionReport(sessionId!),
+    enabled: !!sessionId,
   })
 
   const handleVote = useCallback((answerId: string, vote: 'up' | 'down') => {

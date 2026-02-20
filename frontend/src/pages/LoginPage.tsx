@@ -1,35 +1,73 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen } from 'lucide-react'
+import { GraduationCap, BookOpen, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { login } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 
+type RoleChoice = 'student' | 'instructor' | null
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const [roleChoice, setRoleChoice] = useState<RoleChoice>(null)
   const [email, setEmail] = useState('alice@example.com')
   const [password, setPassword] = useState('devpassword')
+
+  // Update email placeholder when role changes
+  const handleRoleChange = (role: RoleChoice) => {
+    setRoleChoice(role)
+    if (role === 'instructor') setEmail('prof@example.com')
+    else if (role === 'student') setEmail('alice@example.com')
+  }
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    if (!roleChoice) {
+      setError('Please select Student or Instructor.')
+      return
+    }
     setIsLoading(true)
     try {
       const data = await login(email, password)
+      const backendRole = data.role
+      const expectedRole = roleChoice === 'instructor' ? 'professor' : 'student'
+      if (backendRole !== expectedRole) {
+        setError(
+          roleChoice === 'instructor'
+            ? 'This account is a Student. Please select Student to sign in.'
+            : 'This account is an Instructor. Please select Instructor to sign in.'
+        )
+        setIsLoading(false)
+        return
+      }
       setAuth(data.access_token, {
         user_id: data.user_id,
         display_name: data.display_name,
         role: data.role,
       })
-      navigate('/classes')
-    } catch {
-      setError('Invalid email or password.')
+      navigate(backendRole === 'professor' ? '/instructor' : '/classes')
+    } catch (err: unknown) {
+      const res = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { status?: number; data?: { detail?: string | unknown } } }).response
+        : null
+      if (res?.status === 422) {
+        const d = res.data?.detail
+        const msg = Array.isArray(d)
+          ? d.map((x: { msg?: string }) => x.msg).filter(Boolean).join(', ')
+          : typeof d === 'string'
+            ? d
+            : 'Invalid request format. Check email and password.'
+        setError(msg || 'Invalid request format.')
+      } else {
+        setError('Invalid email or password.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -88,7 +126,39 @@ export default function LoginPage() {
             <BookOpen className="h-5 w-5 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
           </div>
-          <p className="text-muted-foreground mb-8">Sign in to access your classes</p>
+          <p className="text-muted-foreground mb-6">Sign in to access your dashboard</p>
+
+          {/* Role selector */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <button
+              type="button"
+              onClick={() => handleRoleChange('student')}
+              className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                roleChoice === 'student'
+                  ? 'border-primary bg-accent'
+                  : 'border-border hover:border-primary/40'
+              }`}
+            >
+              <BookOpen className={`h-6 w-6 ${roleChoice === 'student' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-sm font-medium ${roleChoice === 'student' ? 'text-primary' : 'text-foreground'}`}>
+                Student
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleChange('instructor')}
+              className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                roleChoice === 'instructor'
+                  ? 'border-primary bg-accent'
+                  : 'border-border hover:border-primary/40'
+              }`}
+            >
+              <Users className={`h-6 w-6 ${roleChoice === 'instructor' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-sm font-medium ${roleChoice === 'instructor' ? 'text-primary' : 'text-foreground'}`}>
+                Instructor
+              </span>
+            </button>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -122,7 +192,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !roleChoice}
               className="w-full gradient-primary text-white hover:opacity-90 transition-opacity border-0"
               size="lg"
             >
@@ -131,7 +201,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-muted-foreground mt-6">
-            Demo: alice@example.com / devpassword
+            Demo: Student alice@example.com / Instructor prof@example.com — devpassword
           </p>
         </motion.div>
       </div>

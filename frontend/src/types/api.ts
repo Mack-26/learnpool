@@ -12,6 +12,7 @@ export interface DocumentOut {
   storage_path: string
   url: string
   page_count: number | null
+  content?: string | null  // For inline text documents
 }
 
 export interface TokenResponse {
@@ -25,7 +26,7 @@ export interface TokenResponse {
 export interface SessionSummary {
   id: string
   title: string
-  status: 'active' | 'ended' | 'released'
+  status: 'active' | 'ended' | 'released' | 'upcoming'
   started_at: string
 }
 
