@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { GraduationCap, BookOpen } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,8 +60,8 @@ export default function LoginPage() {
           transition={{ duration: 0.6 }}
           className="relative z-10 text-center px-12"
         >
-          <div className="h-20 w-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-8">
-            <GraduationCap className="h-10 w-10 text-white" />
+          <div className="h-36 w-36 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-8 overflow-hidden">
+            <img src="/logo.png" alt="LearnPool" className="h-32 w-32 object-contain" />
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">LearnPool</h1>
           <p className="text-white/80 text-lg max-w-md">
@@ -80,9 +80,7 @@ export default function LoginPage() {
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
-            <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="LearnPool" className="h-20 w-20 rounded-xl object-contain" />
             <span className="text-xl font-bold text-foreground">LearnPool</span>
           </div>
 

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { GraduationCap, BookOpen, LogOut, Settings } from 'lucide-react'
+import { BookOpen, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 interface DashboardLayoutProps {
@@ -27,11 +27,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <aside className="w-60 shrink-0 border-r border-border bg-card flex flex-col">
         {/* Logo */}
         <div className="p-5 border-b border-border">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-base font-bold text-foreground">LearnPool</span>
+          <div className="flex items-center gap-1">
+            <img src="/logo.png" alt="LearnPool" className="h-20 w-20 rounded-xl shrink-0 object-contain" />
+            <span className="text-xl font-bold text-foreground">LearnPool</span>
           </div>
         </div>
 
