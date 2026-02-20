@@ -1,0 +1,22 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: learnpool_db
+    environment:
+      POSTGRES_DB: learnpool
+      POSTGRES_USER: learnpool
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d   # auto-runs *.sql on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U learnpool -d learnpool"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres_data:
