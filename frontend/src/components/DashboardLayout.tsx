@@ -40,40 +40,66 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/login')
   }
 
-  const navItems = [
-    { icon: BookOpen, label: 'My Classes', path: '/classes' },
-    { icon: Settings, label: 'AI Settings', path: '/settings' },
-    {
-      icon: isProfessor ? Users : BookOpen,
-      label: dashboardLabel,
-      path: dashboardPath,
-    },
-    ...(isProfessor
-      ? [
-          {
-            icon: FileText,
-            label: 'Lecture Materials',
-            path: '/instructor/materials',
-          },
-          {
-            icon: Settings,
-            label: 'Settings',
-            path: '/instructor/settings',
-          },
-        ]
-      : []),
-  ]
+  const navItems = isProfessor
+    ? [
+        {
+          icon: Users,
+          label: dashboardLabel,
+          path: dashboardPath,
+        },
+        {
+          icon: FileText,
+          label: 'Lecture Materials',
+          path: '/instructor/materials',
+        },
+        {
+          icon: Settings,
+          label: 'Settings',
+          path: '/instructor/settings',
+        },
+      ]
+    : [
+        { icon: BookOpen, label: 'My Classes', path: '/classes' },
+        { icon: Settings, label: 'Settings', path: '/settings' },
+      ]
 
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
       <aside className="w-60 shrink-0 border-r border-border bg-card flex flex-col">
         {/* Logo */}
-        <div className="p-5 border-b border-border">
-          <div className="flex items-center gap-1">
-            <img src="/logo.png" alt="LearnPool" className="h-20 w-20 rounded-xl shrink-0 object-contain" />
-            <span className="text-xl font-bold text-foreground">LearnPool</span>
-          </div>
+        <div className="p-5 border-b border-border flex items-center justify-center">
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: '1.65rem',
+              fontWeight: 700,
+              color: '#1e3a8a',
+              letterSpacing: '-0.02em',
+              lineHeight: 1,
+              userSelect: 'none',
+            }}
+          >
+            <span style={{ fontWeight: 300, color: '#3b60c4' }}>[</span>
+            <span style={{ fontStyle: 'italic', fontWeight: 800 }}>Vibe</span>
+            <span style={{ fontWeight: 300, color: '#3b60c4' }}>]</span>
+            <sup
+              style={{
+                fontSize: '0.95rem',
+                fontStyle: 'italic',
+                fontWeight: 700,
+                verticalAlign: 'super',
+                color: '#2d4fa8',
+              }}
+            >
+              n
+            </sup>
+          </button>
         </div>
 
         {/* Nav */}

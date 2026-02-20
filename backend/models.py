@@ -101,7 +101,17 @@ class QuestionOut(BaseModel):
     asked_at: datetime
     student_id: str
     anonymous: bool = False
+    published: bool = False
     answer: AnswerOut | None = None
+
+
+class PublishQuestionsRequest(BaseModel):
+    question_ids: list[str]
+
+
+class ProfessorReviewRequest(BaseModel):
+    labels: list[str] = []
+    notes: str | None = None
 
 
 class AnswerFeedbackOut(BaseModel):
@@ -119,6 +129,8 @@ class ReportQuestionOut(BaseModel):
     answer: AnswerOut | None = None
     feedback: AnswerFeedbackOut | None = None
     my_feedback: str | None = None  # 'up', 'down', or None if student hasn't voted
+    professor_labels: list[str] = []
+    professor_notes: str | None = None
 
 
 class TopicGroup(BaseModel):

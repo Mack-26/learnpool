@@ -58,6 +58,7 @@ export interface QuestionOut {
   asked_at: string
   student_id: string
   anonymous: boolean
+  published: boolean
   answer: AnswerOut | null
 }
 
@@ -75,6 +76,8 @@ export interface ReportQuestionOut {
   answer: AnswerOut | null
   feedback: AnswerFeedbackOut | null
   my_feedback: 'up' | 'down' | null
+  professor_labels: string[]
+  professor_notes: string | null
 }
 
 export interface TopicGroup {

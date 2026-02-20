@@ -40,3 +40,8 @@ export async function getQuestions(sessionId: string): Promise<QuestionOut[]> {
   const res = await client.get<QuestionOut[]>(`/api/student/sessions/${sessionId}/questions`)
   return res.data
 }
+
+export async function publishQuestions(sessionId: string, questionIds: string[]): Promise<{ published_count: number }> {
+  const res = await client.post<{ published_count: number }>(`/api/student/sessions/${sessionId}/publish`, { question_ids: questionIds })
+  return res.data
+}

@@ -14,6 +14,7 @@ from models import (
     CreateScheduleRequest,
     CreateSessionRequest,
     DocumentOut,
+    ProfessorReviewRequest,
     SessionDetail,
     SessionReportResponse,
     SessionSummary,
@@ -506,7 +507,49 @@ async def get_professor_session_report(
     if not owned:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your session")
 
-    return await build_session_report(db, session_id)
+    return await build_session_report(db, session_id, published_only=True, include_review_data=True)
+
+
+# ---------------------------------------------------------------------------
+# PATCH /api/professor/questions/{question_id}
+# ---------------------------------------------------------------------------
+
+@router.patch("/questions/{question_id}")
+async def update_question_review(
+    question_id: str,
+    body: ProfessorReviewRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Update professor labels and notes on a question. Professor must own the course."""
+    owned = await db.fetchval(
+        """
+        SELECT 1 FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
+        WHERE q.id = $2
+        """,
+        current_user["id"],
+        question_id,
+    )
+    if not owned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your question")
+
+    row = await db.fetchrow(
+        """
+        UPDATE questions
+           SET professor_labels = $1, professor_notes = $2
+         WHERE id = $3
+         RETURNING id
+        """,
+        body.labels,
+        body.notes,
+        question_id,
+    )
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+
+    return {"question_id": str(row["id"])}
 
 
 # ---------------------------------------------------------------------------

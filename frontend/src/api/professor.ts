@@ -116,6 +116,15 @@ export async function scheduleLecture(
   return res.data
 }
 
+export async function updateQuestionReview(
+  questionId: string,
+  labels: string[],
+  notes: string | null,
+): Promise<{ question_id: string }> {
+  const res = await client.patch<{ question_id: string }>(`/api/professor/questions/${questionId}`, { labels, notes })
+  return res.data
+}
+
 export async function uploadDocument(
   courseId: string,
   file: File,

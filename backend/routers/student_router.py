@@ -8,6 +8,7 @@ from models import (
     CourseOut,
     DocumentOut,
     PostQuestionRequest,
+    PublishQuestionsRequest,
     QuestionOut,
     AnswerOut,
     CitationOut,
@@ -235,7 +236,7 @@ async def get_session_report(
     db=Depends(get_db),
     current_user: dict = Depends(_require_student),
 ):
-    """Returns all Q&A for the session, anonymised and grouped by topic."""
+    """Returns published Q&A for the session, anonymised and grouped by topic."""
     enrolled = await db.fetchval(
         """
         SELECT 1 FROM sessions s
@@ -248,7 +249,48 @@ async def get_session_report(
     if not enrolled:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
 
-    return await build_session_report(db, session_id)
+    return await build_session_report(db, session_id, published_only=True)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/student/sessions/{session_id}/publish
+# ---------------------------------------------------------------------------
+
+@router.post("/sessions/{session_id}/publish")
+async def publish_questions(
+    session_id: str,
+    body: PublishQuestionsRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Mark selected questions as published so they appear in the class discussion bank."""
+    enrolled = await db.fetchval(
+        """
+        SELECT 1 FROM sessions s
+        JOIN course_enrollments ce ON s.course_id = ce.course_id AND ce.student_id = $1
+        WHERE s.id = $2
+        """,
+        current_user["id"],
+        session_id,
+    )
+    if not enrolled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
+
+    result = await db.execute(
+        """
+        UPDATE questions
+           SET published = true
+         WHERE id = ANY($1::uuid[])
+           AND session_id = $2
+           AND student_id = $3
+        """,
+        body.question_ids,
+        session_id,
+        str(current_user["id"]),
+    )
+    # asyncpg returns "UPDATE N" — parse count
+    published_count = int(result.split()[-1]) if result else 0
+    return {"published_count": published_count}
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +362,7 @@ async def get_questions(
             q.asked_at,
             q.student_id,
             q.anonymous,
+            q.published,
             a.id          AS answer_id,
             a.content     AS answer_content,
             a.model_used,
@@ -372,6 +415,7 @@ async def get_questions(
             asked_at=row["asked_at"],
             student_id=str(row["student_id"]),
             anonymous=row["anonymous"],
+            published=row["published"],
             answer=answer,
         ))
 

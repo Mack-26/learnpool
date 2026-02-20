@@ -29,17 +29,25 @@ def _animal_name(student_id: str, sorted_student_ids: list[str]) -> str:
     return f"Anonymous {_ANIMALS[idx % len(_ANIMALS)]}"
 
 
-async def build_session_report(db, session_id: str) -> SessionReportResponse:
+async def build_session_report(
+    db,
+    session_id: str,
+    published_only: bool = True,
+    include_review_data: bool = False,
+) -> SessionReportResponse:
     """Build anonymised Q&A report for a session. Caller must verify access."""
+    published_filter = "AND q.published = true" if published_only else ""
     rows = await db.fetch(
-        """
+        f"""
         SELECT
-            q.id          AS question_id,
-            q.content     AS question_content,
+            q.id                  AS question_id,
+            q.content             AS question_content,
             q.asked_at,
             q.student_id,
-            a.id          AS answer_id,
-            a.content     AS answer_content,
+            q.professor_labels    AS professor_labels,
+            q.professor_notes     AS professor_notes,
+            a.id                  AS answer_id,
+            a.content             AS answer_content,
             a.model_used,
             a.generation_latency_ms,
             COALESCE((SELECT COUNT(*) FROM answer_feedback af
@@ -49,6 +57,7 @@ async def build_session_report(db, session_id: str) -> SessionReportResponse:
         FROM questions q
         LEFT JOIN answers a ON a.question_id = q.id
         WHERE q.session_id = $1
+        {published_filter}
         ORDER BY q.asked_at ASC
         """,
         session_id,
@@ -107,6 +116,8 @@ async def build_session_report(db, session_id: str) -> SessionReportResponse:
             anonymous_name=_animal_name(str(row["student_id"]), sorted_student_ids),
             answer=answer,
             feedback=feedback,
+            professor_labels=list(row["professor_labels"]) if include_review_data and row["professor_labels"] else [],
+            professor_notes=row["professor_notes"] if include_review_data else None,
         )
 
     question_list = [{"question_id": qid, "content": item.content} for qid, item in report_items.items()]

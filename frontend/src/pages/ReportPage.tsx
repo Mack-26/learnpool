@@ -1,13 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
   BookOpen, ChevronDown, ChevronUp, Users, AlertTriangle, ThumbsUp, ThumbsDown,
-  MessageSquareText, Layers, Flame, TrendingUp,
+  MessageSquareText, Layers, Flame, TrendingUp, ChevronLeft, ChevronRight,
 } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { getSessionReport, submitFeedback } from '../api/sessions'
-import { getProfessorSessionReport } from '../api/professor'
+import { getProfessorSessionReport, updateQuestionReview } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
 import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -50,6 +50,29 @@ function applyOptimisticVote(
     })),
   }
 }
+
+// ─── Label definitions ────────────────────────────────────────────────────────
+const LABELS = [
+  { emoji: '⚡', label: 'Interesting Question', color: 'blue' },
+  { emoji: '🎯', label: 'Good Analogy',         color: 'green' },
+  { emoji: '❌', label: 'Wrong Answer',          color: 'red' },
+  { emoji: '⚠️', label: 'Misleading',           color: 'yellow' },
+  { emoji: '🧠', label: 'Deep Understanding',   color: 'purple' },
+  { emoji: '📄', label: 'Surface Level',        color: 'gray' },
+  { emoji: '🔄', label: 'Needs Follow-up',      color: 'orange' },
+] as const
+
+const LABEL_COLOR_MAP: Record<string, string> = {
+  blue:   'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300',
+  green:  'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300',
+  red:    'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300',
+  yellow: 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300',
+  purple: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300',
+  gray:   'bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-300',
+  orange: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300',
+}
+
+const LABEL_INACTIVE = 'bg-background text-muted-foreground border-border hover:border-primary/40'
 
 // ─── Single Q&A card ──────────────────────────────────────────────────────────
 function ReportItem({
@@ -111,6 +134,20 @@ function ReportItem({
                 <Badge className="text-xs bg-destructive/15 text-destructive border-0 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> Needs discussion
                 </Badge>
+              )}
+              {/* Professor labels (compact display in list view) */}
+              {item.professor_labels && item.professor_labels.length > 0 && (
+                <>
+                  {item.professor_labels.slice(0, 2).map((lbl) => {
+                    const def = LABELS.find((l) => l.label === lbl)
+                    return def ? (
+                      <span key={lbl} className="text-xs">{def.emoji} {def.label}</span>
+                    ) : null
+                  })}
+                  {item.professor_labels.length > 2 && (
+                    <span className="text-xs text-muted-foreground">+{item.professor_labels.length - 2} more</span>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -264,6 +301,142 @@ function TopicGroupCard({
   )
 }
 
+// ─── Review Card (professor review mode) ─────────────────────────────────────
+function ReviewCard({
+  item,
+  sessionId,
+  queryKey,
+}: {
+  item: ReportQuestionOut
+  sessionId: string
+  queryKey: readonly [string, string | undefined, string | undefined]
+}) {
+  const queryClient = useQueryClient()
+  const [localLabels, setLocalLabels] = useState<string[]>(item.professor_labels ?? [])
+  const [localNotes, setLocalNotes] = useState<string>(item.professor_notes ?? '')
+  const [showCitations, setShowCitations] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const reviewMutation = useMutation({
+    mutationFn: ({ labels, notes }: { labels: string[]; notes: string | null }) =>
+      updateQuestionReview(item.question_id, labels, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...queryKey] })
+    },
+  })
+
+  const saveReview = (labels: string[], notes: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      reviewMutation.mutate({ labels, notes: notes || null })
+    }, 500)
+  }
+
+  const toggleLabel = (label: string) => {
+    const next = localLabels.includes(label)
+      ? localLabels.filter((l) => l !== label)
+      : [...localLabels, label]
+    setLocalLabels(next)
+    saveReview(next, localNotes)
+  }
+
+  const handleNotesBlur = () => {
+    saveReview(localLabels, localNotes)
+  }
+
+  const { answer } = item
+
+  return (
+    <div className="rounded-xl border-2 border-border bg-card overflow-hidden">
+      {/* Meta row */}
+      <div className="px-5 pt-5 pb-3 border-b border-border">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-muted-foreground">{item.anonymous_name}</span>
+          <span className="text-xs text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground">
+            {new Date(item.asked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          {reviewMutation.isPending && (
+            <span className="ml-auto text-xs text-muted-foreground">Saving…</span>
+          )}
+        </div>
+        <p className="text-lg font-semibold text-foreground">{item.content}</p>
+      </div>
+
+      {/* AI answer */}
+      <div className="px-5 py-4 border-b border-border max-h-60 overflow-y-auto">
+        {answer ? (
+          <>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{answer.content}</p>
+            {answer.citations.length > 0 && (
+              <div className="mt-3">
+                <button
+                  onClick={() => setShowCitations((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  <BookOpen className="h-3 w-3" />
+                  {showCitations ? 'Hide' : 'Show'} {answer.citations.length} source{answer.citations.length !== 1 ? 's' : ''}
+                </button>
+                {showCitations && (
+                  <div className="mt-2 space-y-1.5">
+                    {answer.citations.map((c) => (
+                      <div key={c.chunk_id} className="text-xs bg-muted rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-primary">[{c.citation_order}]</span>
+                          {c.page_number && <span className="text-muted-foreground">Page {c.page_number}</span>}
+                          <span className="ml-auto text-muted-foreground">{Math.round(c.relevance_score * 100)}% match</span>
+                        </div>
+                        <p className="text-muted-foreground line-clamp-2">{c.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">No answer yet.</p>
+        )}
+      </div>
+
+      {/* Labels */}
+      <div className="px-5 py-4 border-b border-border">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Labels</p>
+        <div className="flex flex-wrap gap-2">
+          {LABELS.map(({ emoji, label, color }) => {
+            const active = localLabels.includes(label)
+            return (
+              <button
+                key={label}
+                onClick={() => toggleLabel(label)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium transition-all ${
+                  active ? LABEL_COLOR_MAP[color] : LABEL_INACTIVE
+                }`}
+              >
+                <span>{emoji}</span>
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Notes */}
+      <div className="px-5 py-4">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Notes</p>
+        <textarea
+          value={localNotes}
+          onChange={(e) => setLocalNotes(e.target.value)}
+          onBlur={handleNotesBlur}
+          placeholder="Add a note…"
+          rows={3}
+          className="w-full text-sm bg-muted/40 border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+        />
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ReportPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -282,16 +455,15 @@ export default function ReportPage() {
     enabled: !!sessionId,
   })
 
+  const [viewMode, setViewMode] = useState<'list' | 'review'>('list')
+  const [reviewIndex, setReviewIndex] = useState(0)
+
   const handleVote = useCallback((answerId: string, vote: 'up' | 'down') => {
-    // ── Optimistic update: patch the cache immediately ──
     const previous = queryClient.getQueryData<SessionReportResponse>(queryKey)
     if (previous) {
       queryClient.setQueryData<SessionReportResponse>(queryKey, applyOptimisticVote(previous, answerId, vote))
     }
-
-    // ── Fire the API call in the background ──
     submitFeedback(answerId, vote).catch(() => {
-      // Roll back on error
       if (previous) queryClient.setQueryData(queryKey, previous)
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -328,6 +500,14 @@ export default function ReportPage() {
     (sum, g) => sum + g.questions.filter((q) => q.feedback?.needs_attention).length, 0
   ) ?? 0
 
+  // Flat list of all questions for review mode
+  const allQuestions = useMemo(
+    () => data?.groups.flatMap((g) => g.questions) ?? [],
+    [data],
+  )
+  const safeReviewIndex = Math.min(reviewIndex, Math.max(0, allQuestions.length - 1))
+  const currentQuestion = allQuestions[safeReviewIndex]
+
   return (
     <DashboardLayout>
       <motion.div
@@ -345,16 +525,43 @@ export default function ReportPage() {
 
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-foreground">Class Questions</h1>
-          {totalAttention > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-destructive font-medium">
-              <AlertTriangle className="h-4 w-4" />
-              {totalAttention} need{totalAttention === 1 ? 's' : ''} attention
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {totalAttention > 0 && (
+              <div className="flex items-center gap-1.5 text-sm text-destructive font-medium">
+                <AlertTriangle className="h-4 w-4" />
+                {totalAttention} need{totalAttention === 1 ? 's' : ''} attention
+              </div>
+            )}
+            {/* View toggle — only show for professor */}
+            {role === 'professor' && (
+              <div className="flex items-center rounded-lg border border-border overflow-hidden text-xs">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-3 py-1.5 transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  onClick={() => setViewMode('review')}
+                  className={`px-3 py-1.5 transition-colors ${
+                    viewMode === 'review'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  Review
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <p className="text-muted-foreground mb-5">
           All questions from this lecture, grouped by topic — identities are anonymous.
-          Vote on answers to help the professor prioritise discussion topics.
+          {role !== 'professor' && ' Vote on answers to help the professor prioritise discussion topics.'}
         </p>
 
         {/* ── Metrics row ── */}
@@ -432,15 +639,62 @@ export default function ReportPage() {
         {!isLoading && data?.total_questions === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
             <Users className="h-10 w-10 opacity-20" />
-            <p className="text-sm">No questions have been asked in this session yet.</p>
+            <p className="text-sm">No published questions in this session yet.</p>
           </div>
         )}
 
-        <div className="space-y-4">
-          {data?.groups.map((group, i) => (
-            <TopicGroupCard key={group.topic_name} group={group} groupIndex={i} onVote={handleVote} />
-          ))}
-        </div>
+        {/* ── List view ── */}
+        {viewMode === 'list' && (
+          <div className="space-y-4">
+            {data?.groups.map((group, i) => (
+              <TopicGroupCard key={group.topic_name} group={group} groupIndex={i} onVote={handleVote} />
+            ))}
+          </div>
+        )}
+
+        {/* ── Review view (professor only) ── */}
+        {viewMode === 'review' && role === 'professor' && (
+          <div className="space-y-4">
+            {allQuestions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
+                <Users className="h-10 w-10 opacity-20" />
+                <p className="text-sm">No questions to review.</p>
+              </div>
+            ) : (
+              <>
+                {/* Counter */}
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>{safeReviewIndex + 1} of {allQuestions.length}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setReviewIndex((i) => Math.max(0, i - 1))}
+                      disabled={safeReviewIndex === 0}
+                      className="p-1.5 rounded-lg border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setReviewIndex((i) => Math.min(allQuestions.length - 1, i + 1))}
+                      disabled={safeReviewIndex === allQuestions.length - 1}
+                      className="p-1.5 rounded-lg border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {currentQuestion && (
+                  <ReviewCard
+                    key={currentQuestion.question_id}
+                    item={currentQuestion}
+                    sessionId={sessionId!}
+                    queryKey={queryKey}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        )}
       </motion.div>
     </DashboardLayout>
   )

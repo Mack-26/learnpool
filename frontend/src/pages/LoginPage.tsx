@@ -98,10 +98,33 @@ export default function LoginPage() {
           transition={{ duration: 0.6 }}
           className="relative z-10 text-center px-12"
         >
-          <div className="h-36 w-36 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-8 overflow-hidden">
-            <img src="/logo.png" alt="LearnPool" className="h-32 w-32 object-contain" />
-          </div>
-          <h1 className="text-4xl font-bold text-white mb-4">LearnPool</h1>
+          <h1
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: '3.5rem',
+              fontWeight: 700,
+              color: '#ffffff',
+              letterSpacing: '-0.02em',
+              lineHeight: 1,
+              marginBottom: '1.5rem',
+              userSelect: 'none',
+            }}
+          >
+            <span style={{ fontWeight: 300, color: 'rgba(255,255,255,0.7)' }}>[</span>
+            <span style={{ fontStyle: 'italic', fontWeight: 800 }}>Vibe</span>
+            <span style={{ fontWeight: 300, color: 'rgba(255,255,255,0.7)' }}>]</span>
+            <sup
+              style={{
+                fontSize: '1.5rem',
+                fontStyle: 'italic',
+                fontWeight: 700,
+                verticalAlign: 'super',
+                color: 'rgba(255,255,255,0.85)',
+              }}
+            >
+              n
+            </sup>
+          </h1>
           <p className="text-white/80 text-lg max-w-md">
             AI-powered classroom engagement. Smarter questions, deeper understanding.
           </p>
@@ -117,9 +140,23 @@ export default function LoginPage() {
           className="w-full max-w-md"
         >
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
-            <img src="/logo.png" alt="LearnPool" className="h-20 w-20 rounded-xl object-contain" />
-            <span className="text-xl font-bold text-foreground">LearnPool</span>
+          <div className="lg:hidden flex items-center mb-8">
+            <span
+              style={{
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontSize: '1.8rem',
+                fontWeight: 700,
+                color: '#1e3a8a',
+                letterSpacing: '-0.02em',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}
+            >
+              <span style={{ fontWeight: 300, color: '#3b60c4' }}>[</span>
+              <span style={{ fontStyle: 'italic', fontWeight: 800 }}>Vibe</span>
+              <span style={{ fontWeight: 300, color: '#3b60c4' }}>]</span>
+              <sup style={{ fontSize: '0.95rem', fontStyle: 'italic', fontWeight: 700, verticalAlign: 'super', color: '#2d4fa8' }}>n</sup>
+            </span>
           </div>
 
           <div className="flex items-center gap-3 mb-1">
