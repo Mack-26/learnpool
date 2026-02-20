@@ -304,11 +304,9 @@ function TopicGroupCard({
 // ─── Review Card (professor review mode) ─────────────────────────────────────
 function ReviewCard({
   item,
-  sessionId,
   queryKey,
 }: {
   item: ReportQuestionOut
-  sessionId: string
   queryKey: readonly [string, string | undefined, string | undefined]
 }) {
   const queryClient = useQueryClient()
@@ -687,7 +685,6 @@ export default function ReportPage() {
                   <ReviewCard
                     key={currentQuestion.question_id}
                     item={currentQuestion}
-                    sessionId={sessionId!}
                     queryKey={queryKey}
                   />
                 )}
