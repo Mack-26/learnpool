@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send, BookOpen, Zap, ThumbsUp, ThumbsDown, Eye, EyeOff, LogOut, X, AlertCircle, FileText,
 } from 'lucide-react'
-import { checkSession, getQuestions, getSessionDocuments, postQuestion } from '../api/sessions'
+import { checkSession, getQuestions, getSessionDocuments, postQuestion, submitFeedback } from '../api/sessions'
+import { useSettingsStore } from '../store/settingsStore'
 import type { DocumentOut, QuestionOut } from '../types/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -209,6 +210,7 @@ export default function ChatPage() {
   const [showNudge, setShowNudge] = useState(false)
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
+  const personality = useSettingsStore((s) => s.personality)
 
   // Resizable PDF panel
   const [pdfWidth, setPdfWidth] = useState(DEFAULT_PDF_WIDTH)
@@ -271,7 +273,7 @@ export default function ChatPage() {
   })
 
   const mutation = useMutation({
-    mutationFn: (content: string) => postQuestion(sessionId!, content),
+    mutationFn: (content: string) => postQuestion(sessionId!, content, personality),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['questions', sessionId] }),
   })
 
@@ -338,7 +340,7 @@ export default function ChatPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/sessions/${sessionId}`)}
               className="text-xs"
             >
               <LogOut className="h-3.5 w-3.5 mr-1" />
@@ -369,7 +371,12 @@ export default function ChatPage() {
                   key={q.question_id}
                   question={q}
                   feedback={feedback[q.question_id]}
-                  onFeedback={(id, val) => setFeedback((prev) => ({ ...prev, [id]: val }))}
+                  onFeedback={(id, val) => {
+                    setFeedback((prev) => ({ ...prev, [id]: val }))
+                    if (q.answer?.answer_id) {
+                      submitFeedback(q.answer.answer_id, val).catch(() => {/* silent */})
+                    }
+                  }}
                 />
               ))}
               <div ref={bottomRef} />

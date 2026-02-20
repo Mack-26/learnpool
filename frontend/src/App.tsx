@@ -3,7 +3,10 @@ import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import ClassListPage from './pages/ClassListPage'
 import SessionListPage from './pages/SessionListPage'
+import SessionDetailPage from './pages/SessionDetailPage'
 import ChatPage from './pages/ChatPage'
+import ReportPage from './pages/ReportPage'
+import SessionSettingsPage from './pages/SessionSettingsPage'
 
 export default function App() {
   return (
@@ -11,7 +14,10 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/classes" element={<ProtectedRoute><ClassListPage /></ProtectedRoute>} />
       <Route path="/classes/:courseId" element={<ProtectedRoute><SessionListPage /></ProtectedRoute>} />
-      <Route path="/sessions/:sessionId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+      <Route path="/sessions/:sessionId" element={<ProtectedRoute><SessionDetailPage /></ProtectedRoute>} />
+      <Route path="/sessions/:sessionId/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+      <Route path="/sessions/:sessionId/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
+      <Route path="/sessions/:sessionId/settings" element={<ProtectedRoute><SessionSettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/classes" replace />} />
     </Routes>
   )
