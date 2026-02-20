@@ -29,7 +29,7 @@ export default function ScheduleLecturePage() {
   const now = new Date()
   const isEdit = !!sessionId
 
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(`lecture ${formatDateForInput(now)}`)
   const [scheduledDate, setScheduledDate] = useState(formatDateForInput(now))
   const [scheduledTime, setScheduledTime] = useState(formatTimeForInput(now))
   const [location, setLocation] = useState('')
@@ -103,7 +103,9 @@ export default function ScheduleLecturePage() {
 
       queryClient.invalidateQueries({ queryKey: ['professor-sessions', courseId] })
       queryClient.invalidateQueries({ queryKey: ['course-documents', courseId] })
-      navigate(`/instructor/courses/${courseId}`)
+      navigate(`/instructor/courses/${courseId}`, {
+        state: { successMessage: result.isEdit ? 'Lecture updated successfully.' : 'Future lecture scheduled successfully.' },
+      })
     },
   })
 
@@ -213,7 +215,7 @@ export default function ScheduleLecturePage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Lecture 3 — Neural Networks"
+              placeholder="e.g. lecture 2025-02-20"
               className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
             />
           </div>
@@ -228,7 +230,11 @@ export default function ScheduleLecturePage() {
               <input
                 type="date"
                 value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
+                onChange={(e) => {
+                  const d = e.target.value
+                  setScheduledDate(d)
+                  if (!isEdit) setTitle(`lecture ${d}`)
+                }}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
               />
             </div>

@@ -31,9 +31,9 @@ async def handle_question(
 ) -> QuestionOut:
     """Full 9-step RAG pipeline: save question → embed → retrieve → generate → save answer+citations → return."""
 
-    # Step 1: Save question
+    # Step 1: Save question (published=true — always shared with professor)
     q_row = await db.fetchrow(
-        "INSERT INTO questions (session_id, student_id, content, anonymous) VALUES ($1, $2, $3, $4) RETURNING id, asked_at",
+        "INSERT INTO questions (session_id, student_id, content, anonymous, published) VALUES ($1, $2, $3, $4, true) RETURNING id, asked_at",
         session_id,
         student_id,
         content,
@@ -51,8 +51,37 @@ async def handle_question(
     )
     active_doc_ids = [str(r["document_id"]) for r in doc_rows]
 
-    # Step 4: Vector similarity search against active chunks
-    # Pass embedding as numpy array — pgvector's register_vector codec handles the type conversion.
+    # Step 4a: Fetch ALL chunks from all active session documents (full context)
+    all_chunks = []
+    if active_doc_ids:
+        all_chunk_rows = await db.fetch(
+            """
+            SELECT dc.id, dc.content, dc.page_number, d.filename
+            FROM document_chunks dc
+            JOIN documents d ON d.id = dc.document_id
+            WHERE dc.document_id = ANY($1::uuid[])
+            ORDER BY d.filename, dc.chunk_index
+            """,
+            active_doc_ids,
+        )
+        all_chunks = [dict(r) for r in all_chunk_rows]
+        # Fallback: include documents with content but no chunks (e.g. inline text)
+        doc_content_rows = await db.fetch(
+            """
+            SELECT d.filename, d.content
+            FROM documents d
+            WHERE d.id = ANY($1::uuid[]) AND d.content IS NOT NULL AND trim(d.content) != ''
+            """,
+            active_doc_ids,
+        )
+        docs_with_content = {r["filename"]: r["content"] for r in doc_content_rows}
+        docs_with_chunks = {c.get("filename") for c in all_chunks}
+        for filename, content in docs_with_content.items():
+            if filename not in docs_with_chunks:
+                all_chunks.append({"content": content, "filename": filename, "page_number": None})
+        all_chunks.sort(key=lambda c: (c.get("filename", ""), c.get("page_number") or 0))
+
+    # Step 4b: Vector similarity search for top 5 chunks (used for citations)
     chunks = []
     if active_doc_ids:
         embedding_vec = np.array(query_embedding, dtype=np.float32)
@@ -71,18 +100,19 @@ async def handle_question(
         )
         chunks = [dict(r) for r in chunk_rows]
 
-    # Step 5: Build grounded system prompt
+    # Step 5: Build grounded system prompt (use ALL chunks for full context)
     personality_instruction = _PERSONALITY_INSTRUCTIONS.get(personality, _PERSONALITY_INSTRUCTIONS["supportive"])
-    if chunks:
-        materials = "\n".join(
-            f"[{i + 1}] (Page {c['page_number'] or '?'}): {c['content']}"
-            for i, c in enumerate(chunks)
+    if all_chunks:
+        materials = "\n\n".join(
+            f"[{c.get('filename', 'Doc')}] (Page {c['page_number'] or '?'}):\n{c['content']}"
+            for c in all_chunks
         )
         system_prompt = (
             f"You are an AI teaching assistant. {personality_instruction} "
-            "Answer the student's question using ONLY the following course materials. "
-            "If the answer cannot be found in the materials, say so clearly — do not use outside knowledge.\n\n"
-            f"--- Course Materials ---\n{materials}\n---"
+            "Answer the student's question using ONLY the following course materials from the posted files. "
+            "You have access to the full content of all documents. Use this context to give accurate, comprehensive answers. "
+            "If the answer cannot be found in the materials, say so clearly - do not use outside knowledge.\n\n"
+            f"--- Course Materials (all posted files) ---\n{materials}\n---"
         )
     else:
         system_prompt = (

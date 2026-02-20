@@ -125,6 +125,17 @@ export async function updateQuestionReview(
   return res.data
 }
 
+export async function submitProfessorFeedback(
+  answerId: string,
+  feedback: 'up' | 'down',
+): Promise<{ thumbs_up: number; thumbs_down: number }> {
+  const res = await client.post<{ thumbs_up: number; thumbs_down: number }>(
+    `/api/professor/answers/${answerId}/feedback`,
+    { feedback }
+  )
+  return res.data
+}
+
 export async function uploadDocument(
   courseId: string,
   file: File,

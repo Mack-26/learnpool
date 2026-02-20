@@ -2,31 +2,39 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { FileText, Eye, X, ChevronDown } from 'lucide-react'
-import { getProfessorCourses, getSessionsWithDocuments } from '../api/professor'
+import { getProfessorCourses, getSessionsWithDocuments as getProfessorSessionsWithDocs } from '../api/professor'
+import { getCourses, getSessionsWithDocuments as getStudentSessionsWithDocs } from '../api/sessions'
 import DashboardLayout from '@/components/DashboardLayout'
+import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/badge'
 import type { DocumentOut } from '../types/api'
 
 function toStatusBadge(status: string) {
   if (status === 'active') return <Badge className="gradient-primary text-white border-0 text-xs">● Live</Badge>
   if (status === 'upcoming') return <Badge variant="secondary" className="text-xs">Upcoming</Badge>
-  return <Badge variant="outline" className="text-xs text-muted-foreground">Past</Badge>
+  return null
 }
 
 export default function LectureMaterialsPage() {
+  const { user } = useAuthStore()
+  const isProfessor = user?.role === 'professor'
+
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [viewingDoc, setViewingDoc] = useState<DocumentOut | null>(null)
 
   const { data: courses = [] } = useQuery({
-    queryKey: ['professor-courses'],
-    queryFn: getProfessorCourses,
+    queryKey: isProfessor ? ['professor-courses'] : ['courses'],
+    queryFn: isProfessor ? getProfessorCourses : getCourses,
   })
 
   const effectiveCourseId = selectedCourseId ?? courses[0]?.id
 
   const { data: sessionsWithDocs = [], isLoading } = useQuery({
-    queryKey: ['sessions-with-documents', effectiveCourseId],
-    queryFn: () => getSessionsWithDocuments(effectiveCourseId!),
+    queryKey: ['sessions-with-documents', effectiveCourseId, isProfessor ? 'professor' : 'student'],
+    queryFn: () =>
+      isProfessor
+        ? getProfessorSessionsWithDocs(effectiveCourseId!)
+        : getStudentSessionsWithDocs(effectiveCourseId!),
     enabled: !!effectiveCourseId,
   })
 
@@ -68,7 +76,9 @@ export default function LectureMaterialsPage() {
           <p className="text-muted-foreground">Loading…</p>
         ) : sessionsWithDocs.length === 0 ? (
           <p className="text-muted-foreground">
-            No lectures yet. Schedule a lecture to add materials.
+            {isProfessor
+              ? 'No lectures yet. Schedule a lecture to add materials.'
+              : 'No lectures yet. Materials will appear when your instructor adds them.'}
           </p>
         ) : (
           <div className="space-y-6">

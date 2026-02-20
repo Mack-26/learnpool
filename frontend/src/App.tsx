@@ -22,6 +22,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       {/* Student routes */}
       <Route path="/classes" element={<ProtectedRoute requireRole="student"><ClassListPage /></ProtectedRoute>} />
+      <Route path="/classes/materials" element={<ProtectedRoute requireRole="student"><LectureMaterialsPage /></ProtectedRoute>} />
       <Route path="/classes/:courseId" element={<ProtectedRoute requireRole="student"><SessionListPage /></ProtectedRoute>} />
       <Route path="/sessions/:sessionId" element={<ProtectedRoute requireRole="student"><SessionDetailPage /></ProtectedRoute>} />
       <Route path="/sessions/:sessionId/chat" element={<ProtectedRoute requireRole="student"><ChatPage /></ProtectedRoute>} />

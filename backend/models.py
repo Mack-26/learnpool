@@ -138,11 +138,23 @@ class TopicGroup(BaseModel):
     student_count: int      # distinct students who asked about this topic
     question_count: int
     questions: list[ReportQuestionOut]
+    summary: str | None = None   # AI-generated 1-sentence summary
+    is_hot: bool = False         # True if in top topics by question count
+
+
+class RepeatingQuestionGroup(BaseModel):
+    """Group of similar/repeating questions."""
+    summary: str
+    question_ids: list[str]
+    count: int
 
 
 class SessionReportResponse(BaseModel):
     groups: list[TopicGroup]
     total_questions: int
+    session_summary: str | None = None      # AI-generated overview
+    repeating_questions: list[RepeatingQuestionGroup] = []
+    hot_topics: list[str] = []              # topic names with most questions
 
 
 class SubmitFeedbackRequest(BaseModel):

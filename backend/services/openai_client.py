@@ -76,3 +76,102 @@ def cluster_questions_by_topic(questions: list[dict]) -> list[dict]:
     except Exception:
         # Graceful fallback: single group with all questions
         return [{"topic_name": "General", "question_ids": [q["question_id"] for q in questions]}]
+
+
+def identify_repeating_questions(questions: list[dict]) -> list[dict]:
+    """Identify groups of similar/repeating questions.
+
+    Input:  [{"question_id": str, "content": str}, ...]
+    Output: [{"summary": str, "question_ids": [str, ...], "count": int}, ...]
+    Only returns groups with count >= 2.
+    """
+    if len(questions) < 2:
+        return []
+
+    lines = "\n".join(f'[{q["question_id"]}] {q["content"]}' for q in questions)
+    prompt = (
+        "You are analyzing student questions from a lecture to find REPEATING or SIMILAR questions.\n\n"
+        f"Questions:\n{lines}\n\n"
+        "Group questions that ask the SAME or VERY SIMILAR thing (different wording, same concept).\n"
+        "Rules:\n"
+        "- Only create groups with 2+ similar questions.\n"
+        "- Each question can appear in at most one group.\n"
+        "- For each group, write a short summary (5-10 words) of what they're asking.\n"
+        "- Return ONLY valid JSON — no prose, no markdown:\n"
+        '{"repeating_groups":[{"summary":"...","question_ids":["id1","id2"]}]}'
+    )
+    try:
+        response = _client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+        )
+        raw = response.choices[0].message.content or "{}"
+        data = json.loads(raw)
+        groups = data.get("repeating_groups", [])
+        return [
+            {**g, "count": len(g.get("question_ids", []))}
+            for g in groups
+            if len(g.get("question_ids", [])) >= 2
+        ]
+    except Exception:
+        return []
+
+
+def summarize_questions_for_dashboard(
+    questions: list[dict],
+    topic_groups: list[dict],
+) -> dict:
+    """Generate session summary and per-topic summaries for the professor dashboard.
+
+    Input:  questions, topic_groups (from cluster_questions_by_topic)
+    Output: {
+        "session_summary": str,
+        "topic_summaries": [{"topic_name": str, "summary": str, "question_count": int}],
+        "hot_topics": [str]  # topic names with most questions, max 3
+    }
+    """
+    if not questions:
+        return {
+            "session_summary": "",
+            "topic_summaries": [],
+            "hot_topics": [],
+        }
+
+    topic_lines = "\n".join(
+        f"- {g.get('topic_name', '?')}: {len(g.get('question_ids', []))} questions"
+        for g in topic_groups
+    )
+    question_sample = "\n".join(
+        (q["content"][:100] + ("..." if len(q["content"]) > 100 else "")) for q in questions[:15]
+    )
+    if len(questions) > 15:
+        question_sample += f"\n... and {len(questions) - 15} more questions"
+
+    prompt = (
+        "You are summarizing student questions from a university lecture for the professor.\n\n"
+        f"Total questions: {len(questions)}\n\n"
+        f"Topics (with question counts):\n{topic_lines}\n\n"
+        f"Sample of questions:\n{question_sample}\n\n"
+        "Provide:\n"
+        "1. session_summary: A 2-4 sentence overview of what students are asking about. "
+        "Highlight main themes and any patterns.\n"
+        "2. topic_summaries: For each topic, a 1-sentence summary of what students asked.\n"
+        "3. hot_topics: The top 1-3 topic names that had the most questions (by count).\n"
+        "Return ONLY valid JSON:\n"
+        '{"session_summary":"...","topic_summaries":[{"topic_name":"...","summary":"...","question_count":N}],"hot_topics":["..."]}'
+    )
+    try:
+        response = _client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+        )
+        raw = response.choices[0].message.content or "{}"
+        return json.loads(raw)
+    except Exception:
+        return {
+            "session_summary": "",
+            "topic_summaries": [],
+            "hot_topics": [],
+        }

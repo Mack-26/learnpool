@@ -1,4 +1,4 @@
-.PHONY: db-up db-down db-reset db-shell db-seed db-logs
+.PHONY: db-up db-down db-reset db-shell db-seed db-clear-history db-logs
 
 # Start PostgreSQL (with pgvector). Schema in db/migrations/ runs automatically
 # on the first start via docker-entrypoint-initdb.d.
@@ -31,6 +31,12 @@ db-shell:
 db-seed:
 	@echo "Loading seed data..."
 	docker compose exec -T db psql -U learnpool -d learnpool < db/seed.sql
+
+# Clear lecture/chat history (questions, answers, citations, feedback).
+db-clear-history:
+	@echo "Clearing lecture history..."
+	docker compose exec -T db psql -U learnpool -d learnpool < db/scripts/clear_lecture_history.sql
+	@echo "Done."
 
 # Tail the database container logs.
 db-logs:

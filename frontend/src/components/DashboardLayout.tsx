@@ -60,6 +60,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ]
     : [
         { icon: BookOpen, label: 'My Classes', path: '/classes' },
+        {
+          icon: FileText,
+          label: 'Lecture Materials',
+          path: '/classes/materials',
+        },
         { icon: Settings, label: 'Settings', path: '/settings' },
       ]
 

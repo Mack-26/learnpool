@@ -85,11 +85,22 @@ export interface TopicGroup {
   student_count: number
   question_count: number
   questions: ReportQuestionOut[]
+  summary?: string | null
+  is_hot?: boolean
+}
+
+export interface RepeatingQuestionGroup {
+  summary: string
+  question_ids: string[]
+  count: number
 }
 
 export interface SessionReportResponse {
   groups: TopicGroup[]
   total_questions: number
+  session_summary?: string | null
+  repeating_questions?: RepeatingQuestionGroup[]
+  hot_topics?: string[]
 }
 
 export type Personality = 'supportive' | 'normal' | 'funny'

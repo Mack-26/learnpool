@@ -27,7 +27,7 @@ export default function ClassCard({ name, professor, status, students, onClick }
         ) : isUpcoming ? (
           <Badge variant="secondary" className="text-xs">Upcoming</Badge>
         ) : (
-          <Badge variant="outline" className="text-xs text-muted-foreground">Past</Badge>
+          <span />
         )}
         {students != null && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
