@@ -34,6 +34,7 @@ class DocumentOut(BaseModel):
     storage_path: str
     url: str
     page_count: int | None
+    content: str | None = None  # For inline text documents
 
 
 class TokenResponse(BaseModel):
@@ -49,6 +50,26 @@ class SessionSummary(BaseModel):
     title: str
     status: str
     started_at: datetime
+
+
+class SessionDetail(BaseModel):
+    """Full session details for edit form."""
+    id: str
+    title: str
+    status: str
+    started_at: datetime
+    scheduled_at: datetime | None = None
+    location: str | None = None
+    document_ids: list[str] = Field(default_factory=list)
+
+
+class SessionWithDocuments(BaseModel):
+    """Session with its attached documents for materials view."""
+    id: str
+    title: str
+    status: str
+    started_at: datetime
+    documents: list["DocumentOut"] = Field(default_factory=list)
 
 
 class SessionCheckResponse(BaseModel):
@@ -111,3 +132,27 @@ class SessionReportResponse(BaseModel):
 
 class SubmitFeedbackRequest(BaseModel):
     feedback: str = Field(..., pattern="^(up|down)$")
+
+
+class CreateSessionRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    scheduled: bool = False  # If True, creates as upcoming (future lecture)
+
+
+class CreateScheduleRequest(BaseModel):
+    """Full schedule form: title, date, time, location, documents."""
+    title: str = Field(..., min_length=1, max_length=200)
+    scheduled_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")  # YYYY-MM-DD
+    scheduled_time: str = Field(..., pattern=r"^\d{1,2}:\d{2}$")  # H:MM or HH:MM
+    location: str = Field("", max_length=500)
+    document_ids: list[str] = Field(default_factory=list, max_length=50)
+
+
+class UpdateSessionStatusRequest(BaseModel):
+    status: str = Field(..., pattern="^(active|ended|released|upcoming)$")
+
+
+class AddDocumentRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    content: str = Field(..., min_length=10, max_length=100_000)
+    session_ids: list[str] = Field(..., min_length=1, max_length=50)

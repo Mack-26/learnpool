@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { getSessionReport } from '../api/sessions'
+import { getProfessorSessionReport } from '../api/professor'
+import { useAuthStore } from '../store/authStore'
 import type { ReportQuestionOut, TopicGroup } from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
@@ -179,10 +181,15 @@ function TopicGroupCard({ group, groupIndex }: { group: TopicGroup; groupIndex: 
 export default function ReportPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
+  const role = useAuthStore((s) => s.user?.role)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['session-report', sessionId],
-    queryFn: () => getSessionReport(sessionId!),
+    queryKey: ['session-report', sessionId, role],
+    queryFn: () =>
+      role === 'professor'
+        ? getProfessorSessionReport(sessionId!)
+        : getSessionReport(sessionId!),
+    enabled: !!sessionId,
   })
 
   const totalAttention = data?.groups.reduce(
@@ -198,10 +205,10 @@ export default function ReportPage() {
         className="max-w-3xl"
       >
         <button
-          onClick={() => navigate(`/sessions/${sessionId}`)}
+          onClick={() => navigate(-1)}
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 transition-colors"
         >
-          ← Back to Session
+          ← Back
         </button>
 
         <div className="flex items-center justify-between mb-1">

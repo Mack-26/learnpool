@@ -68,15 +68,24 @@ function DocumentPanel({ sessionId, width }: { sessionId: string; width: number 
         ))}
       </div>
 
-      {/* PDF preview */}
+      {/* Document preview (PDF iframe or inline text) */}
       <div className="flex-1 overflow-hidden bg-muted/30">
         {selectedDoc ? (
-          <iframe
-            key={selectedDoc.id}
-            src={selectedDoc.url}
-            className="w-full h-full border-0"
-            title={selectedDoc.filename}
-          />
+          selectedDoc.content ? (
+            <div
+              key={selectedDoc.id}
+              className="h-full overflow-y-auto p-4 text-sm text-foreground whitespace-pre-wrap"
+            >
+              {selectedDoc.content}
+            </div>
+          ) : (
+            <iframe
+              key={selectedDoc.id}
+              src={selectedDoc.url}
+              className="w-full h-full border-0"
+              title={selectedDoc.filename}
+            />
+          )
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
             <FileText className="h-8 w-8 opacity-30" />
@@ -275,6 +284,12 @@ export default function ChatPage() {
   const mutation = useMutation({
     mutationFn: (content: string) => postQuestion(sessionId!, content, personality),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['questions', sessionId] }),
+    onError: (err: unknown) => {
+      const msg = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+        : null
+      console.error('Post question failed:', msg || err)
+    },
   })
 
   // Auto-scroll
@@ -284,7 +299,8 @@ export default function ChatPage() {
 
   const handleSend = () => {
     const trimmed = input.trim()
-    if (!trimmed || mutation.isPending) return
+    if (!trimmed || trimmed.length < 5 || mutation.isPending) return
+    if (trimmed.length > 2000) return
     mutation.mutate(trimmed)
     setInput('')
   }
@@ -389,20 +405,28 @@ export default function ChatPage() {
                   onSubmit={(e) => { e.preventDefault(); handleSend() }}
                   className="flex items-center gap-2"
                 >
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder={mutation.isPending ? 'Generating answer…' : 'Ask a question about this session…'}
-                    disabled={mutation.isPending}
-                    className="flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
-                    }}
-                  />
+                  <div className="flex-1 flex flex-col gap-0.5">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder={mutation.isPending ? 'Generating answer…' : 'Ask a question about this session…'}
+                      disabled={mutation.isPending}
+                      className="flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+                      }}
+                    />
+                    {input.trim().length > 0 && input.trim().length < 5 && (
+                      <p className="text-xs text-destructive">At least 5 characters required</p>
+                    )}
+                    {input.length > 2000 && (
+                      <p className="text-xs text-destructive">{input.length}/2000 characters</p>
+                    )}
+                  </div>
                   <Button
                     type="submit"
                     size="icon"
-                    disabled={mutation.isPending || !input.trim()}
+                    disabled={mutation.isPending || !input.trim() || input.trim().length < 5 || input.length > 2000}
                     className="gradient-primary text-white border-0 shrink-0"
                   >
                     <Send className="h-4 w-4" />

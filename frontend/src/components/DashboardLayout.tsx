@@ -1,6 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { GraduationCap, BookOpen, LogOut, Settings } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { GraduationCap, BookOpen, LogOut, Users, Settings, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { getProfessorCourses } from '@/api/professor'
+import { getCourses } from '@/api/sessions'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -10,6 +13,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
+  const isProfessor = user?.role === 'professor'
+
+  const courseIdMatch = location.pathname.match(
+    isProfessor ? /\/instructor\/courses\/([^/]+)/ : /\/classes\/([^/]+)/
+  )
+  const courseId = courseIdMatch?.[1]
+
+  const { data: courses = [] } = useQuery({
+    queryKey: isProfessor ? ['professor-courses'] : ['courses'],
+    queryFn: isProfessor ? getProfessorCourses : getCourses,
+  })
+  const currentCourse = courseId ? courses.find((c) => c.id === courseId) : null
+
+  const dashboardLabel = currentCourse ? currentCourse.name : 'Dashboard'
+  const dashboardPath = courseId
+    ? isProfessor
+      ? `/instructor/courses/${courseId}`
+      : `/classes/${courseId}`
+    : isProfessor
+      ? '/instructor'
+      : '/classes'
 
   const handleLogout = () => {
     logout()
@@ -17,7 +41,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   const navItems = [
-    { icon: BookOpen, label: 'My Classes', path: '/classes' },
+    {
+      icon: isProfessor ? Users : BookOpen,
+      label: dashboardLabel,
+      path: dashboardPath,
+    },
+    ...(isProfessor
+      ? [
+          {
+            icon: FileText,
+            label: 'Lecture Materials',
+            path: '/instructor/materials',
+          },
+          {
+            icon: Settings,
+            label: 'Settings',
+            path: '/instructor/settings',
+          },
+        ]
+      : []),
   ]
 
   return (
@@ -48,8 +90,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
-                <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
-                {item.label}
+                <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                <span className="min-w-0 truncate" title={item.label}>
+                  {item.label}
+                </span>
               </button>
             )
           })}
