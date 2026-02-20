@@ -1,14 +1,18 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { GraduationCap, BookOpen } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { login } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('alice@example.com')
+  const [password, setPassword] = useState('devpassword')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,7 +27,7 @@ export default function LoginPage() {
         display_name: data.display_name,
         role: data.role,
       })
-      navigate('/sessions')
+      navigate('/classes')
     } catch {
       setError('Invalid email or password.')
     } finally {
@@ -32,90 +36,106 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f8fafc',
-    }}>
-      <div style={{
-        backgroundColor: '#fff',
-        padding: '40px 36px',
-        borderRadius: 16,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-        width: '100%',
-        maxWidth: 380,
-      }}>
-        <h1 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 700, color: '#1e293b' }}>LearnPool</h1>
-        <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: 15 }}>Sign in to join your class session</p>
-
-        <form onSubmit={handleSubmit}>
-          <label style={{ display: 'block', marginBottom: 16 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
+    <div className="min-h-screen flex">
+      {/* Left gradient panel */}
+      <div className="hidden lg:flex lg:w-1/2 gradient-primary items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full border border-white/20"
               style={{
-                display: 'block',
-                width: '100%',
-                marginTop: 6,
-                padding: '10px 12px',
-                border: '1px solid #cbd5e1',
-                borderRadius: 8,
-                fontSize: 15,
-                boxSizing: 'border-box',
+                width: `${200 + i * 120}px`,
+                height: `${200 + i * 120}px`,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
               }}
             />
-          </label>
+          ))}
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 text-center px-12"
+        >
+          <div className="h-20 w-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-8">
+            <GraduationCap className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-white mb-4">LearnPool</h1>
+          <p className="text-white/80 text-lg max-w-md">
+            AI-powered classroom engagement. Smarter questions, deeper understanding.
+          </p>
+        </motion.div>
+      </div>
 
-          <label style={{ display: 'block', marginBottom: 20 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full max-w-md"
+        >
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-2 mb-8">
+            <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center">
+              <GraduationCap className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">LearnPool</span>
+          </div>
+
+          <div className="flex items-center gap-3 mb-1">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+          </div>
+          <p className="text-muted-foreground mb-8">Sign in to access your classes</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@university.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password" className="text-foreground">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
+            <Button
+              type="submit"
               disabled={isLoading}
-              style={{
-                display: 'block',
-                width: '100%',
-                marginTop: 6,
-                padding: '10px 12px',
-                border: '1px solid #cbd5e1',
-                borderRadius: 8,
-                fontSize: 15,
-                boxSizing: 'border-box',
-              }}
-            />
-          </label>
+              className="w-full gradient-primary text-white hover:opacity-90 transition-opacity border-0"
+              size="lg"
+            >
+              {isLoading ? 'Signing in…' : 'Sign In'}
+            </Button>
+          </form>
 
-          {error && (
-            <p style={{ color: '#ef4444', fontSize: 14, margin: '0 0 16px' }}>{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '11px',
-              backgroundColor: '#3b82f6',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.7 : 1,
-            }}
-          >
-            {isLoading ? 'Signing in…' : 'Sign In'}
-          </button>
-        </form>
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Demo: alice@example.com / devpassword
+          </p>
+        </motion.div>
       </div>
     </div>
   )

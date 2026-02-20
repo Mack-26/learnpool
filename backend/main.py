@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from config import settings
 from database import create_pool
@@ -28,6 +29,9 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(student_router)
+
+# Serve uploaded PDFs at /uploads/<filename>
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/")

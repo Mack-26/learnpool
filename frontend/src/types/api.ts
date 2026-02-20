@@ -1,3 +1,19 @@
+export interface CourseOut {
+  id: string
+  name: string
+  description: string | null
+  professor_name: string
+  session_count: number
+}
+
+export interface DocumentOut {
+  id: string
+  filename: string
+  storage_path: string
+  url: string
+  page_count: number | null
+}
+
 export interface TokenResponse {
   access_token: string
   token_type: string

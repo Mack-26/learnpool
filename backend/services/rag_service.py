@@ -1,6 +1,7 @@
 import asyncio
 
 import asyncpg
+import numpy as np
 
 from models import AnswerOut, CitationOut, QuestionOut
 from services import openai_client
@@ -34,21 +35,22 @@ async def handle_question(
     active_doc_ids = [str(r["document_id"]) for r in doc_rows]
 
     # Step 4: Vector similarity search against active chunks
+    # Pass embedding as numpy array — pgvector's register_vector codec handles the type conversion.
     chunks = []
     if active_doc_ids:
-        embedding_str = "[" + ",".join(map(str, query_embedding)) + "]"
+        embedding_vec = np.array(query_embedding, dtype=np.float32)
         chunk_rows = await db.fetch(
             """
             SELECT dc.id, dc.content, dc.page_number,
-                   1 - (dc.embedding <=> $2::vector) AS cosine_similarity
+                   1 - (dc.embedding <=> $2) AS cosine_similarity
             FROM document_chunks dc
             WHERE dc.document_id = ANY($1::uuid[])
               AND dc.embedding IS NOT NULL
-            ORDER BY dc.embedding <=> $2::vector
+            ORDER BY dc.embedding <=> $2
             LIMIT 5
             """,
             active_doc_ids,
-            embedding_str,
+            embedding_vec,
         )
         chunks = [dict(r) for r in chunk_rows]
 

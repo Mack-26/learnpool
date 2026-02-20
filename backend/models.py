@@ -19,6 +19,22 @@ class PostQuestionRequest(BaseModel):
 # Response models
 # ---------------------------------------------------------------------------
 
+class CourseOut(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    professor_name: str
+    session_count: int
+
+
+class DocumentOut(BaseModel):
+    id: str
+    filename: str
+    storage_path: str
+    url: str
+    page_count: int | None
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
