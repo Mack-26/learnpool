@@ -13,6 +13,7 @@ class LoginRequest(BaseModel):
 
 class PostQuestionRequest(BaseModel):
     content: str = Field(..., min_length=5, max_length=2000)
+    personality: str = Field(default="supportive", pattern="^(supportive|normal|funny)$")
 
 
 # ---------------------------------------------------------------------------
@@ -78,3 +79,35 @@ class QuestionOut(BaseModel):
     asked_at: datetime
     student_id: str
     answer: AnswerOut | None = None
+
+
+class AnswerFeedbackOut(BaseModel):
+    thumbs_up: int
+    thumbs_down: int
+    needs_attention: bool   # True when thumbs_down > thumbs_up
+
+
+class ReportQuestionOut(BaseModel):
+    """Anonymised Q&A item for the session report — no student_id exposed."""
+    question_id: str
+    content: str
+    asked_at: datetime
+    anonymous_name: str     # e.g. "Anonymous Lion"
+    answer: AnswerOut | None = None
+    feedback: AnswerFeedbackOut | None = None
+
+
+class TopicGroup(BaseModel):
+    topic_name: str
+    student_count: int      # distinct students who asked about this topic
+    question_count: int
+    questions: list[ReportQuestionOut]
+
+
+class SessionReportResponse(BaseModel):
+    groups: list[TopicGroup]
+    total_questions: int
+
+
+class SubmitFeedbackRequest(BaseModel):
+    feedback: str = Field(..., pattern="^(up|down)$")

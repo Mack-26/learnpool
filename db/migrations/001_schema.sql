@@ -239,3 +239,23 @@ CREATE TABLE answer_citations (
 CREATE INDEX idx_citations_answer ON answer_citations (answer_id);
 -- Used in "most cited documents" dashboard query
 CREATE INDEX idx_citations_chunk  ON answer_citations (chunk_id);
+
+
+-- =============================================================================
+-- ANSWER FEEDBACK
+-- Student thumbs-up / thumbs-down on AI answers.
+-- One row per (student, answer). Upsert to change vote.
+-- =============================================================================
+
+CREATE TABLE answer_feedback (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    answer_id   UUID        NOT NULL REFERENCES answers(id) ON DELETE CASCADE,
+    student_id  UUID        NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
+    feedback    TEXT        NOT NULL CHECK (feedback IN ('up', 'down')),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (answer_id, student_id)
+);
+
+CREATE INDEX idx_feedback_answer  ON answer_feedback (answer_id);
+CREATE INDEX idx_feedback_student ON answer_feedback (student_id);

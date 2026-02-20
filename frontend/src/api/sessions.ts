@@ -1,4 +1,4 @@
-import type { CourseOut, DocumentOut, QuestionOut, SessionCheckResponse, SessionSummary } from '../types/api'
+import type { CourseOut, DocumentOut, Personality, QuestionOut, SessionCheckResponse, SessionReportResponse, SessionSummary } from '../types/api'
 import client from './client'
 
 export async function getCourses(): Promise<CourseOut[]> {
@@ -21,8 +21,18 @@ export async function checkSession(sessionId: string): Promise<SessionCheckRespo
   return res.data
 }
 
-export async function postQuestion(sessionId: string, content: string): Promise<QuestionOut> {
-  const res = await client.post<QuestionOut>(`/api/student/sessions/${sessionId}/questions`, { content })
+export async function postQuestion(sessionId: string, content: string, personality: Personality = 'supportive'): Promise<QuestionOut> {
+  const res = await client.post<QuestionOut>(`/api/student/sessions/${sessionId}/questions`, { content, personality })
+  return res.data
+}
+
+export async function getSessionReport(sessionId: string): Promise<SessionReportResponse> {
+  const res = await client.get<SessionReportResponse>(`/api/student/sessions/${sessionId}/report`)
+  return res.data
+}
+
+export async function submitFeedback(answerId: string, feedback: 'up' | 'down'): Promise<{ thumbs_up: number; thumbs_down: number }> {
+  const res = await client.post(`/api/student/answers/${answerId}/feedback`, { feedback })
   return res.data
 }
 

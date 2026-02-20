@@ -58,3 +58,32 @@ export interface QuestionOut {
   student_id: string
   answer: AnswerOut | null
 }
+
+export interface AnswerFeedbackOut {
+  thumbs_up: number
+  thumbs_down: number
+  needs_attention: boolean
+}
+
+export interface ReportQuestionOut {
+  question_id: string
+  content: string
+  asked_at: string
+  anonymous_name: string
+  answer: AnswerOut | null
+  feedback: AnswerFeedbackOut | null
+}
+
+export interface TopicGroup {
+  topic_name: string
+  student_count: number
+  question_count: number
+  questions: ReportQuestionOut[]
+}
+
+export interface SessionReportResponse {
+  groups: TopicGroup[]
+  total_questions: number
+}
+
+export type Personality = 'supportive' | 'normal' | 'funny'

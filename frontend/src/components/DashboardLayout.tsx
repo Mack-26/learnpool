@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { GraduationCap, BookOpen, LogOut } from 'lucide-react'
+import { GraduationCap, BookOpen, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 interface DashboardLayoutProps {

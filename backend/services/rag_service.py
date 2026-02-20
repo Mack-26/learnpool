@@ -6,12 +6,27 @@ import numpy as np
 from models import AnswerOut, CitationOut, QuestionOut
 from services import openai_client
 
+_PERSONALITY_INSTRUCTIONS: dict[str, str] = {
+    "supportive": (
+        "Use an encouraging, patient, and supportive teaching style. "
+        "Acknowledge the student's effort and guide them step by step."
+    ),
+    "normal": (
+        "Use a clear, concise, and professional teaching style."
+    ),
+    "funny": (
+        "Use a friendly, light-hearted style with occasional tasteful humour "
+        "to make learning enjoyable — but keep all information accurate."
+    ),
+}
+
 
 async def handle_question(
     session_id: str,
     student_id: str,
     content: str,
     db: asyncpg.Connection,
+    personality: str = "supportive",
 ) -> QuestionOut:
     """Full 9-step RAG pipeline: save question → embed → retrieve → generate → save answer+citations → return."""
 
@@ -55,22 +70,23 @@ async def handle_question(
         chunks = [dict(r) for r in chunk_rows]
 
     # Step 5: Build grounded system prompt
+    personality_instruction = _PERSONALITY_INSTRUCTIONS.get(personality, _PERSONALITY_INSTRUCTIONS["supportive"])
     if chunks:
         materials = "\n".join(
             f"[{i + 1}] (Page {c['page_number'] or '?'}): {c['content']}"
             for i, c in enumerate(chunks)
         )
         system_prompt = (
-            "You are an AI teaching assistant. Answer the student's question using ONLY "
-            "the following course materials. If the answer cannot be found in the materials, "
-            "say so clearly — do not use outside knowledge.\n\n"
+            f"You are an AI teaching assistant. {personality_instruction} "
+            "Answer the student's question using ONLY the following course materials. "
+            "If the answer cannot be found in the materials, say so clearly — do not use outside knowledge.\n\n"
             f"--- Course Materials ---\n{materials}\n---"
         )
     else:
         system_prompt = (
-            "You are an AI teaching assistant. No course materials are currently available "
-            "for this session. Let the student know their question cannot be answered from "
-            "course materials right now."
+            f"You are an AI teaching assistant. {personality_instruction} "
+            "No course materials are currently available for this session. "
+            "Let the student know their question cannot be answered from course materials right now."
         )
 
     # Step 6: Call GPT-4o (sync → thread pool)
