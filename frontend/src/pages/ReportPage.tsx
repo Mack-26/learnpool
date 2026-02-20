@@ -4,16 +4,34 @@ import { motion } from 'framer-motion'
 import {
   BookOpen, ChevronDown, ChevronUp, Users, AlertTriangle, ThumbsUp, ThumbsDown,
   MessageSquareText, Layers, Flame, TrendingUp, ChevronLeft, ChevronRight,
+  Sparkles, Repeat, CheckCircle2,
 } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { getSessionReport, submitFeedback } from '../api/sessions'
-import { getProfessorSessionReport, updateQuestionReview } from '../api/professor'
+import { getProfessorSessionReport, updateQuestionReview, submitProfessorFeedback } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
-import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
+import type { ReportQuestionOut, SessionReportResponse, TopicGroup, RepeatingQuestionGroup } from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Apply optimistic "discussed" label update to cached report data. */
+function applyOptimisticDiscussed(
+  old: SessionReportResponse,
+  questionId: string,
+  labels: string[],
+): SessionReportResponse {
+  return {
+    ...old,
+    groups: old.groups.map((g) => ({
+      ...g,
+      questions: g.questions.map((q) =>
+        q.question_id === questionId ? { ...q, professor_labels: labels } : q
+      ),
+    })),
+  }
+}
 
 /** Apply an optimistic vote to cached report data, returning the new snapshot. */
 function applyOptimisticVote(
@@ -52,7 +70,10 @@ function applyOptimisticVote(
 }
 
 // ─── Label definitions ────────────────────────────────────────────────────────
+const DISCUSSED_LABEL = 'Discussed in class'
+
 const LABELS = [
+  { emoji: '✓', label: DISCUSSED_LABEL, color: 'green' },
   { emoji: '⚡', label: 'Interesting Question', color: 'blue' },
   { emoji: '🎯', label: 'Good Analogy',         color: 'green' },
   { emoji: '❌', label: 'Wrong Answer',          color: 'red' },
@@ -74,19 +95,30 @@ const LABEL_COLOR_MAP: Record<string, string> = {
 
 const LABEL_INACTIVE = 'bg-background text-muted-foreground border-border hover:border-primary/40'
 
+/** Question needs attention unless professor marked it as discussed in class. */
+function effectiveNeedsAttention(q: ReportQuestionOut): boolean {
+  if (!q.feedback?.needs_attention) return false
+  return !q.professor_labels?.includes(DISCUSSED_LABEL)
+}
+
 // ─── Single Q&A card ──────────────────────────────────────────────────────────
 function ReportItem({
   item,
   index,
   onVote,
+  isProfessor,
+  onMarkDiscussed,
 }: {
   item: ReportQuestionOut
   index: number
   onVote: (answerId: string, val: 'up' | 'down') => void
+  isProfessor?: boolean
+  onMarkDiscussed?: (item: ReportQuestionOut, labels: string[]) => void
 }) {
   const [open, setOpen] = useState(false)
   const { answer, feedback } = item
-  const needsAttention = feedback?.needs_attention ?? false
+  const needsAttention = isProfessor && effectiveNeedsAttention(item)
+  const isDiscussed = item.professor_labels?.includes(DISCUSSED_LABEL)
   const up = feedback?.thumbs_up ?? 0
   const down = feedback?.thumbs_down ?? 0
 
@@ -135,17 +167,20 @@ function ReportItem({
                   <AlertTriangle className="h-3 w-3" /> Needs discussion
                 </Badge>
               )}
-              {/* Professor labels (compact display in list view) */}
-              {item.professor_labels && item.professor_labels.length > 0 && (
+              {/* Professor labels (compact display, excluding Discussed in class which has its own badge) */}
+              {item.professor_labels && item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).length > 0 && (
                 <>
-                  {item.professor_labels.slice(0, 2).map((lbl) => {
-                    const def = LABELS.find((l) => l.label === lbl)
-                    return def ? (
-                      <span key={lbl} className="text-xs">{def.emoji} {def.label}</span>
-                    ) : null
-                  })}
-                  {item.professor_labels.length > 2 && (
-                    <span className="text-xs text-muted-foreground">+{item.professor_labels.length - 2} more</span>
+                  {item.professor_labels
+                    .filter((l) => l !== DISCUSSED_LABEL)
+                    .slice(0, 2)
+                    .map((lbl) => {
+                      const def = LABELS.find((l) => l.label === lbl)
+                      return def ? (
+                        <span key={lbl} className="text-xs">{def.emoji} {def.label}</span>
+                      ) : null
+                    })}
+                  {item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).length > 2 && (
+                    <span className="text-xs text-muted-foreground">+{item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).length - 2} more</span>
                   )}
                 </>
               )}
@@ -158,6 +193,29 @@ function ReportItem({
               : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
           )}
         </button>
+
+        {/* Professor: Mark discussed button */}
+        {isProfessor && onMarkDiscussed && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              const current = item.professor_labels ?? []
+              const next = current.includes(DISCUSSED_LABEL)
+                ? current.filter((l) => l !== DISCUSSED_LABEL)
+                : [...current, DISCUSSED_LABEL]
+              onMarkDiscussed(item, next)
+            }}
+            className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+              isDiscussed
+                ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/40'
+                : 'bg-muted/50 text-muted-foreground hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400 border border-transparent'
+            }`}
+            title={isDiscussed ? 'Unmark as discussed' : 'Mark as discussed in class'}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Discussed
+          </button>
+        )}
 
         {/* Vote buttons — icon-only, no background/border */}
         {answer && (
@@ -238,13 +296,17 @@ function TopicGroupCard({
   group,
   groupIndex,
   onVote,
+  isProfessor,
+  onMarkDiscussed,
 }: {
   group: TopicGroup
   groupIndex: number
   onVote: (answerId: string, val: 'up' | 'down') => void
+  isProfessor?: boolean
+  onMarkDiscussed?: (item: ReportQuestionOut, labels: string[]) => void
 }) {
   const [expanded, setExpanded] = useState(true)
-  const attentionCount = group.questions.filter((q) => q.feedback?.needs_attention).length
+  const attentionCount = isProfessor ? group.questions.filter((q) => effectiveNeedsAttention(q)).length : 0
 
   return (
     <motion.div
@@ -263,7 +325,17 @@ function TopicGroupCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground">{group.topic_name}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-bold text-foreground">{group.topic_name}</p>
+            {group.is_hot && (
+              <Badge className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40">
+                <Flame className="h-3 w-3 mr-0.5" /> Hot topic
+              </Badge>
+            )}
+          </div>
+          {group.summary && (
+            <p className="text-xs text-muted-foreground mt-0.5 italic">{group.summary}</p>
+          )}
           <div className="flex items-center gap-3 mt-0.5">
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Users className="h-3 w-3" />
@@ -292,7 +364,14 @@ function TopicGroupCard({
         <div className="px-4 pb-4 space-y-2 border-t border-border bg-muted/20">
           <div className="pt-3 space-y-2">
             {group.questions.map((item, i) => (
-              <ReportItem key={item.question_id} item={item} index={i} onVote={onVote} />
+              <ReportItem
+                key={item.question_id}
+                item={item}
+                index={i}
+                onVote={onVote}
+                isProfessor={isProfessor}
+                onMarkDiscussed={onMarkDiscussed}
+              />
             ))}
           </div>
         </div>
@@ -451,21 +530,36 @@ export default function ReportPage() {
         ? getProfessorSessionReport(sessionId!)
         : getSessionReport(sessionId!),
     enabled: !!sessionId,
+    refetchInterval: role === 'professor' ? 60_000 : false, // Poll every 1 min so professor sees new summaries
   })
 
   const [viewMode, setViewMode] = useState<'list' | 'review'>('list')
   const [reviewIndex, setReviewIndex] = useState(0)
 
-  const handleVote = useCallback((answerId: string, vote: 'up' | 'down') => {
-    const previous = queryClient.getQueryData<SessionReportResponse>(queryKey)
-    if (previous) {
-      queryClient.setQueryData<SessionReportResponse>(queryKey, applyOptimisticVote(previous, answerId, vote))
-    }
-    submitFeedback(answerId, vote).catch(() => {
-      if (previous) queryClient.setQueryData(queryKey, previous)
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryClient, sessionId])
+  const voteMutation = useMutation({
+    mutationFn: ({ answerId, vote }: { answerId: string; vote: 'up' | 'down' }) =>
+      role === 'professor'
+        ? submitProfessorFeedback(answerId, vote)
+        : submitFeedback(answerId, vote),
+    onMutate: async ({ answerId, vote }) => {
+      const previous = queryClient.getQueryData<SessionReportResponse>(queryKey)
+      if (previous) {
+        queryClient.setQueryData(queryKey, applyOptimisticVote(previous, answerId, vote))
+      }
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+  })
+  const handleVote = useCallback(
+    (answerId: string, vote: 'up' | 'down') => {
+      voteMutation.mutate({ answerId, vote })
+    },
+    [voteMutation]
+  )
 
   // ── Derived metrics ──
   const metrics = useMemo(() => {
@@ -494,9 +588,36 @@ export default function ReportPage() {
     }
   }, [data])
 
-  const totalAttention = data?.groups.reduce(
-    (sum, g) => sum + g.questions.filter((q) => q.feedback?.needs_attention).length, 0
-  ) ?? 0
+  const totalAttention = (role === 'professor'
+    ? data?.groups.reduce((sum, g) => sum + g.questions.filter((q) => effectiveNeedsAttention(q)).length, 0) ?? 0
+    : 0)
+
+  const markDiscussedMutation = useMutation({
+    mutationFn: ({ questionId, labels, notes }: { questionId: string; labels: string[]; notes: string | null }) =>
+      updateQuestionReview(questionId, labels, notes),
+    onMutate: async ({ questionId, labels }) => {
+      const previous = queryClient.getQueryData<SessionReportResponse>(queryKey)
+      if (previous) {
+        queryClient.setQueryData(queryKey, applyOptimisticDiscussed(previous, questionId, labels))
+      }
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+  })
+  const handleMarkDiscussed = useCallback(
+    (item: ReportQuestionOut, labels: string[]) => {
+      markDiscussedMutation.mutate({
+        questionId: item.question_id,
+        labels,
+        notes: item.professor_notes ?? null,
+      })
+    },
+    [markDiscussedMutation]
+  )
 
   // Flat list of all questions for review mode
   const allQuestions = useMemo(
@@ -561,6 +682,56 @@ export default function ReportPage() {
           All questions from this lecture, grouped by topic — identities are anonymous.
           {role !== 'professor' && ' Vote on answers to help the professor prioritise discussion topics.'}
         </p>
+
+        {/* ── AI Session Summary ── */}
+        {data?.session_summary && (
+          <div className="mb-6 p-4 rounded-xl border border-primary/30 bg-primary/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">AI Summary</span>
+            </div>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{data.session_summary}</p>
+          </div>
+        )}
+
+        {/* ── Repeating Questions ── */}
+        {data?.repeating_questions && data.repeating_questions.length > 0 && (
+          <div className="mb-6 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
+            <div className="flex items-center gap-2 mb-3">
+              <Repeat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <span className="text-sm font-semibold text-foreground">Repeating Questions</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Similar questions asked by multiple students — consider addressing these in class.
+            </p>
+            <div className="space-y-2">
+              {data.repeating_questions.map((rg: RepeatingQuestionGroup, i: number) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background/80 border border-border"
+                >
+                  <Badge variant="secondary" className="shrink-0">
+                    Repeated {rg.count} {rg.count === 1 ? 'time' : 'times'}
+                  </Badge>
+                  <span className="text-sm text-foreground">{rg.summary}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Hot topics badges ── */}
+        {data?.hot_topics && data.hot_topics.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="text-xs font-medium text-muted-foreground">Hot topics:</span>
+            {data.hot_topics.map((t) => (
+              <Badge key={t} variant="secondary" className="text-xs">
+                <Flame className="h-3 w-3 mr-1" />
+                {t}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         {/* ── Metrics row ── */}
         {metrics && (
@@ -637,16 +808,32 @@ export default function ReportPage() {
         {!isLoading && data?.total_questions === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
             <Users className="h-10 w-10 opacity-20" />
-            <p className="text-sm">No published questions in this session yet.</p>
+            <p className="text-sm">
+              No questions in this session yet.
+            </p>
           </div>
         )}
 
         {/* ── List view ── */}
         {viewMode === 'list' && (
           <div className="space-y-4">
-            {data?.groups.map((group, i) => (
-              <TopicGroupCard key={group.topic_name} group={group} groupIndex={i} onVote={handleVote} />
-            ))}
+            {[...(data?.groups ?? [])]
+              .sort((a, b) => {
+                const aNeed = a.questions.filter((q) => effectiveNeedsAttention(q)).length
+                const bNeed = b.questions.filter((q) => effectiveNeedsAttention(q)).length
+                if (bNeed !== aNeed) return bNeed - aNeed
+                return b.question_count - a.question_count
+              })
+              .map((group, i) => (
+              <TopicGroupCard
+                key={group.topic_name}
+                group={group}
+                groupIndex={i}
+                onVote={handleVote}
+                isProfessor={role === 'professor'}
+                onMarkDiscussed={role === 'professor' ? handleMarkDiscussed : undefined}
+              />
+              ))}
           </div>
         )}
 

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Play, BarChart3, CalendarPlus, Pencil, Trash2 } from 'lucide-react'
@@ -24,8 +24,20 @@ function toCardStatus(s: SessionSummary['status']): 'live' | 'upcoming' | 'past'
 export default function ProfessorCourseViewPage() {
   const { courseId } = useParams<{ courseId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const [newSessionTitle, setNewSessionTitle] = useState('')
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    (location.state as { successMessage?: string } | null)?.successMessage ?? null
+  )
+
+  useEffect(() => {
+    if (successMessage) {
+      navigate(location.pathname, { replace: true, state: {} })
+      const t = setTimeout(() => setSuccessMessage(null), 4000)
+      return () => clearTimeout(t)
+    }
+  }, [successMessage, navigate, location.pathname])
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['professor-sessions', courseId],
@@ -90,6 +102,11 @@ export default function ProfessorCourseViewPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
+        {successMessage && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30">
+            {successMessage}
+          </div>
+        )}
         <button
           onClick={() => navigate('/instructor')}
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 transition-colors"

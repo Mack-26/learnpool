@@ -1,6 +1,7 @@
 """Shared report building logic for session Q&A (student and professor)."""
 
 import asyncio
+import time
 
 from services import openai_client
 from models import (
@@ -8,6 +9,7 @@ from models import (
     AnswerFeedbackOut,
     CitationOut,
     ReportQuestionOut,
+    RepeatingQuestionGroup,
     SessionReportResponse,
     TopicGroup,
 )
@@ -29,14 +31,45 @@ def _animal_name(student_id: str, sorted_student_ids: list[str]) -> str:
     return f"Anonymous {_ANIMALS[idx % len(_ANIMALS)]}"
 
 
+# Cache: refresh every 10 min or when 10 new questions. Key: session_id.
+_REPORT_CACHE: dict[str, dict] = {}
+_CACHE_TTL_SEC = 600  # 10 minutes
+_CACHE_QUESTION_THRESHOLD = 10
+
+
+def invalidate_report_cache_for_session(session_id: str) -> None:
+    """Clear cached reports for a session (e.g. when professor updates labels)."""
+    keys_to_remove = [k for k in _REPORT_CACHE if k.startswith(f"{session_id}:")]
+    for k in keys_to_remove:
+        del _REPORT_CACHE[k]
+
+
 async def build_session_report(
     db,
     session_id: str,
     published_only: bool = True,
     include_review_data: bool = False,
 ) -> SessionReportResponse:
-    """Build anonymised Q&A report for a session. Caller must verify access."""
+    """Build anonymised Q&A report for a session. Caller must verify access.
+    Summary is cached and refreshed every 10 min or when 10 new questions arrive."""
     published_filter = "AND q.published = true" if published_only else ""
+    now = time.time()
+
+    # Get current question count for cache decision
+    current_count = await db.fetchval(
+        f"SELECT COUNT(*) FROM questions q WHERE q.session_id = $1 {published_filter}",
+        session_id,
+    )
+    current_count = int(current_count or 0)
+
+    cache_key = f"{session_id}:{published_only}"
+    cached = _REPORT_CACHE.get(cache_key)
+    if cached:
+        age_sec = now - cached["built_at"]
+        new_questions = current_count - cached["question_count"]
+        if age_sec < _CACHE_TTL_SEC and new_questions < _CACHE_QUESTION_THRESHOLD:
+            return cached["report"]
+
     rows = await db.fetch(
         f"""
         SELECT
@@ -121,11 +154,24 @@ async def build_session_report(
         )
 
     question_list = [{"question_id": qid, "content": item.content} for qid, item in report_items.items()]
-    raw_groups: list[dict] = await asyncio.to_thread(
-        openai_client.cluster_questions_by_topic, question_list
+
+    # Run clustering and repeating-question detection in parallel
+    raw_groups, repeating_raw = await asyncio.gather(
+        asyncio.to_thread(openai_client.cluster_questions_by_topic, question_list),
+        asyncio.to_thread(openai_client.identify_repeating_questions, question_list),
+    )
+
+    # Summarize with topic context
+    summary_data = await asyncio.to_thread(
+        openai_client.summarize_questions_for_dashboard,
+        question_list,
+        raw_groups,
     )
 
     qid_to_student: dict[str, str] = {str(r["question_id"]): str(r["student_id"]) for r in rows}
+    topic_summary_map = {ts["topic_name"]: ts.get("summary", "") for ts in summary_data.get("topic_summaries", [])}
+    hot_topics_set = set(summary_data.get("hot_topics", []))
+
     topic_groups: list[TopicGroup] = []
     assigned: set[str] = set()
 
@@ -134,12 +180,15 @@ async def build_session_report(
         if not qids:
             continue
         assigned.update(qids)
+        topic_name = g.get("topic_name", "General")
         distinct_students = len({qid_to_student[qid] for qid in qids if qid in qid_to_student})
         topic_groups.append(TopicGroup(
-            topic_name=g.get("topic_name", "General"),
+            topic_name=topic_name,
             student_count=distinct_students,
             question_count=len(qids),
             questions=[report_items[qid] for qid in qids],
+            summary=topic_summary_map.get(topic_name),
+            is_hot=topic_name in hot_topics_set,
         ))
 
     unassigned = [report_items[qid] for qid in report_items if qid not in assigned]
@@ -149,6 +198,30 @@ async def build_session_report(
             student_count=len({qid_to_student[q.question_id] for q in unassigned}),
             question_count=len(unassigned),
             questions=unassigned,
+            summary=topic_summary_map.get("Other"),
+            is_hot="Other" in hot_topics_set,
         ))
 
-    return SessionReportResponse(groups=topic_groups, total_questions=len(report_items))
+    repeating_questions = [
+        RepeatingQuestionGroup(
+            summary=r.get("summary", ""),
+            question_ids=r.get("question_ids", []),
+            count=r.get("count", 0),
+        )
+        for r in repeating_raw
+    ]
+
+    report = SessionReportResponse(
+        groups=topic_groups,
+        total_questions=len(report_items),
+        session_summary=summary_data.get("session_summary") or None,
+        repeating_questions=repeating_questions,
+        hot_topics=summary_data.get("hot_topics", []),
+    )
+
+    _REPORT_CACHE[cache_key] = {
+        "report": report,
+        "built_at": now,
+        "question_count": len(report_items),
+    }
+    return report

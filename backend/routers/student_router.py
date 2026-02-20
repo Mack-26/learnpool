@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from auth import get_current_user
 from database import get_db
@@ -16,12 +16,13 @@ from models import (
     SessionCheckResponse,
     SessionReportResponse,
     SessionSummary,
+    SessionWithDocuments,
     SubmitFeedbackRequest,
     TopicGroup,
 )
 from services import openai_client
 from services import rag_service
-from services.report_service import build_session_report
+from services.report_service import build_session_report, invalidate_report_cache_for_session
 
 router = APIRouter(prefix="/api/student", tags=["student"])
 
@@ -101,6 +102,71 @@ async def get_sessions_for_course(
 
 
 # ---------------------------------------------------------------------------
+# GET /api/student/courses/{course_id}/sessions-with-documents
+# ---------------------------------------------------------------------------
+
+@router.get("/courses/{course_id}/sessions-with-documents", response_model=list[SessionWithDocuments])
+async def get_sessions_with_documents(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """List sessions with their attached documents for lecture materials view."""
+    enrolled = await db.fetchval(
+        "SELECT 1 FROM course_enrollments WHERE course_id = $1 AND student_id = $2",
+        course_id,
+        current_user["id"],
+    )
+    if not enrolled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this course")
+
+    sessions = await db.fetch(
+        """
+        SELECT id, title, status, started_at
+        FROM sessions
+        WHERE course_id = $1
+        ORDER BY started_at DESC
+        """,
+        course_id,
+    )
+
+    result = []
+    for s in sessions:
+        doc_rows = await db.fetch(
+            """
+            SELECT d.id, d.filename, d.storage_path, d.page_count, d.content
+            FROM documents d
+            JOIN session_documents sd ON sd.document_id = d.id AND sd.is_active = true
+            WHERE sd.session_id = $1
+              AND d.processing_status = 'ready'
+            ORDER BY d.filename
+            """,
+            s["id"],
+        )
+        documents = [
+            DocumentOut(
+                id=str(r["id"]),
+                filename=r["filename"],
+                storage_path=r["storage_path"],
+                url=f"/uploads/{r['storage_path']}" if r["storage_path"] != "inline" else "",
+                page_count=r["page_count"],
+                content=r.get("content"),
+            )
+            for r in doc_rows
+        ]
+        result.append(
+            SessionWithDocuments(
+                id=str(s["id"]),
+                title=s["title"],
+                status=s["status"],
+                started_at=s["started_at"],
+                documents=documents,
+            )
+        )
+    return result
+
+
+# ---------------------------------------------------------------------------
 # GET /api/student/sessions/{session_id}/check
 # ---------------------------------------------------------------------------
 
@@ -138,7 +204,6 @@ async def check_session(
 @router.get("/sessions/{session_id}/documents", response_model=list[DocumentOut])
 async def get_session_documents(
     session_id: str,
-    request: Request,
     db=Depends(get_db),
     current_user: dict = Depends(_require_student),
 ):
@@ -154,13 +219,12 @@ async def get_session_documents(
         """,
         session_id,
     )
-    base = str(request.base_url).rstrip("/")
     return [
         DocumentOut(
             id=str(r["id"]),
             filename=r["filename"],
             storage_path=r["storage_path"],
-            url=f"{base}/uploads/{r['storage_path']}" if r["storage_path"] != "inline" else "",
+            url=f"/uploads/{r['storage_path']}" if r["storage_path"] != "inline" else "",
             page_count=r["page_count"],
             content=r.get("content"),
         )
@@ -249,7 +313,7 @@ async def get_session_report(
     if not enrolled:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
 
-    return await build_session_report(db, session_id, published_only=True)
+    return await build_session_report(db, session_id, published_only=False)
 
 
 # ---------------------------------------------------------------------------
@@ -331,6 +395,13 @@ async def submit_feedback(
         str(current_user["id"]),
         body.feedback,
     )
+
+    session_id = await db.fetchval(
+        "SELECT session_id FROM questions q JOIN answers a ON a.question_id = q.id WHERE a.id = $1",
+        answer_id,
+    )
+    if session_id:
+        invalidate_report_cache_for_session(str(session_id))
 
     counts = await db.fetchrow(
         """

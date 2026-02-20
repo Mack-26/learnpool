@@ -4,9 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send, BookOpen, Zap, ThumbsUp, ThumbsDown, Eye, EyeOff, LogOut, X, AlertCircle, FileText,
-  Share2, CheckSquare, Square,
 } from 'lucide-react'
-import { checkSession, getQuestions, getSessionDocuments, postQuestion, publishQuestions, submitFeedback } from '../api/sessions'
+import { checkSession, getQuestions, getSessionDocuments, postQuestion, submitFeedback } from '../api/sessions'
 import { useSettingsStore } from '../store/settingsStore'
 import type { DocumentOut, QuestionOut } from '../types/api'
 import { Button } from '@/components/ui/button'
@@ -79,13 +78,27 @@ function DocumentPanel({ sessionId, width }: { sessionId: string; width: number 
             >
               {selectedDoc.content}
             </div>
+          ) : selectedDoc.url ? (
+            <div className="h-full flex flex-col">
+              <iframe
+                key={selectedDoc.id}
+                src={selectedDoc.url}
+                className="flex-1 min-h-0 w-full border-0"
+                title={selectedDoc.filename}
+              />
+              <a
+                href={selectedDoc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 py-1.5 px-3 text-xs text-muted-foreground hover:text-foreground border-t border-border"
+              >
+                Open in new tab
+              </a>
+            </div>
           ) : (
-            <iframe
-              key={selectedDoc.id}
-              src={selectedDoc.url}
-              className="w-full h-full border-0"
-              title={selectedDoc.filename}
-            />
+            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+              No preview available
+            </div>
           )
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
@@ -105,50 +118,23 @@ function MessageBubble({
   question,
   feedback,
   onFeedback,
-  selectionMode,
-  selected,
-  onToggleSelect,
 }: {
   question: QuestionOut
   feedback: 'up' | 'down' | undefined
   onFeedback: (id: string, val: 'up' | 'down') => void
-  selectionMode: boolean
-  selected: boolean
-  onToggleSelect: (id: string) => void
 }) {
   const [showCitations, setShowCitations] = useState(false)
   const answer = question.answer
 
   return (
     <div className="space-y-3 relative">
-      {/* Selection checkbox overlay */}
-      {selectionMode && (
-        <button
-          onClick={() => onToggleSelect(question.question_id)}
-          className="absolute -left-7 top-1 z-10 text-primary"
-          aria-label={selected ? 'Deselect' : 'Select'}
-        >
-          {selected
-            ? <CheckSquare className="h-5 w-5" />
-            : <Square className="h-5 w-5 text-muted-foreground" />
-          }
-        </button>
-      )}
-
       {/* User question */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-end"
       >
-        <div className={`max-w-[75%] rounded-2xl px-4 py-3 gradient-primary text-white relative ${
-          selectionMode && selected ? 'ring-2 ring-primary ring-offset-2' : ''
-        }`}>
-          {question.published && (
-            <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none">
-              Shared
-            </span>
-          )}
+        <div className="max-w-[75%] rounded-2xl px-4 py-3 gradient-primary text-white relative">
           <p className="text-sm">{question.content}</p>
           {question.anonymous && (
             <p className="text-xs opacity-70 mt-1 flex items-center gap-1">
@@ -165,9 +151,7 @@ function MessageBubble({
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-start"
         >
-          <div className={`max-w-[80%] rounded-2xl px-4 py-3 bg-muted text-foreground ${
-            selectionMode && selected ? 'ring-2 ring-primary ring-offset-2' : ''
-          }`}>
+          <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-muted text-foreground">
             <p className="text-sm whitespace-pre-wrap">{answer.content}</p>
 
             {/* Citations toggle */}
@@ -253,9 +237,6 @@ export default function ChatPage() {
   const [anonymous, setAnonymous] = useState(false)
   const [showNudge, setShowNudge] = useState(false)
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
-  const [selectionMode, setSelectionMode] = useState(false)
-  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
-  const [toast, setToast] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const personality = useSettingsStore((s) => s.personality)
 
@@ -330,17 +311,6 @@ export default function ChatPage() {
     },
   })
 
-  const publishMutation = useMutation({
-    mutationFn: (ids: string[]) => publishQuestions(sessionId!, ids),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['questions', sessionId] })
-      setSelectedQuestionIds(new Set())
-      setSelectionMode(false)
-      setToast('Published to class discussion')
-      setTimeout(() => setToast(null), 3000)
-    },
-  })
-
   // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -352,20 +322,6 @@ export default function ChatPage() {
     if (trimmed.length > 2000) return
     mutation.mutate(trimmed)
     setInput('')
-  }
-
-  const toggleSelect = (id: string) => {
-    setSelectedQuestionIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  const exitSelectionMode = () => {
-    setSelectionMode(false)
-    setSelectedQuestionIds(new Set())
   }
 
   const isActive = check?.session_status === 'active'
@@ -403,7 +359,7 @@ export default function ChatPage() {
                   ● Live
                 </Badge>
                 <span className="text-xs text-muted-foreground">
-                  The professor is notified each time a new question comes in
+                  Questions are automatically summarized with the class and shared with the professor
                 </span>
               </>
             ) : check && (
@@ -415,29 +371,6 @@ export default function ChatPage() {
           <div className="flex items-center gap-4">
             {isFetching && !mutation.isPending && (
               <span className="text-xs text-muted-foreground">Refreshing…</span>
-            )}
-            {questions.length > 0 && (
-              selectionMode ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={exitSelectionMode}
-                >
-                  <X className="h-3.5 w-3.5 mr-1" />
-                  Cancel
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setSelectionMode(true)}
-                >
-                  <Share2 className="h-3.5 w-3.5 mr-1" />
-                  Select to share
-                </Button>
-              )
             )}
             <div className="flex items-center gap-2 text-sm">
               {anonymous
@@ -478,37 +411,13 @@ export default function ChatPage() {
                       submitFeedback(q.answer.answer_id, val).catch(() => {/* silent */})
                     }
                   }}
-                  selectionMode={selectionMode}
-                  selected={selectedQuestionIds.has(q.question_id)}
-                  onToggleSelect={toggleSelect}
                 />
               ))}
               <div ref={bottomRef} />
             </div>
 
-            {/* Publish sticky bar */}
-            <AnimatePresence>
-              {selectionMode && selectedQuestionIds.size > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 12 }}
-                  className="absolute bottom-0 left-0 right-0 p-3 bg-background border-t border-primary/30 z-10"
-                >
-                  <Button
-                    className="w-full gradient-primary text-white border-0"
-                    disabled={publishMutation.isPending}
-                    onClick={() => publishMutation.mutate([...selectedQuestionIds])}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Publish {selectedQuestionIds.size} exchange{selectedQuestionIds.size !== 1 ? 's' : ''} to shared conversation bank
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             {/* Input */}
-            <div className={`p-4 border-t border-border bg-card shrink-0 ${selectionMode && selectedQuestionIds.size > 0 ? 'pb-20' : ''}`}>
+            <div className="p-4 border-t border-border bg-card shrink-0">
               {canChat ? (
                 <form
                   onSubmit={(e) => { e.preventDefault(); handleSend() }}
@@ -559,20 +468,6 @@ export default function ChatPage() {
           <DocumentPanel sessionId={sessionId!} width={pdfWidth} />
         </div>
       </div>
-
-      {/* Success toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium shadow-lg z-50"
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Participation Nudge */}
       <AnimatePresence>

@@ -19,11 +19,12 @@ from models import (
     SessionReportResponse,
     SessionSummary,
     SessionWithDocuments,
+    SubmitFeedbackRequest,
     UpdateSessionStatusRequest,
 )
 from services.document_service import process_text_document
 from services.file_extractor import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, extract_text_from_file
-from services.report_service import build_session_report
+from services.report_service import build_session_report, invalidate_report_cache_for_session
 
 router = APIRouter(prefix="/api/professor", tags=["professor"])
 
@@ -507,7 +508,7 @@ async def get_professor_session_report(
     if not owned:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your session")
 
-    return await build_session_report(db, session_id, published_only=True, include_review_data=True)
+    return await build_session_report(db, session_id, published_only=False, include_review_data=True)
 
 
 # ---------------------------------------------------------------------------
@@ -540,7 +541,7 @@ async def update_question_review(
         UPDATE questions
            SET professor_labels = $1, professor_notes = $2
          WHERE id = $3
-         RETURNING id
+         RETURNING id, session_id
         """,
         body.labels,
         body.notes,
@@ -549,7 +550,61 @@ async def update_question_review(
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
+    invalidate_report_cache_for_session(str(row["session_id"]))
+
     return {"question_id": str(row["id"])}
+
+
+# ---------------------------------------------------------------------------
+# POST /api/professor/answers/{answer_id}/feedback
+# ---------------------------------------------------------------------------
+
+@router.post("/answers/{answer_id}/feedback")
+async def submit_professor_feedback(
+    answer_id: str,
+    body: SubmitFeedbackRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Professor thumbs-up/down on an AI answer. Professor must own the course."""
+    owned = await db.fetchval(
+        """
+        SELECT s.id FROM answers a
+        JOIN questions q ON q.id = a.question_id
+        JOIN sessions s ON s.id = q.session_id
+        JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
+        WHERE a.id = $2
+        """,
+        current_user["id"],
+        answer_id,
+    )
+    if not owned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your course")
+
+    await db.execute(
+        """
+        INSERT INTO answer_feedback (answer_id, student_id, feedback)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (answer_id, student_id)
+        DO UPDATE SET feedback = EXCLUDED.feedback, created_at = now()
+        """,
+        answer_id,
+        str(current_user["id"]),
+        body.feedback,
+    )
+
+    invalidate_report_cache_for_session(str(owned))
+
+    counts = await db.fetchrow(
+        """
+        SELECT
+            COALESCE(SUM(CASE WHEN feedback = 'up'   THEN 1 ELSE 0 END), 0) AS thumbs_up,
+            COALESCE(SUM(CASE WHEN feedback = 'down' THEN 1 ELSE 0 END), 0) AS thumbs_down
+        FROM answer_feedback WHERE answer_id = $1
+        """,
+        answer_id,
+    )
+    return {"thumbs_up": int(counts["thumbs_up"]), "thumbs_down": int(counts["thumbs_down"])}
 
 
 # ---------------------------------------------------------------------------

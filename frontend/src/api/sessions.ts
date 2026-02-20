@@ -11,6 +11,21 @@ export async function getSessionsForCourse(courseId: string): Promise<SessionSum
   return res.data
 }
 
+export interface SessionWithDocuments {
+  id: string
+  title: string
+  status: string
+  started_at: string
+  documents: DocumentOut[]
+}
+
+export async function getSessionsWithDocuments(courseId: string): Promise<SessionWithDocuments[]> {
+  const res = await client.get<SessionWithDocuments[]>(
+    `/api/student/courses/${courseId}/sessions-with-documents`
+  )
+  return res.data
+}
+
 export async function getSessionDocuments(sessionId: string): Promise<DocumentOut[]> {
   const res = await client.get<DocumentOut[]>(`/api/student/sessions/${sessionId}/documents`)
   return res.data
