@@ -7,12 +7,9 @@ import {
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { getSessionReport, submitFeedback } from '../api/sessions'
-import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
-import { useState } from 'react'
-import { getSessionReport } from '../api/sessions'
 import { getProfessorSessionReport } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
-import type { ReportQuestionOut, TopicGroup } from '../types/api'
+import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
 
@@ -273,8 +270,11 @@ export default function ReportPage() {
   const navigate = useNavigate()
   const role = useAuthStore((s) => s.user?.role)
 
+  const queryClient = useQueryClient()
+  const queryKey = ['session-report', sessionId, role] as const
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['session-report', sessionId, role],
+    queryKey,
     queryFn: () =>
       role === 'professor'
         ? getProfessorSessionReport(sessionId!)

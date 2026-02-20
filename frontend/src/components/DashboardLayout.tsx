@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { BookOpen, LogOut, Settings } from 'lucide-react'
+import { BookOpen, LogOut, Settings, Users, FileText } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { GraduationCap, BookOpen, LogOut, Users, Settings, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
 import { getCourses } from '@/api/sessions'

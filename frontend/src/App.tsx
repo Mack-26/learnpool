@@ -29,7 +29,6 @@ export default function App() {
       {/* Shared: report works for both student and professor */}
       <Route path="/sessions/:sessionId/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/classes" replace />} />
       {/* Professor routes */}
       <Route path="/instructor" element={<ProtectedRoute requireRole="professor"><ProfessorClassListPage /></ProtectedRoute>} />
       <Route path="/instructor/courses/:courseId" element={<ProtectedRoute requireRole="professor"><ProfessorCourseViewPage /></ProtectedRoute>} />
