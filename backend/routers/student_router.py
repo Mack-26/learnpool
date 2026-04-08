@@ -447,7 +447,6 @@ async def get_questions(
             q.asked_at,
             q.student_id,
             q.anonymous,
-            q.published,
             a.id          AS answer_id,
             a.content     AS answer_content,
             a.model_used,
@@ -500,7 +499,6 @@ async def get_questions(
             asked_at=row["asked_at"],
             student_id=str(row["student_id"]),
             anonymous=row["anonymous"],
-            published=row["published"],
             answer=answer,
         ))
 

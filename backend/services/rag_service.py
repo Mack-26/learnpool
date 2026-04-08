@@ -31,9 +31,9 @@ async def handle_question(
 ) -> QuestionOut:
     """Full 9-step RAG pipeline: save question → embed → retrieve → generate → save answer+citations → return."""
 
-    # Step 1: Save question (published=true — always shared with professor)
+    # Step 1: Save question
     q_row = await db.fetchrow(
-        "INSERT INTO questions (session_id, student_id, content, anonymous, published) VALUES ($1, $2, $3, $4, true) RETURNING id, asked_at",
+        "INSERT INTO questions (session_id, student_id, content, anonymous) VALUES ($1, $2, $3, $4) RETURNING id, asked_at",
         session_id,
         student_id,
         content,

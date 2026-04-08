@@ -47,22 +47,21 @@ def invalidate_report_cache_for_session(session_id: str) -> None:
 async def build_session_report(
     db,
     session_id: str,
-    published_only: bool = True,
+    published_only: bool = True,  # kept for call-site compatibility, ignored
     include_review_data: bool = False,
 ) -> SessionReportResponse:
     """Build anonymised Q&A report for a session. Caller must verify access.
     Summary is cached and refreshed every 10 min or when 10 new questions arrive."""
-    published_filter = "AND q.published = true" if published_only else ""
     now = time.time()
 
     # Get current question count for cache decision
     current_count = await db.fetchval(
-        f"SELECT COUNT(*) FROM questions q WHERE q.session_id = $1 {published_filter}",
+        "SELECT COUNT(*) FROM questions q WHERE q.session_id = $1",
         session_id,
     )
     current_count = int(current_count or 0)
 
-    cache_key = f"{session_id}:{published_only}"
+    cache_key = f"{session_id}"
     cached = _REPORT_CACHE.get(cache_key)
     if cached:
         age_sec = now - cached["built_at"]
@@ -77,8 +76,6 @@ async def build_session_report(
             q.content             AS question_content,
             q.asked_at,
             q.student_id,
-            q.professor_labels    AS professor_labels,
-            q.professor_notes     AS professor_notes,
             q.category            AS category,
             COALESCE(q.fork_count, 0) AS fork_count,
             q.forked_from         AS forked_from,
@@ -95,7 +92,6 @@ async def build_session_report(
         FROM questions q
         LEFT JOIN answers a ON a.question_id = q.id
         WHERE q.session_id = $1
-        {published_filter}
         ORDER BY q.asked_at ASC
         """,
         session_id,
@@ -154,8 +150,6 @@ async def build_session_report(
             anonymous_name=_animal_name(str(row["student_id"]), sorted_student_ids),
             answer=answer,
             feedback=feedback,
-            professor_labels=list(row["professor_labels"]) if include_review_data and row["professor_labels"] else [],
-            professor_notes=row["professor_notes"] if include_review_data else None,
             category=row["category"],
             fork_count=int(row["fork_count"]),
             comment_count=int(row["comment_count"]),

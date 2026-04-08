@@ -101,7 +101,6 @@ class QuestionOut(BaseModel):
     asked_at: datetime
     student_id: str
     anonymous: bool = False
-    published: bool = False
     answer: AnswerOut | None = None
 
 
@@ -142,8 +141,6 @@ class ReportQuestionOut(BaseModel):
     answer: AnswerOut | None = None
     feedback: AnswerFeedbackOut | None = None
     my_feedback: str | None = None  # 'up', 'down', or None if student hasn't voted
-    professor_labels: list[str] = []
-    professor_notes: str | None = None
     category: str | None = None
     fork_count: int = 0
     comment_count: int = 0

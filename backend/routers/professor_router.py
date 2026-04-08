@@ -539,20 +539,11 @@ async def update_question_review(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your question")
 
     row = await db.fetchrow(
-        """
-        UPDATE questions
-           SET professor_labels = $1, professor_notes = $2
-         WHERE id = $3
-         RETURNING id, session_id
-        """,
-        body.labels,
-        body.notes,
+        "SELECT id, session_id FROM questions WHERE id = $1",
         question_id,
     )
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
-
-    invalidate_report_cache_for_session(str(row["session_id"]))
 
     return {"question_id": str(row["id"])}
 
