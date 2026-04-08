@@ -315,86 +315,86 @@ INSERT INTO document_chunks (id, document_id, chunk_index, page_number, content,
 -- =============================================================================
 
 -- Questions for released session (000...020)
-INSERT INTO questions (id, session_id, student_id, content, anonymous, published, category, fork_count, professor_labels, professor_notes, asked_at) VALUES
+INSERT INTO questions (id, session_id, student_id, content, anonymous, category, fork_count, asked_at) VALUES
     ('00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000002',
-     'Can you explain what the cost function is and why we use MSE for linear regression?', false, true, 'Doubts', 1,
-     ARRAY['Interesting Question'], 'Great foundational question', now() - interval '7 days' + interval '10 minutes'),
+     'Can you explain what the cost function is and why we use MSE for linear regression?', false, 'Doubts', 1,
+     now() - interval '7 days' + interval '10 minutes'),
 
     ('00000000-0000-0000-0001-000000000002', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000003',
-     'What is the difference between bias and variance in a model?', false, true, 'Doubts', 0,
-     ARRAY['Deep Understanding'], 'Students find this tricky', now() - interval '7 days' + interval '15 minutes'),
+     'What is the difference between bias and variance in a model?', false, 'Doubts', 0,
+     now() - interval '7 days' + interval '15 minutes'),
 
     ('00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000004',
-     'Can you summarize the key takeaways from today''s lecture on linear regression?', true, true, 'Summaries', 0,
-     ARRAY[]::text[], NULL, now() - interval '7 days' + interval '20 minutes'),
+     'Can you summarize the key takeaways from today''s lecture on linear regression?', true, 'Summaries', 0,
+     now() - interval '7 days' + interval '20 minutes'),
 
     ('00000000-0000-0000-0001-000000000004', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000005',
-     'How do I calculate R-squared for my homework problem?', false, true, 'Homework', 2,
-     ARRAY['Discussed in class'], 'Covered in class example', now() - interval '7 days' + interval '25 minutes'),
+     'How do I calculate R-squared for my homework problem?', false, 'Homework', 2,
+     now() - interval '7 days' + interval '25 minutes'),
 
     ('00000000-0000-0000-0001-000000000005', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000006',
-     'What topics from linear regression will be on the midterm?', false, true, 'Exam Prep', 0,
-     ARRAY[]::text[], NULL, now() - interval '7 days' + interval '30 minutes'),
+     'What topics from linear regression will be on the midterm?', false, 'Exam Prep', 0,
+     now() - interval '7 days' + interval '30 minutes'),
 
     ('00000000-0000-0000-0001-000000000006', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000007',
-     'Why does gradient descent sometimes not converge?', false, true, 'Doubts', 1,
-     ARRAY['Needs Follow-up'], 'Follow up in office hours', now() - interval '7 days' + interval '35 minutes'),
+     'Why does gradient descent sometimes not converge?', false, 'Doubts', 1,
+     now() - interval '7 days' + interval '35 minutes'),
 
     ('00000000-0000-0000-0001-000000000007', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000008',
-     'Is there a closed-form solution to linear regression without gradient descent?', false, true, 'Doubts', 0,
-     ARRAY['Interesting Question'], NULL, now() - interval '7 days' + interval '40 minutes'),
+     'Is there a closed-form solution to linear regression without gradient descent?', false, 'Doubts', 0,
+     now() - interval '7 days' + interval '40 minutes'),
 
     ('00000000-0000-0000-0001-000000000008', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000009',
-     'For problem set 2, should we use batch or stochastic gradient descent?', false, true, 'Homework', 0,
-     ARRAY[]::text[], NULL, now() - interval '7 days' + interval '45 minutes'),
+     'For problem set 2, should we use batch or stochastic gradient descent?', false, 'Homework', 0,
+     now() - interval '7 days' + interval '45 minutes'),
 
     -- Forked question from Q4
     ('00000000-0000-0000-0001-000000000009', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000002',
      '[Forked from: "How do I calculate R-squared for my homework problem?"]
 
-What is adjusted R-squared and when should I use it instead?', false, true, 'Homework', 0,
-     ARRAY[]::text[], NULL, now() - interval '7 days' + interval '50 minutes'),
+What is adjusted R-squared and when should I use it instead?', false, 'Homework', 0,
+     now() - interval '7 days' + interval '50 minutes'),
 
     -- Forked question from Q6
     ('00000000-0000-0000-0001-000000000010', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000003',
      '[Forked from: "Why does gradient descent sometimes not converge?"]
 
-What is the ideal learning rate to use? Is there a rule of thumb?', false, true, 'Doubts', 0,
-     ARRAY[]::text[], NULL, now() - interval '7 days' + interval '55 minutes');
+What is the ideal learning rate to use? Is there a rule of thumb?', false, 'Doubts', 0,
+     now() - interval '7 days' + interval '55 minutes');
 
 -- Set forked_from on the fork questions
 UPDATE questions SET forked_from = '00000000-0000-0000-0001-000000000004' WHERE id = '00000000-0000-0000-0001-000000000009';
 UPDATE questions SET forked_from = '00000000-0000-0000-0001-000000000006' WHERE id = '00000000-0000-0000-0001-000000000010';
 
 -- Questions for active session (000...021)
-INSERT INTO questions (id, session_id, student_id, content, anonymous, published, category, fork_count, professor_labels, asked_at) VALUES
+INSERT INTO questions (id, session_id, student_id, content, anonymous, category, fork_count, asked_at) VALUES
     ('00000000-0000-0000-0001-000000000011', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000002',
-     'Can you explain momentum in gradient descent? When does it help?', false, true, 'Doubts', 0,
-     ARRAY[]::text[], now() - interval '1 hour' + interval '5 minutes'),
+     'Can you explain momentum in gradient descent? When does it help?', false, 'Doubts', 0,
+     now() - interval '1 hour' + interval '5 minutes'),
 
     ('00000000-0000-0000-0001-000000000012', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000004',
-     'How does mini-batch gradient descent differ from SGD in practice?', false, true, 'Doubts', 1,
-     ARRAY['Interesting Question'], now() - interval '1 hour' + interval '12 minutes'),
+     'How does mini-batch gradient descent differ from SGD in practice?', false, 'Doubts', 1,
+     now() - interval '1 hour' + interval '12 minutes'),
 
     ('00000000-0000-0000-0001-000000000013', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000005',
-     'Is the Adam optimizer always better than SGD? What are the tradeoffs?', false, true, 'Exam Prep', 0,
-     ARRAY[]::text[], now() - interval '1 hour' + interval '18 minutes'),
+     'Is the Adam optimizer always better than SGD? What are the tradeoffs?', false, 'Exam Prep', 0,
+     now() - interval '1 hour' + interval '18 minutes'),
 
     ('00000000-0000-0000-0001-000000000014', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000006',
-     'Can you give a summary of all the optimizers we''ve covered this semester?', true, true, 'Summaries', 0,
-     ARRAY[]::text[], now() - interval '1 hour' + interval '25 minutes'),
+     'Can you give a summary of all the optimizers we''ve covered this semester?', true, 'Summaries', 0,
+     now() - interval '1 hour' + interval '25 minutes'),
 
     ('00000000-0000-0000-0001-000000000015', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000007',
-     'For problem set 3, question 4, do we need to implement momentum from scratch?', false, true, 'Homework', 0,
-     ARRAY[]::text[], now() - interval '1 hour' + interval '30 minutes'),
+     'For problem set 3, question 4, do we need to implement momentum from scratch?', false, 'Homework', 0,
+     now() - interval '1 hour' + interval '30 minutes'),
 
     ('00000000-0000-0000-0001-000000000016', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000008',
-     'What will be the format of the final exam? Are optimizers covered?', false, true, 'Exam Prep', 0,
-     ARRAY[]::text[], now() - interval '1 hour' + interval '35 minutes'),
+     'What will be the format of the final exam? Are optimizers covered?', false, 'Exam Prep', 0,
+     now() - interval '1 hour' + interval '35 minutes'),
 
     ('00000000-0000-0000-0001-000000000017', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000009',
-     'Why does gradient descent get stuck in local minima for some problems?', false, true, 'Doubts', 0,
-     ARRAY[]::text[], now() - interval '1 hour' + interval '40 minutes');
+     'Why does gradient descent get stuck in local minima for some problems?', false, 'Doubts', 0,
+     now() - interval '1 hour' + interval '40 minutes');
 
 -- Answers for released session questions (plain text, no citations for simplicity)
 INSERT INTO answers (id, question_id, content, model_used, generation_latency_ms) VALUES
