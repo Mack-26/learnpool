@@ -110,20 +110,7 @@ export default function LoginPage() {
               userSelect: 'none',
             }}
           >
-            <span style={{ fontWeight: 300, color: 'rgba(255,255,255,0.7)' }}>[</span>
-            <span style={{ fontStyle: 'italic', fontWeight: 800 }}>Vibe</span>
-            <span style={{ fontWeight: 300, color: 'rgba(255,255,255,0.7)' }}>]</span>
-            <sup
-              style={{
-                fontSize: '1.5rem',
-                fontStyle: 'italic',
-                fontWeight: 700,
-                verticalAlign: 'super',
-                color: 'rgba(255,255,255,0.85)',
-              }}
-            >
-              n
-            </sup>
+            VibeLearning
           </h1>
           <p className="text-white/80 text-lg max-w-md">
             AI-powered classroom engagement. Smarter questions, deeper understanding.
@@ -146,16 +133,13 @@ export default function LoginPage() {
                 fontFamily: "'Georgia', 'Times New Roman', serif",
                 fontSize: '1.8rem',
                 fontWeight: 700,
-                color: '#1e3a8a',
+                color: '#92400e',
                 letterSpacing: '-0.02em',
                 lineHeight: 1,
                 userSelect: 'none',
               }}
             >
-              <span style={{ fontWeight: 300, color: '#3b60c4' }}>[</span>
-              <span style={{ fontStyle: 'italic', fontWeight: 800 }}>Vibe</span>
-              <span style={{ fontWeight: 300, color: '#3b60c4' }}>]</span>
-              <sup style={{ fontSize: '0.95rem', fontStyle: 'italic', fontWeight: 700, verticalAlign: 'super', color: '#2d4fa8' }}>n</sup>
+              VibeLearning
             </span>
           </div>
 

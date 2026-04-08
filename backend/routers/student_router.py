@@ -5,7 +5,9 @@ from database import get_db
 
 from models import (
     AnswerFeedbackOut,
+    CommentOut,
     CourseOut,
+    CreateCommentRequest,
     DocumentOut,
     PostQuestionRequest,
     PublishQuestionsRequest,
@@ -20,6 +22,7 @@ from models import (
     SubmitFeedbackRequest,
     TopicGroup,
 )
+from config import settings
 from services import openai_client
 from services import rag_service
 from services.report_service import build_session_report, invalidate_report_cache_for_session
@@ -280,6 +283,17 @@ async def post_question(
     if session_row["status"] not in ("active", "released"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Lecture is {session_row['status']}; Q&A is closed")
 
+    question_count = await db.fetchval(
+        "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
+        session_id,
+        str(current_user["id"]),
+    )
+    if question_count >= settings.max_questions_per_session:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"You've reached the {settings.max_questions_per_session}-question limit for this session.",
+        )
+
     return await rag_service.handle_question(
         session_id=session_id,
         student_id=str(current_user["id"]),
@@ -491,3 +505,167 @@ async def get_questions(
         ))
 
     return results
+
+
+# ---------------------------------------------------------------------------
+# GET /api/student/questions/{question_id}/comments
+# ---------------------------------------------------------------------------
+
+@router.get("/questions/{question_id}/comments", response_model=list[CommentOut])
+async def get_question_comments(
+    question_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Get comments for a question. Student must be enrolled in the session's course."""
+    enrolled = await db.fetchval(
+        """
+        SELECT 1 FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
+        WHERE q.id = $2
+        """,
+        current_user["id"],
+        question_id,
+    )
+    if not enrolled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
+
+    rows = await db.fetch(
+        """
+        SELECT qc.id, qc.user_id, u.display_name, u.role, qc.content, qc.created_at
+        FROM question_comments qc
+        JOIN users u ON u.id = qc.user_id
+        WHERE qc.question_id = $1
+        ORDER BY qc.created_at ASC
+        """,
+        question_id,
+    )
+    return [
+        CommentOut(
+            comment_id=str(r["id"]),
+            user_id=str(r["user_id"]),
+            display_name=r["display_name"],
+            role=r["role"],
+            content=r["content"],
+            created_at=r["created_at"],
+        )
+        for r in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# POST /api/student/questions/{question_id}/comments
+# ---------------------------------------------------------------------------
+
+@router.post("/questions/{question_id}/comments", response_model=CommentOut)
+async def post_question_comment(
+    question_id: str,
+    body: CreateCommentRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Post a comment on a question."""
+    enrolled = await db.fetchval(
+        """
+        SELECT 1 FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
+        WHERE q.id = $2
+        """,
+        current_user["id"],
+        question_id,
+    )
+    if not enrolled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
+
+    row = await db.fetchrow(
+        """
+        INSERT INTO question_comments (question_id, user_id, content)
+        VALUES ($1, $2, $3)
+        RETURNING id, created_at
+        """,
+        question_id,
+        str(current_user["id"]),
+        body.content,
+    )
+    return CommentOut(
+        comment_id=str(row["id"]),
+        user_id=str(current_user["id"]),
+        display_name=current_user["display_name"],
+        role=current_user["role"],
+        content=body.content,
+        created_at=row["created_at"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/student/questions/{question_id}/fork
+# ---------------------------------------------------------------------------
+
+@router.post("/questions/{question_id}/fork", response_model=QuestionOut)
+async def fork_question(
+    question_id: str,
+    body: PostQuestionRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Fork a question — creates a new question with parent Q&A as context, increments parent fork_count."""
+    # Verify access to original question
+    parent = await db.fetchrow(
+        """
+        SELECT q.id, q.content, q.session_id, s.status,
+               a.content AS answer_content
+        FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
+        LEFT JOIN answers a ON a.question_id = q.id
+        WHERE q.id = $2
+        """,
+        current_user["id"],
+        question_id,
+    )
+    if not parent:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled or question not found")
+
+    session_id = str(parent["session_id"])
+
+    question_count = await db.fetchval(
+        "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
+        session_id,
+        str(current_user["id"]),
+    )
+    if question_count >= settings.max_questions_per_session:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"You've reached the {settings.max_questions_per_session}-question limit for this session.",
+        )
+
+    # Increment parent fork_count
+    await db.execute(
+        "UPDATE questions SET fork_count = COALESCE(fork_count, 0) + 1 WHERE id = $1",
+        question_id,
+    )
+
+    # Build fork: prepend parent context to question content, save forked_from
+    parent_context = f"[Forked from: \"{parent['content'][:100]}\"]\n\n"
+    fork_content = parent_context + body.content
+
+    result = await rag_service.handle_question(
+        session_id=session_id,
+        student_id=str(current_user["id"]),
+        content=fork_content,
+        db=db,
+        personality=body.personality,
+        anonymous=body.anonymous,
+    )
+
+    # Set forked_from on the new question
+    await db.execute(
+        "UPDATE questions SET forked_from = $1 WHERE id = $2",
+        question_id,
+        result.question_id,
+    )
+
+    invalidate_report_cache_for_session(session_id)
+    return result

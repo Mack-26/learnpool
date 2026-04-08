@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 
-const client = axios.create()
+const client = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
+})
 
 // Inject Bearer token on every request
 client.interceptors.request.use((config) => {

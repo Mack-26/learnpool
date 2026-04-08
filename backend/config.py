@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     openai_api_key: str
     oci_namespace: str = ""
     oci_bucket: str = "learnpool-documents"
+    max_questions_per_session: int = 10
 
     model_config = SettingsConfigDict(env_file=_env_path, env_file_encoding="utf-8")
 

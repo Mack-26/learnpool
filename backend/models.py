@@ -120,6 +120,19 @@ class AnswerFeedbackOut(BaseModel):
     needs_attention: bool   # True when thumbs_down > thumbs_up
 
 
+class CommentOut(BaseModel):
+    comment_id: str
+    user_id: str
+    display_name: str
+    role: str
+    content: str
+    created_at: datetime
+
+
+class CreateCommentRequest(BaseModel):
+    content: str = Field(..., min_length=1, max_length=1000)
+
+
 class ReportQuestionOut(BaseModel):
     """Anonymised Q&A item for the session report — no student_id exposed."""
     question_id: str
@@ -131,6 +144,10 @@ class ReportQuestionOut(BaseModel):
     my_feedback: str | None = None  # 'up', 'down', or None if student hasn't voted
     professor_labels: list[str] = []
     professor_notes: str | None = None
+    category: str | None = None
+    fork_count: int = 0
+    comment_count: int = 0
+    forked_from: str | None = None
 
 
 class TopicGroup(BaseModel):

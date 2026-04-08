@@ -68,6 +68,15 @@ export interface AnswerFeedbackOut {
   needs_attention: boolean
 }
 
+export interface CommentOut {
+  comment_id: string
+  user_id: string
+  display_name: string
+  role: string
+  content: string
+  created_at: string
+}
+
 export interface ReportQuestionOut {
   question_id: string
   content: string
@@ -78,6 +87,10 @@ export interface ReportQuestionOut {
   my_feedback: 'up' | 'down' | null
   professor_labels: string[]
   professor_notes: string | null
+  category: string | null
+  fork_count: number
+  comment_count: number
+  forked_from: string | null
 }
 
 export interface TopicGroup {

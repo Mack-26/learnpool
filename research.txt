@@ -1,0 +1,159 @@
+Excellent data found. Here's everything organized for your submission:                          
+                                                                                                  
+  ---                                                                                             
+  Research Data for LearnPool (COTF Submission)                                                   
+                                                                                                  
+  The Causal Chain (your narrative spine) 
+                                                                                                  
+  1. The problem is real and massive                                                              
+  - 48% of undergrads never ask a single question all semester in large science lectures — primary
+   reason: fear of embarrassment, not lack of confusion (Nadile et al., PLOS ONE, 2021)           
+  - 70% of undergrads experience classroom communication apprehension (CBE Life Sciences          
+  Education, 2018)                                                                                
+  - Women are 2.4x more likely than men to never ask questions (same study)                       
+                                                                                                  
+  2. Existing solutions (office hours) are broken                                                 
+  - Only 66.7% of STEM students attend office hours even once; only 52.5% of upperclassmen do     
+  (Dolan et al., CBE Life Sciences Education, 2022)                                               
+  - 10.9% cite intimidation/social stigma as the barrier — but 26.2% of faculty blame "lack of    
+  effort" (same study) — a massive perception gap                                                 
+                                                                                                  
+  3. U-M already proved anonymity works — on this campus
+  - Perry Samson (U-M Professor of Atmospheric Science) introduced anonymous backchannel Q&A in   
+  his own large lectures → questions went from ~50/semester to 300–500/semester (6–10x increase)  
+  - 97% of students wanted the tool in all large lectures (Inside Higher Ed, EdSurge, Michigan IT,
+   2019)                                                                                          
+  - Gender gap in participation disappeared with anonymity                                        
+  
+  4. AI tutoring outperforms the status quo                                                       
+  - Harvard RCT (194 students): AI tutoring produced 2x learning gains vs. traditional active
+  learning (Kestin et al., Scientific Reports, 2025)                                              
+  - RAG-based AI specifically solves the hallucination problem — confirmed across 47 papers (MDPI 
+  Applied Sciences, 2025)                                                                         
+                                                                                                  
+  5. Students are already ready for this
+  - 86% of students globally already use AI in their studies; 53% want their institution to       
+  provide AI tools (up from 30% last year) (Digital Education Council, 2024)                      
+  - U-M enrollment: 52,855 students (record high, Fall 2024) — scale matters
+                                                                                                  
+  ---                                                                                             
+  Primary Research: Survey to Run in Libraries / with TAs
+                                                                                                  
+  Here's a short survey you can hand out or share as a Google Form to students and TAs at the
+  Shapiro/Hatcher libraries:                                                                      
+                  
+  ---                                                                                             
+  LearnPool Student Survey (~3 min)
+                                                                                                  
+  For Students:
+  1. How often do you ask a question out loud in a lecture with 50+ students? (Never / Once or    
+  twice / Regularly)                                                                              
+  2. What stops you from asking? (Fear of judgment / Don't want to slow class / Could look dumb / 
+  Schedule — just ask after / Nothing stops me)                                                   
+  3. Have you ever left a lecture confused but didn't ask? (Yes / No)                             
+  4. Have you ever wanted to ask a TA something but didn't go to office hours? (Yes / No — if Yes,
+   why?)                                                                                          
+  5. If you could type a question anonymously during class and get an AI answer based only on your
+   course materials, would you use it? (Definitely / Probably / Probably not / Definitely not)    
+  6. What's your biggest concern about AI answering course questions? (Accuracy / Not nuanced     
+  enough / Prefer human / No concern)                                                         
+  7. School/year/course size of your largest current class: (open field)                          
+                  
+  For TAs:                                                                                        
+  1. How many students are in the course(s) you TA?
+  2. What % of students do you think come to office hours?                                        
+  3. What are the most common reasons students give for not coming?
+  4. Do you feel students are getting their questions answered in a timely way during lectures?   
+  5. Would a tool that handles routine conceptual questions automatically help you focus office   
+  hours on harder problems?                                                                       
+                                                                                                  
+  ---                                                                                             
+  Talking Points When Approaching People in the Library                                           
+                                                                                                  
+  ▎ "Hey, I'm working on a Campus of the Future proposal about anonymous AI Q&A in large lectures 
+  — can I get 2 minutes of your feedback? It's about whether you actually ask questions in big    
+  lectures and why or why not."
+                                                                                                  
+  Aim for 20–30 student responses and 5–10 TA responses — that's enough to cite as primary data   
+  with real quotes.
+                                                                                                  
+  ---                                                                                             
+  How to Use This for the Rubric
+                                                                                                  
+  For the Research (20 pts) section you now have:
+  - Literature review: 6+ peer-reviewed studies with specific stats                               
+  - A U-M-specific anchor: Perry Samson already did this at Michigan — you're building the next   
+  evolution                                                                                       
+  - Primary data: your own survey results from U-M students/TAs                                   
+  - Triangulation: academic studies + institutional data + your own interviews all point the same
+  direction                                                                                       
+                                                                                                  
+  Want me to help you structure the actual slide deck now using this research?           
+
+
+  ---                                                                                             
+  Peer-Reviewed Studies
+                                                                                                  
+  1. Nadile et al., PLOS ONE, 2021 — Student participation/fear in large lectures               
+  https://pmc.ncbi.nlm.nih.gov/articles/PMC7802933/                                               
+  2. CBE Life Sciences Education, 2018 — Communication apprehension in STEM classrooms            
+  https://pmc.ncbi.nlm.nih.gov/articles/PMC6310416/                                               
+  3. Hudson & Bruckman, Journal of the Learning Sciences, 2004 — Bystander effect in classrooms   
+  https://faculty.cc.gatech.edu/~asb/papers/journal/hudson-bruckman-jls04.pdf                     
+  4. Dolan et al., CBE Life Sciences Education, 2022 — Office hours attendance & barriers
+  https://pmc.ncbi.nlm.nih.gov/articles/PMC9727601/                                               
+  5. Nadler & Nadler, ResearchGate — Students' reluctance to attend office hours                  
+  https://www.researchgate.net/publication/336872584                                              
+  6. PLOS ONE, 2025 — TA workload perspectives                                                    
+  https://pmc.ncbi.nlm.nih.gov/articles/PMC12369359/                                              
+  7. Kestin et al., Scientific Reports, 2025 — Harvard RCT: AI tutoring 2x learning gains
+  https://www.nature.com/articles/s41598-025-97652-6                                              
+  8. Language Teaching Research, ScienceDirect, 2025 — Immediate vs. delayed feedback on learning 
+  https://www.sciencedirect.com/science/article/abs/pii/S0023969025000396                         
+  9. MDPI Applied Sciences, 2025 — RAG chatbots in education survey (47 papers)                   
+  https://www.mdpi.com/2076-3417/15/8/4234                                                        
+  10. npj Science of Learning, 2025 — Systematic review of AI tutoring systems (K-12)             
+  https://www.nature.com/articles/s41539-025-00320-7                                              
+  11. Journal of Chemical Education, 2024/2025 — Anonymous in-class questions (617 Qs, first-year 
+  chemistry)                                                                                      
+  https://pubs.acs.org/doi/10.1021/acs.jchemed.4c01089                                            
+  12. Zhang et al., Journal of Educational Technology Development and Exchange, 2020 — Anonymity  
+  in audience response systems                                                                    
+  https://aquila.usm.edu/jetde/vol13/iss1/3/
+                                                                                                  
+  ---             
+  Reports & Surveys
+                   
+  13. Digital Education Council, Global AI Student Survey, 2024 — 86% of students use AI; 53% want
+   institutional tools                                                                            
+  https://www.digitaleducationcouncil.com/post/digital-education-council-global-ai-student-survey-
+  2024                                                                                            
+                  
+  ---                                                                                             
+  University of Michigan Specific
+                                                                                                  
+  14. U-M Facts & Figures, Fall 2024 — Enrollment, class sizes, TA numbers
+  https://umich.edu/facts-figures/                                                                
+  15. U-M Common Data Set 2024–25 — Detailed class size breakdowns
+  https://obp.umich.edu/wp-content/uploads/pubdata/cds/CDS_2024-25_UMAA.pdf                       
+  16. The University Record, 2024 — Record enrollment announcement                                
+  https://record.umich.edu/articles/u-m-reports-record-enrollment-for-fall-2024/                  
+  17. Perry Samson (U-M Prof) — Michigan IT News, 2019 — Anonymous backchannel, 6–10x question    
+  increase                                                                                        
+  https://michigan.it.umich.edu/news/2019/11/06/backchannel-tool-shifts-class-participation-models
+  /                                                                                               
+  18. Inside Higher Ed, 2019 — Samson anonymous backchannel coverage
+  https://www.insidehighered.com/digital-learning/article/2019/12/06/students-may-benefit-anonymou
+  s-back-channel-communications
+  19. EdSurge, 2019 — Samson anonymous backchannel coverage                                       
+  https://www.edsurge.com/news/2019-10-24-backchannel-tools-let-students-ask-questions-anonymously
+  -and-that-brings-more-voices                                                                    
+                                                                                                  
+  ---                                                                                             
+  Bonus           
+                                                                                                  
+  20. Harvard Gazette, 2024 — Coverage of Kestin AI tutoring study
+  https://news.harvard.edu/gazette/story/2024/09/professor-tailored-ai-tutor-to-physics-course-eng
+  agement-doubled/                                                                                
+                                                        
+                                                                 

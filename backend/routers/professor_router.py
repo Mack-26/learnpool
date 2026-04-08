@@ -10,7 +10,9 @@ from auth import get_current_user
 from database import get_db
 from models import (
     AddDocumentRequest,
+    CommentOut,
     CourseOut,
+    CreateCommentRequest,
     CreateScheduleRequest,
     CreateSessionRequest,
     DocumentOut,
@@ -867,3 +869,156 @@ async def upload_document(
         page_count=row["page_count"],
         content=row.get("content"),
     )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/questions/{question_id}/comments
+# ---------------------------------------------------------------------------
+
+@router.get("/questions/{question_id}/comments", response_model=list[CommentOut])
+async def get_question_comments(
+    question_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Get comments for a question. Professor must own the course."""
+    owned = await db.fetchval(
+        """
+        SELECT 1 FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
+        WHERE q.id = $2
+        """,
+        current_user["id"],
+        question_id,
+    )
+    if not owned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your question")
+
+    rows = await db.fetch(
+        """
+        SELECT qc.id, qc.user_id, u.display_name, u.role, qc.content, qc.created_at
+        FROM question_comments qc
+        JOIN users u ON u.id = qc.user_id
+        WHERE qc.question_id = $1
+        ORDER BY qc.created_at ASC
+        """,
+        question_id,
+    )
+    return [
+        CommentOut(
+            comment_id=str(r["id"]),
+            user_id=str(r["user_id"]),
+            display_name=r["display_name"],
+            role=r["role"],
+            content=r["content"],
+            created_at=r["created_at"],
+        )
+        for r in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# POST /api/professor/questions/{question_id}/comments
+# ---------------------------------------------------------------------------
+
+@router.post("/questions/{question_id}/comments", response_model=CommentOut)
+async def post_question_comment(
+    question_id: str,
+    body: CreateCommentRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Post a comment on a question as professor."""
+    owned = await db.fetchval(
+        """
+        SELECT 1 FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
+        WHERE q.id = $2
+        """,
+        current_user["id"],
+        question_id,
+    )
+    if not owned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your question")
+
+    row = await db.fetchrow(
+        """
+        INSERT INTO question_comments (question_id, user_id, content)
+        VALUES ($1, $2, $3)
+        RETURNING id, created_at
+        """,
+        question_id,
+        str(current_user["id"]),
+        body.content,
+    )
+    return CommentOut(
+        comment_id=str(row["id"]),
+        user_id=str(current_user["id"]),
+        display_name=current_user["display_name"],
+        role=current_user["role"],
+        content=body.content,
+        created_at=row["created_at"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/professor/questions/{question_id}/comments/{comment_id}
+# ---------------------------------------------------------------------------
+
+@router.delete("/questions/{question_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_question_comment(
+    question_id: str,
+    comment_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Delete a comment. Professor can only delete their own comments."""
+    row = await db.fetchrow(
+        "SELECT id, user_id FROM question_comments WHERE id = $1 AND question_id = $2",
+        comment_id,
+        question_id,
+    )
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    if str(row["user_id"]) != str(current_user["id"]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your comment")
+
+    await db.execute("DELETE FROM question_comments WHERE id = $1", comment_id)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/courses/{course_id}/category-analytics
+# ---------------------------------------------------------------------------
+
+@router.get("/courses/{course_id}/category-analytics")
+async def get_category_analytics(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Get question category counts across all sessions for this course."""
+    owned = await db.fetchval(
+        "SELECT 1 FROM courses WHERE id = $1 AND professor_id = $2",
+        course_id,
+        current_user["id"],
+    )
+    if not owned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your course")
+
+    rows = await db.fetch(
+        """
+        SELECT
+            COALESCE(q.category, 'Doubts') AS category,
+            COUNT(*) AS count
+        FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        WHERE s.course_id = $1
+          AND q.category IS NOT NULL
+        GROUP BY COALESCE(q.category, 'Doubts')
+        ORDER BY count DESC
+        """,
+        course_id,
+    )
+    return [{"category": r["category"], "count": int(r["count"])} for r in rows]

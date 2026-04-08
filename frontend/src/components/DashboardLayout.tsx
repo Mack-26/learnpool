@@ -84,26 +84,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               fontFamily: "'Georgia', 'Times New Roman', serif",
               fontSize: '1.65rem',
               fontWeight: 700,
-              color: '#1e3a8a',
+              color: '#92400e',
               letterSpacing: '-0.02em',
               lineHeight: 1,
               userSelect: 'none',
             }}
           >
-            <span style={{ fontWeight: 300, color: '#3b60c4' }}>[</span>
-            <span style={{ fontStyle: 'italic', fontWeight: 800 }}>Vibe</span>
-            <span style={{ fontWeight: 300, color: '#3b60c4' }}>]</span>
-            <sup
-              style={{
-                fontSize: '0.95rem',
-                fontStyle: 'italic',
-                fontWeight: 700,
-                verticalAlign: 'super',
-                color: '#2d4fa8',
-              }}
-            >
-              n
-            </sup>
+            VibeLearning
           </button>
         </div>
 

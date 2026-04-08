@@ -237,6 +237,8 @@ export default function ChatPage() {
   const [anonymous, setAnonymous] = useState(false)
   const [showNudge, setShowNudge] = useState(false)
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
+  const [sendError, setSendError] = useState<string | null>(null)
+  const [rateLimited, setRateLimited] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const personality = useSettingsStore((s) => s.personality)
 
@@ -302,12 +304,17 @@ export default function ChatPage() {
 
   const mutation = useMutation({
     mutationFn: (content: string) => postQuestion(sessionId!, content, personality, anonymous),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['questions', sessionId] }),
+    onSuccess: () => {
+      setSendError(null)
+      queryClient.invalidateQueries({ queryKey: ['questions', sessionId] })
+    },
     onError: (err: unknown) => {
-      const msg = err && typeof err === 'object' && 'response' in err
-        ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+      const response = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { status?: number; data?: { detail?: string } } }).response
         : null
-      console.error('Post question failed:', msg || err)
+      const msg = response?.data?.detail ?? 'Something went wrong. Please try again.'
+      setSendError(msg)
+      if (response?.status === 429) setRateLimited(true)
     },
   })
 
@@ -419,37 +426,47 @@ export default function ChatPage() {
             {/* Input */}
             <div className="p-4 border-t border-border bg-card shrink-0">
               {canChat ? (
-                <form
-                  onSubmit={(e) => { e.preventDefault(); handleSend() }}
-                  className="flex items-center gap-2"
-                >
-                  <div className="flex-1 flex flex-col gap-0.5">
-                    <Input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder={mutation.isPending ? 'Generating answer…' : 'Ask a question about this session…'}
-                      disabled={mutation.isPending}
-                      className="flex-1"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
-                      }}
-                    />
-                    {input.trim().length > 0 && input.trim().length < 5 && (
-                      <p className="text-xs text-destructive">At least 5 characters required</p>
-                    )}
-                    {input.length > 2000 && (
-                      <p className="text-xs text-destructive">{input.length}/2000 characters</p>
-                    )}
+                rateLimited ? (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-sm text-destructive">{sendError}</p>
                   </div>
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={mutation.isPending || !input.trim() || input.trim().length < 5 || input.length > 2000}
-                    className="gradient-primary text-white border-0 shrink-0"
+                ) : (
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); handleSend() }}
+                    className="flex items-center gap-2"
                   >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
+                    <div className="flex-1 flex flex-col gap-0.5">
+                      <Input
+                        value={input}
+                        onChange={(e) => { setInput(e.target.value); setSendError(null) }}
+                        placeholder={mutation.isPending ? 'Generating answer…' : 'Ask a question about this session…'}
+                        disabled={mutation.isPending}
+                        className="flex-1"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+                        }}
+                      />
+                      {sendError && (
+                        <p className="text-xs text-destructive">{sendError}</p>
+                      )}
+                      {!sendError && input.trim().length > 0 && input.trim().length < 5 && (
+                        <p className="text-xs text-destructive">At least 5 characters required</p>
+                      )}
+                      {input.length > 2000 && (
+                        <p className="text-xs text-destructive">{input.length}/2000 characters</p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={mutation.isPending || !input.trim() || input.trim().length < 5 || input.length > 2000}
+                      className="gradient-primary text-white border-0 shrink-0"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
+                )
               ) : (
                 <p className="text-center text-sm text-muted-foreground">
                   This lecture has ended. Questions are read-only.

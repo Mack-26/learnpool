@@ -1,4 +1,4 @@
-import type { CourseOut, DocumentOut, SessionReportResponse, SessionSummary } from '../types/api'
+import type { CommentOut, CourseOut, DocumentOut, SessionReportResponse, SessionSummary } from '../types/api'
 import client from './client'
 
 export async function getProfessorCourses(): Promise<CourseOut[]> {
@@ -150,5 +150,29 @@ export async function uploadDocument(
     `/api/professor/courses/${courseId}/documents/upload`,
     formData
   )
+  return res.data
+}
+
+export async function getProfessorQuestionComments(questionId: string): Promise<CommentOut[]> {
+  const res = await client.get<CommentOut[]>(`/api/professor/questions/${questionId}/comments`)
+  return res.data
+}
+
+export async function postProfessorQuestionComment(questionId: string, content: string): Promise<CommentOut> {
+  const res = await client.post<CommentOut>(`/api/professor/questions/${questionId}/comments`, { content })
+  return res.data
+}
+
+export async function deleteProfessorQuestionComment(questionId: string, commentId: string): Promise<void> {
+  await client.delete(`/api/professor/questions/${questionId}/comments/${commentId}`)
+}
+
+export interface CategoryAnalyticsItem {
+  category: string
+  count: number
+}
+
+export async function getCategoryAnalytics(courseId: string): Promise<CategoryAnalyticsItem[]> {
+  const res = await client.get<CategoryAnalyticsItem[]>(`/api/professor/courses/${courseId}/category-analytics`)
   return res.data
 }

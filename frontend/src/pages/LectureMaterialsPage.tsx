@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { FileText, Eye, X, ChevronDown } from 'lucide-react'
+import { FileText, ExternalLink, ChevronDown } from 'lucide-react'
 import { getProfessorCourses, getSessionsWithDocuments as getProfessorSessionsWithDocs } from '../api/professor'
 import { getCourses, getSessionsWithDocuments as getStudentSessionsWithDocs } from '../api/sessions'
 import DashboardLayout from '@/components/DashboardLayout'
 import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/badge'
-import type { DocumentOut } from '../types/api'
 
 function toStatusBadge(status: string) {
   if (status === 'active') return <Badge className="gradient-primary text-white border-0 text-xs">● Live</Badge>
@@ -20,7 +19,6 @@ export default function LectureMaterialsPage() {
   const isProfessor = user?.role === 'professor'
 
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
-  const [viewingDoc, setViewingDoc] = useState<DocumentOut | null>(null)
 
   const { data: courses = [] } = useQuery({
     queryKey: isProfessor ? ['professor-courses'] : ['courses'],
@@ -37,6 +35,18 @@ export default function LectureMaterialsPage() {
         : getStudentSessionsWithDocs(effectiveCourseId!),
     enabled: !!effectiveCourseId,
   })
+
+  const handleOpenDoc = (doc: { url: string; filename: string; content?: string | null }) => {
+    if (doc.url) {
+      window.open(doc.url, '_blank', 'noopener,noreferrer')
+    } else if (doc.content) {
+      // Open inline text content in a new tab
+      const blob = new Blob([doc.content], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    }
+  }
 
   return (
     <DashboardLayout>
@@ -113,14 +123,14 @@ export default function LectureMaterialsPage() {
                         <button
                           key={doc.id}
                           type="button"
-                          onClick={() => setViewingDoc(doc)}
+                          onClick={() => handleOpenDoc(doc)}
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:border-primary/40 hover:bg-accent/50 transition-colors text-left"
                         >
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-sm font-medium truncate max-w-[200px]">
                             {doc.filename}
                           </span>
-                          <Eye className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         </button>
                       ))}
                     </div>
@@ -128,58 +138,6 @@ export default function LectureMaterialsPage() {
                 </div>
               </motion.div>
             ))}
-          </div>
-        )}
-
-        {/* Document viewer modal */}
-        {viewingDoc && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            onClick={() => setViewingDoc(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className={`bg-card border-2 border-border rounded-xl shadow-xl w-full max-h-[90vh] flex flex-col ${
-                viewingDoc.url && viewingDoc.filename.toLowerCase().endsWith('.pdf')
-                  ? 'max-w-4xl'
-                  : 'max-w-2xl'
-              }`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-                <h3 className="font-semibold text-foreground truncate flex-1 mr-4">
-                  {viewingDoc.filename}
-                </h3>
-                <button
-                  onClick={() => setViewingDoc(null)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-                {viewingDoc.url && viewingDoc.filename.toLowerCase().endsWith('.pdf') ? (
-                  <iframe
-                    src={viewingDoc.url}
-                    className="flex-1 w-full min-h-[400px] border-0"
-                    title={viewingDoc.filename}
-                  />
-                ) : viewingDoc.content ? (
-                  <div className="flex-1 overflow-y-auto p-4">
-                    <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
-                      {viewingDoc.content}
-                    </pre>
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center p-8">
-                    <p className="text-muted-foreground text-sm">
-                      No preview available for this document.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
           </div>
         )}
       </motion.div>

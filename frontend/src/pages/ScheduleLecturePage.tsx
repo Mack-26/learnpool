@@ -40,6 +40,7 @@ export default function ScheduleLecturePage() {
   const [docContent, setDocContent] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [pendingDocs, setPendingDocs] = useState<Array<{ type: 'text'; title: string; content: string } | { type: 'file'; file: File; title: string }>>([])
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const { data: session, isLoading: sessionLoading } = useQuery({
     queryKey: ['session-detail', sessionId],
@@ -106,6 +107,10 @@ export default function ScheduleLecturePage() {
       navigate(`/instructor/courses/${courseId}`, {
         state: { successMessage: result.isEdit ? 'Lecture updated successfully.' : 'Future lecture scheduled successfully.' },
       })
+    },
+    onError: (err: unknown) => {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setErrorMessage(detail ?? 'Something went wrong. Please try again.')
     },
   })
 
@@ -419,9 +424,15 @@ export default function ScheduleLecturePage() {
             )}
           </div>
 
+          {errorMessage && (
+            <div className="px-4 py-3 rounded-lg bg-destructive/10 text-destructive border border-destructive/30 text-sm">
+              {errorMessage}
+            </div>
+          )}
+
           <div className="flex gap-2 pt-2">
             <Button
-              onClick={() => scheduleMutation.mutate()}
+              onClick={() => { setErrorMessage(null); scheduleMutation.mutate() }}
               disabled={!canSubmit || scheduleMutation.isPending || isLoading}
               className="gradient-primary text-white"
             >

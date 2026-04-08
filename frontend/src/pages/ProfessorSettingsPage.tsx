@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Smile, BookOpen, Zap } from 'lucide-react'
+import { Smile, BookOpen, Zap, Info } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import { useSettingsStore } from '../store/settingsStore'
 import type { Personality } from '../types/api'
@@ -37,6 +37,35 @@ export default function ProfessorSettingsPage() {
 
         <h1 className="text-2xl font-bold text-foreground mb-1">Settings</h1>
         <p className="text-muted-foreground mb-6">Configure your preferences</p>
+
+        {/* How it works */}
+        <div className="mb-6 p-4 rounded-xl border border-border bg-muted/30">
+          <div className="flex items-center gap-2 mb-3">
+            <Info className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">How it works</span>
+          </div>
+          <ol className="space-y-2">
+            {[
+              'Students ask questions during a live class session.',
+              'Each question is matched against course materials you\'ve uploaded using a RAG pipeline.',
+              'GPT-4o generates an answer using only your course content — no outside knowledge.',
+              'Students get cited, grounded answers. You see all questions in the dashboard.',
+            ].map((step, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <span className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-xs font-semibold mt-0.5">
+                  {i + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* AI Personality */}
+        <div className="mb-3">
+          <p className="text-sm font-semibold text-foreground mb-1">AI Personality</p>
+          <p className="text-xs text-muted-foreground mb-3">Choose the teaching style the AI assistant uses when answering student questions.</p>
+        </div>
 
         <div className="space-y-3">
           {personalities.map((p) => {

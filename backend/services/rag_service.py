@@ -140,6 +140,17 @@ async def handle_question(
     )
     answer_id = str(a_row["id"])
 
+    # Step 7.5: Classify question category (fire-and-forget, don't block)
+    try:
+        category = await asyncio.to_thread(openai_client.classify_question, content)
+        await db.execute(
+            "UPDATE questions SET category = $1 WHERE id = $2",
+            category,
+            question_id,
+        )
+    except Exception:
+        pass  # Category is optional — don't fail the whole pipeline
+
     # Step 8: Save citations
     citation_outs = []
     for i, chunk in enumerate(chunks):

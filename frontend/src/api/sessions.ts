@@ -1,4 +1,4 @@
-import type { CourseOut, DocumentOut, Personality, QuestionOut, SessionCheckResponse, SessionReportResponse, SessionSummary } from '../types/api'
+import type { CommentOut, CourseOut, DocumentOut, Personality, QuestionOut, SessionCheckResponse, SessionReportResponse, SessionSummary } from '../types/api'
 import client from './client'
 
 export async function getCourses(): Promise<CourseOut[]> {
@@ -58,5 +58,20 @@ export async function getQuestions(sessionId: string): Promise<QuestionOut[]> {
 
 export async function publishQuestions(sessionId: string, questionIds: string[]): Promise<{ published_count: number }> {
   const res = await client.post<{ published_count: number }>(`/api/student/sessions/${sessionId}/publish`, { question_ids: questionIds })
+  return res.data
+}
+
+export async function getQuestionComments(questionId: string): Promise<CommentOut[]> {
+  const res = await client.get<CommentOut[]>(`/api/student/questions/${questionId}/comments`)
+  return res.data
+}
+
+export async function postQuestionComment(questionId: string, content: string): Promise<CommentOut> {
+  const res = await client.post<CommentOut>(`/api/student/questions/${questionId}/comments`, { content })
+  return res.data
+}
+
+export async function forkQuestion(questionId: string, content: string, personality: Personality = 'supportive'): Promise<QuestionOut> {
+  const res = await client.post<QuestionOut>(`/api/student/questions/${questionId}/fork`, { content, personality })
   return res.data
 }

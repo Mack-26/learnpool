@@ -40,6 +40,40 @@ def get_chat_completion(system_prompt: str, user_message: str) -> tuple[str, int
     return content, latency_ms
 
 
+QUESTION_CATEGORIES = ["Homework", "Doubts", "Summaries", "Exam Prep"]
+
+
+def classify_question(question_text: str) -> str:
+    """Classify a student question into one of four categories.
+
+    Returns one of: "Homework" | "Doubts" | "Summaries" | "Exam Prep"
+    Called via asyncio.to_thread().
+    """
+    prompt = (
+        "Classify this student question into exactly one category.\n"
+        "Categories: Homework, Doubts, Summaries, Exam Prep\n\n"
+        "Rules:\n"
+        "- Homework: questions about assignments, problem sets, or exercises\n"
+        "- Doubts: conceptual questions, clarifications, or confusion about material\n"
+        "- Summaries: requests for overviews, key points, or recaps\n"
+        "- Exam Prep: questions about what to study, past exams, or test-taking\n\n"
+        f"Question: {question_text}\n\n"
+        'Return ONLY valid JSON: {"category": "Doubts"}'
+    )
+    try:
+        response = _client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+        )
+        raw = response.choices[0].message.content or "{}"
+        data = json.loads(raw)
+        category = data.get("category", "Doubts")
+        return category if category in QUESTION_CATEGORIES else "Doubts"
+    except Exception:
+        return "Doubts"
+
+
 def cluster_questions_by_topic(questions: list[dict]) -> list[dict]:
     """Group questions into topic clusters using GPT-4o-mini.
 

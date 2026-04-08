@@ -79,6 +79,9 @@ async def build_session_report(
             q.student_id,
             q.professor_labels    AS professor_labels,
             q.professor_notes     AS professor_notes,
+            q.category            AS category,
+            COALESCE(q.fork_count, 0) AS fork_count,
+            q.forked_from         AS forked_from,
             a.id                  AS answer_id,
             a.content             AS answer_content,
             a.model_used,
@@ -86,7 +89,9 @@ async def build_session_report(
             COALESCE((SELECT COUNT(*) FROM answer_feedback af
                       WHERE af.answer_id = a.id AND af.feedback = 'up'), 0)   AS thumbs_up,
             COALESCE((SELECT COUNT(*) FROM answer_feedback af
-                      WHERE af.answer_id = a.id AND af.feedback = 'down'), 0) AS thumbs_down
+                      WHERE af.answer_id = a.id AND af.feedback = 'down'), 0) AS thumbs_down,
+            COALESCE((SELECT COUNT(*) FROM question_comments qc
+                      WHERE qc.question_id = q.id), 0)                         AS comment_count
         FROM questions q
         LEFT JOIN answers a ON a.question_id = q.id
         WHERE q.session_id = $1
@@ -151,6 +156,10 @@ async def build_session_report(
             feedback=feedback,
             professor_labels=list(row["professor_labels"]) if include_review_data and row["professor_labels"] else [],
             professor_notes=row["professor_notes"] if include_review_data else None,
+            category=row["category"],
+            fork_count=int(row["fork_count"]),
+            comment_count=int(row["comment_count"]),
+            forked_from=str(row["forked_from"]) if row["forked_from"] else None,
         )
 
     question_list = [{"question_id": qid, "content": item.content} for qid, item in report_items.items()]
