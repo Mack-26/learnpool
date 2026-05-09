@@ -877,14 +877,9 @@ export default function OnboardingPage() {
 
       {/* Logo */}
       <div style={{ width: '100%', maxWidth: '900px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div>
-          <span style={{ fontFamily: serif, fontSize: '1.4rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.02em', display: 'block' }}>
-            VibeLearning
-          </span>
-          <span style={{ fontFamily: sans, fontSize: '0.6rem', color: T.outlineVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            by Manan Arora
-          </span>
-        </div>
+        <span style={{ fontFamily: serif, fontSize: '1.4rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.02em' }}>
+          VibeLearning
+        </span>
         <a href="/login" style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, textDecoration: 'none' }}>
           Already a member? Sign in →
         </a>
@@ -930,6 +925,13 @@ export default function OnboardingPage() {
             error={error}
           />
         )}
+      </div>
+
+      {/* MA mark — fixed bottom right */}
+      <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.75rem', zIndex: 39, pointerEvents: 'none' }}>
+        <span style={{ fontFamily: serif, fontSize: '2.5rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.06em', lineHeight: 1, fontStyle: 'italic', opacity: 0.22 }}>
+          MA
+        </span>
       </div>
 
       {/* Fixed bottom navigation — always at the same position, never jumps */}
