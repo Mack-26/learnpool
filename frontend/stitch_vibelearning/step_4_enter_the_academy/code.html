@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Path to Mastery - VibeLearning</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary": "#545f73",
+                "inverse-primary": "#ffb77c",
+                "background": "#fff8f5",
+                "surface-bright": "#fff8f5",
+                "on-background": "#231a13",
+                "inverse-on-surface": "#ffede2",
+                "on-error-container": "#93000a",
+                "tertiary-fixed": "#ffddb8",
+                "on-primary-fixed-variant": "#6d3900",
+                "surface-container-highest": "#f1dfd4",
+                "on-tertiary-fixed-variant": "#653e00",
+                "on-tertiary": "#ffffff",
+                "error-container": "#ffdad6",
+                "surface-dim": "#e8d7cc",
+                "on-tertiary-fixed": "#2a1700",
+                "on-primary-container": "#fffbff",
+                "on-error": "#ffffff",
+                "tertiary-fixed-dim": "#ffb95f",
+                "inverse-surface": "#392e27",
+                "tertiary-container": "#a36700",
+                "surface-container": "#fdebdf",
+                "secondary-fixed": "#d8e3fb",
+                "primary-fixed": "#ffdcc2",
+                "primary-container": "#b06000",
+                "on-surface": "#231a13",
+                "on-secondary-container": "#586377",
+                "secondary-fixed-dim": "#bcc7de",
+                "on-surface-variant": "#554336",
+                "primary": "#8c4b00",
+                "on-secondary": "#ffffff",
+                "surface": "#fff8f5",
+                "outline-variant": "#dbc2b0",
+                "on-secondary-fixed": "#111c2d",
+                "surface-container-low": "#fff1e9",
+                "on-secondary-fixed-variant": "#3c475a",
+                "on-primary": "#ffffff",
+                "tertiary": "#825100",
+                "on-primary-fixed": "#2e1500",
+                "outline": "#887364",
+                "surface-tint": "#904d00",
+                "surface-variant": "#f1dfd4",
+                "error": "#ba1a1a",
+                "surface-container-lowest": "#ffffff",
+                "primary-fixed-dim": "#ffb77c",
+                "surface-container-high": "#f7e5d9",
+                "on-tertiary-container": "#fffbff",
+                "secondary-container": "#d5e0f8"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {},
+        "fontFamily": {
+                "headline": [
+                        "Newsreader"
+                ],
+                "display": [
+                        "Newsreader"
+                ],
+                "body": [
+                        "Manrope"
+                ],
+                "label": [
+                        "Manrope"
+                ]
+        },
+        "fontSize": {}
+},
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sunken-shadow {
+            box-shadow: 0 20px 40px -12px rgba(35, 26, 19, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col">
+<!-- Suppressed TopNav/SideNav due to Linear/Transactional intent -->
+<main class="flex-grow flex flex-col items-center justify-center p-6 relative overflow-hidden">
+<!-- Ambient Background Glows -->
+<div class="absolute top-0 left-1/4 w-96 h-96 bg-primary opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
+<div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-tertiary opacity-5 blur-[120px] rounded-full pointer-events-none"></div>
+<!-- Progress Bar at Top -->
+<div class="absolute top-0 left-0 w-full flex h-1 gap-1">
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+</div>
+<div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-12 items-center relative z-10">
+<!-- Left Column: Celebration & Summary (Asymmetric Layout) -->
+<div class="md:col-span-7 flex flex-col items-start gap-8">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center sunken-shadow">
+<span class="material-symbols-outlined text-white text-3xl">emoji_events</span>
+</div>
+<div>
+<span class="font-label text-primary font-bold tracking-widest uppercase text-sm block mb-1">Step 4 of 4</span>
+<h1 class="font-display text-5xl font-semibold text-on-surface">Mastery Unlocked</h1>
+</div>
+</div>
+<p class="text-on-surface-variant text-lg max-w-lg leading-relaxed">
+                    Your path is set. You've chosen a journey of rigor and profound understanding. Now, secure your spot in the academy and let the pursuit of knowledge begin.
+                </p>
+<!-- Summary Bento Grid -->
+<div class="grid grid-cols-2 gap-4 w-full max-w-lg mt-4">
+<div class="bg-surface-container-low rounded-xl p-6 sunken-shadow border border-outline-variant/15 flex flex-col gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">school</span>
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Selected Path</span>
+<span class="font-headline text-xl text-on-surface">Student Path</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 sunken-shadow border border-outline-variant/15 flex flex-col gap-2">
+<span class="material-symbols-outlined text-tertiary text-2xl">local_fire_department</span>
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Intensity</span>
+<span class="font-headline text-xl text-on-surface">Intense Goal</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Final Sign Up Form (Glassmorphism card) -->
+<div class="md:col-span-5 w-full">
+<div class="bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[1.5rem] p-8 sunken-shadow border border-outline-variant/20 relative overflow-hidden">
+<!-- Decorative Graphic inside card -->
+<div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-xl"></div>
+<h2 class="font-headline text-2xl mb-2 text-on-surface relative z-10">Enter the Academy</h2>
+<p class="text-sm text-on-surface-variant mb-8 relative z-10">Save your progress to continue.</p>
+<form class="flex flex-col gap-6 relative z-10">
+<div class="flex flex-col">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2" for="email">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+<input class="w-full bg-surface-container-highest border-0 border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg pl-12 pr-4 py-3 text-on-surface transition-colors" id="email" placeholder="scholar@academy.edu" type="email"/>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2" for="password">Secure Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+<input class="w-full bg-surface-container-highest border-0 border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg pl-12 pr-4 py-3 text-on-surface transition-colors" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<button class="mt-4 w-full bg-gradient-to-br from-primary to-primary-container text-white rounded-full py-4 font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 group" type="button">
+<span>Begin Journey</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<p class="text-xs text-center text-on-surface-variant mt-6">
+                        By joining, you agree to our scholarly code of conduct.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

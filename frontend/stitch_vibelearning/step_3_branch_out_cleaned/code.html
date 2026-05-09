@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Power of the Fork - Editorial Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-bright": "#fff8f5",
+                "primary-fixed-dim": "#ffb77c",
+                "on-secondary-fixed-variant": "#3c475a",
+                "inverse-primary": "#ffb77c",
+                "surface-container-highest": "#f1dfd4",
+                "on-secondary-fixed": "#111c2d",
+                "on-tertiary": "#ffffff",
+                "primary-container": "#b06000",
+                "tertiary": "#825100",
+                "secondary": "#545f73",
+                "on-surface-variant": "#554336",
+                "error-container": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb95f",
+                "on-primary": "#ffffff",
+                "error": "#ba1a1a",
+                "surface": "#fff8f5",
+                "on-secondary-container": "#586377",
+                "on-primary-fixed": "#2e1500",
+                "on-tertiary-container": "#fffbff",
+                "background": "#fff8f5",
+                "tertiary-fixed": "#ffddb8",
+                "on-error-container": "#93000a",
+                "secondary-fixed-dim": "#bcc7de",
+                "on-tertiary-fixed-variant": "#653e00",
+                "on-tertiary-fixed": "#2a1700",
+                "on-secondary": "#ffffff",
+                "secondary-container": "#d5e0f8",
+                "surface-container": "#fdebdf",
+                "on-primary-fixed-variant": "#6d3900",
+                "inverse-on-surface": "#ffede2",
+                "surface-container-high": "#f7e5d9",
+                "primary-fixed": "#ffdcc2",
+                "surface-dim": "#e8d7cc",
+                "surface-variant": "#f1dfd4",
+                "on-primary-container": "#fffbff",
+                "surface-tint": "#904d00",
+                "outline-variant": "#dbc2b0",
+                "surface-container-lowest": "#ffffff",
+                "primary": "#8c4b00",
+                "inverse-surface": "#392e27",
+                "on-background": "#231a13",
+                "surface-container-low": "#fff1e9",
+                "outline": "#887364",
+                "tertiary-container": "#a36700",
+                "on-error": "#ffffff",
+                "secondary-fixed": "#d8e3fb",
+                "on-surface": "#231a13"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {},
+        "fontFamily": {
+                "headline": [
+                        "Newsreader"
+                ],
+                "display": [
+                        "Newsreader"
+                ],
+                "body": [
+                        "Manrope"
+                ],
+                "label": [
+                        "Manrope"
+                ]
+        },
+        "fontSize": {}
+},
+    },
+  }
+</script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-surface-container-lowest/80 backdrop-blur-[20px];
+            }
+            .ambient-shadow {
+                @apply shadow-[0_20px_40px_-12px_rgba(35,26,19,0.08)];
+            }
+            .ghost-border {
+                @apply border border-outline-variant/15;
+            }
+            .gradient-primary {
+                @apply bg-gradient-to-br from-primary to-primary-container;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen flex items-center justify-center p-8 md:p-16 lg:p-24 overflow-hidden relative">
+<!-- Conceptual Network Grid Lines behind content -->
+<!-- Decorative background elements -->
+<div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-surface-container-highest rounded-full blur-[120px] opacity-40 -z-10 pointer-events-none"></div>
+<!-- Main Container Layout: Asymmetric split -->
+<div class="relative w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center z-10">
+<!-- Left Content Area (Text & CTA) -->
+<div class="lg:col-span-5 flex flex-col space-y-10 pl-4 lg:pl-12">
+<div class="space-y-8">
+<!-- Progress Tracker -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-2 rounded-full bg-surface-container-high"></div>
+<div class="w-8 h-2 rounded-full bg-surface-container-high"></div>
+<div class="w-8 h-2 rounded-full gradient-primary"></div>
+<div class="w-8 h-2 rounded-full bg-surface-container-high"></div>
+</div>
+<span class="font-label text-sm tracking-widest uppercase text-on-surface-variant font-semibold">Step 3 of 4</span>
+</div>
+<div class="inline-flex items-center space-x-2 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/30 mt-4">
+<span class="material-symbols-outlined text-primary text-sm" style='font-variation-settings: "FILL" 1;'>account_tree</span>
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-semibold">Dynamic Intellectual Branching</span>
+</div>
+<h1 class="font-display text-5xl md:text-6xl lg:text-[4.5rem] leading-[1.05] text-on-surface tracking-tight">
+                    Branch Out.<br/>
+<span class="italic font-light text-primary">Build On.</span><br/>
+                    Breathe Life into Theory.
+                </h1>
+<p class="font-body text-lg md:text-xl text-on-surface-variant leading-relaxed max-w-md mt-6">
+                    Don’t just read. Fork any AI synthesis to start a new intellectual branch. Map connections, invite collaborators, and turn a single lecture into a living ecosystem of shared discovery.
+                </p>
+</div>
+<div class="pt-2">
+<button class="gradient-primary text-on-primary font-label px-10 py-5 rounded-full font-bold tracking-widest uppercase shadow-lg hover:brightness-110 transition-all duration-300 group inline-flex items-center space-x-3">
+<span class="">Continue</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" style='font-variation-settings: "FILL" 1;'>arrow_forward</span>
+</button>
+</div>
+<!-- Contextual Stats/Info below CTA to ground it -->
+</div>
+<!-- Right Visual Area (The Node Network) -->
+<div class="lg:col-span-7 relative h-[600px] lg:h-[800px] w-full flex items-center justify-center">
+<!-- Connection Lines (SVG) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-0" style="overflow: visible;">
+<!-- Main to Top Right -->
+<path d="M 30% 50% Q 50% 30% 70% 35%" fill="none" opacity="0.6" stroke="var(--tw-colors-outline-variant)" stroke-dasharray="6,6" stroke-width="2"></path>
+<!-- Main to Bottom Right -->
+<path d="M 30% 50% Q 50% 70% 65% 65%" fill="none" opacity="0.6" stroke="var(--tw-colors-outline-variant)" stroke-dasharray="6,6" stroke-width="2"></path>
+</svg>
+<!-- Main Central Node -->
+<div class="absolute left-[15%] top-[40%] transform -translate-y-1/2 z-20 w-80">
+<div class="bg-surface-container-highest rounded-xl p-6 ambient-shadow ghost-border relative group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute -left-3 -top-3 bg-tertiary-container text-on-tertiary-container w-10 h-10 rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1;'>hub</span>
+</div>
+<div class="flex flex-col space-y-3">
+<span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Main Lecture Node</span>
+<h3 class="font-headline text-2xl text-on-surface leading-tight">Macroeconomics: Elasticity</h3>
+<p class="font-body text-sm text-on-surface-variant line-clamp-2">A foundational exploration of price responsiveness in standard market models.</p>
+<div class="flex items-center justify-between pt-4 mt-2 border-t border-outline-variant/30">
+<div class="flex -space-x-2">
+<img alt="Avatar 1" class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="A cinematic, shallow depth of field portrait of a young scholar in a warmly lit, dark-wood academic library." src="https://lh3.googleusercontent.com/aida/ADBb0uhQWspMvpTOoukriIiEnBqd6v9ujt0-xVp7PF5ijfaenrSJ8fFfa1pe4ZU98YP8FxvOtL2P6Foaif8wu3PxFY3yV-4gR_3UTg4i2NsMLrkKd2T-3WdHos0Ouhg2SfOsU8hsUJo-t0lo_c3zQ0hMgzgPsbHCK5kz8_DAbR9NiYVOTudoZW7X1Im9UGfncGeAvf-0WgyGti7muw1rOQIFwVBXH36EiuQFjAUwoEs6gofy_I_2ovdsvgV6eszo55dpdgt1X41-lyEAWQo"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-on-surface-variant">+3</div>
+</div>
+<div class="glass-panel px-3 py-1 rounded-full border border-outline-variant/40 text-xs font-label text-on-surface-variant">
+                                Source Synthesis
+                            </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Forked Node 1 (Top Right) -->
+<div class="absolute right-[5%] top-[25%] z-20 w-72">
+<div class="bg-surface-container-low rounded-xl p-5 ambient-shadow ghost-border backdrop-blur-sm relative group hover:-translate-y-1 transition-transform duration-300">
+<div class="flex items-start justify-between mb-3">
+<div class="bg-primary-container/10 text-primary px-2 py-1 rounded text-[10px] font-label uppercase tracking-wider font-bold flex items-center">
+<span class="material-symbols-outlined text-[12px] mr-1">account_tree</span> Forked
+                        </div>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-label px-2 py-1 rounded-full uppercase tracking-wider">Shared Research</span>
+</div>
+<h4 class="font-headline text-xl text-on-surface leading-tight mb-2">Inelastic Demand in Healthcare</h4>
+<p class="font-body text-xs text-on-surface-variant mb-4">Applying theoretical elasticity to life-saving medical interventions.</p>
+<div class="flex items-center space-x-2">
+<img alt="Avatar 2" class="w-6 h-6 rounded-full object-cover" data-alt="A close-up, high-fashion editorial portrait of an academic collaborator." src="https://lh3.googleusercontent.com/aida/ADBb0ujW8Gg-2ANnVRWaqrSY3dWLxu8cQgTZcLWrP5hsecW7BJv8aQ34aYoGXs9tcHf7Q8gbA-nYa6ILHc-g2OykyiI4EA9GuyPgRFW2_qGpiNgC0Iy_zgzjtd7SKtQUPOtoJuSepfa8NaVAXAY0be1INoH8MzyMWf9x3TbjQZTxzJhJsd-_md50xwsErzioVOKAdIXof4qQN0oS6nEYBdV-K4NEeOUF49owmGD4LE8gsiQWHn1xRp3BQpMV6qS4LNZ_FSD2wolCESO5DKY"/>
+<span class="text-xs font-label text-on-surface-variant">Dr. E. Vance added a note</span>
+</div>
+</div>
+</div>
+<!-- Forked Node 2 (Bottom Right) -->
+<div class="absolute right-[15%] bottom-[25%] z-20 w-80">
+<div class="bg-surface-container-lowest rounded-xl p-5 ambient-shadow ghost-border relative group hover:-translate-y-1 transition-transform duration-300">
+<div class="flex items-start justify-between mb-3">
+<div class="bg-primary-container/10 text-primary px-2 py-1 rounded text-[10px] font-label uppercase tracking-wider font-bold flex items-center">
+<span class="material-symbols-outlined text-[12px] mr-1">account_tree</span> Forked
+                        </div>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-label px-2 py-1 rounded-full uppercase tracking-wider">Conceptual Map</span>
+</div>
+<h4 class="font-headline text-xl text-on-surface leading-tight mb-3">Real-world Elasticity Case Studies</h4>
+<!-- Mini Data Visual Representation inside card -->
+<div class="bg-surface-container-highest h-16 rounded-lg mb-4 flex items-end justify-around px-2 pb-2 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent"></div>
+<div class="w-4 bg-outline-variant rounded-t-sm h-[30%]"></div>
+<div class="w-4 bg-outline rounded-t-sm h-[70%]"></div>
+<div class="w-4 bg-primary/80 rounded-t-sm h-[50%]"></div>
+<div class="w-4 bg-surface-tint rounded-t-sm h-[90%]"></div>
+</div>
+<p class="font-body text-xs text-on-surface-variant">Empirical data collected from 1990-2020 market fluctuations.</p>
+</div>
+</div>
+</div>
+</div>
+</body></html>

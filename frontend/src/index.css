@@ -29,47 +29,51 @@
 }
 
 :root {
-  --background: 30 20% 98%;
-  --foreground: 20 25% 10%;
+  /* Blue Eclipse surface hierarchy */
+  --background: 240 50% 98%;        /* #f7f7fc — base surface (used inside panels) */
+  --foreground: 241 67% 17%;        /* #0F0E47 — deep navy */
 
-  --card: 0 0% 100%;
-  --card-foreground: 20 25% 10%;
+  --card: 240 30% 94%;              /* #ededf5 — surface-container-low */
+  --card-foreground: 241 67% 17%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 20 25% 10%;
+  --popover: 240 30% 94%;
+  --popover-foreground: 241 67% 17%;
 
-  --primary: 30 94% 44%;
+  /* Primary — #272757 deep indigo */
+  --primary: 240 37% 25%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 32 30% 95%;
-  --secondary-foreground: 25 20% 20%;
+  --secondary: 240 25% 91%;         /* #e2e2ee */
+  --secondary-foreground: 241 67% 17%;
 
-  --muted: 30 15% 93%;
-  --muted-foreground: 25 10% 47%;
+  --muted: 240 22% 88%;             /* #d8d8e8 */
+  --muted-foreground: 240 23% 41%;  /* #505081 */
 
-  --accent: 32 90% 94%;
-  --accent-foreground: 28 85% 32%;
+  --accent: 240 25% 91%;            /* #e2e2ee */
+  --accent-foreground: 240 37% 25%; /* primary */
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 30 15% 89%;
-  --input: 30 15% 89%;
-  --ring: 30 94% 44%;
+  --border: 240 19% 78%;            /* soft periwinkle */
+  --input: 240 22% 88%;             /* muted */
+  --ring: 240 37% 25%;
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 100%;
 
-  --gradient-primary: linear-gradient(135deg, hsl(30, 94%, 44%), hsl(22, 96%, 50%));
-  --gradient-hero: linear-gradient(135deg, hsl(30, 94%, 44%), hsl(42, 95%, 54%));
+  /* Blue Eclipse gradient — #272757 → #505081 */
+  --gradient-primary: linear-gradient(135deg, #272757, #505081);
+  --gradient-hero: linear-gradient(135deg, #0F0E47, #272757);
 
-  --shadow-card: 0 1px 3px 0 hsl(20 25% 10% / 0.04), 0 1px 2px -1px hsl(20 25% 10% / 0.04);
-  --shadow-elevated: 0 4px 16px -2px hsl(20 25% 10% / 0.08), 0 2px 4px -2px hsl(20 25% 10% / 0.04);
-  --shadow-hover: 0 8px 24px -4px hsl(30 94% 44% / 0.16), 0 4px 8px -4px hsl(20 25% 10% / 0.06);
+  /* Navy-tinted shadows */
+  --shadow-card: 0 1px 3px 0 rgba(15,14,71,0.05), 0 1px 2px -1px rgba(15,14,71,0.05);
+  --shadow-elevated: 0 20px 40px -12px rgba(15,14,71,0.12);
+  --shadow-hover: 0 8px 24px -4px rgba(39,39,87,0.18), 0 4px 8px -4px rgba(15,14,71,0.08);
 }
 
 *, *::before, *::after {
@@ -87,7 +91,11 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   -webkit-font-smoothing: antialiased;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+h1, h2 {
+  font-family: 'Newsreader', 'Georgia', serif;
 }
 
 button {

@@ -134,7 +134,7 @@ export default function ProfessorCourseViewPage() {
             {activeSession ? (
               <div className="space-y-3">
                 <div className="flex items-start gap-2">
-                  <Badge className="gradient-primary text-white border-0 animate-pulse shrink-0">● Live</Badge>
+                  <Badge className="animate-pulse shrink-0 border-0" style={{ background: '#dcfce7', color: '#166534' }}>● Live</Badge>
                   <span className="text-sm text-muted-foreground leading-tight break-words min-w-0">{activeSession.title}</span>
                 </div>
                 <Button

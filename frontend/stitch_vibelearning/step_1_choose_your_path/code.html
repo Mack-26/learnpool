@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Choose Your Path - VibeLearning</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#fffbff",
+                      "error": "#ba1a1a",
+                      "tertiary": "#825100",
+                      "surface-container-highest": "#f1dfd4",
+                      "on-secondary-fixed-variant": "#3c475a",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "outline": "#887364",
+                      "primary": "#8c4b00",
+                      "on-background": "#231a13",
+                      "primary-fixed-dim": "#ffb77c",
+                      "on-primary-container": "#fffbff",
+                      "primary-container": "#b06000",
+                      "secondary-fixed-dim": "#bcc7de",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-low": "#fff1e9",
+                      "on-tertiary": "#ffffff",
+                      "outline-variant": "#dbc2b0",
+                      "surface-container-high": "#f7e5d9",
+                      "surface-tint": "#904d00",
+                      "secondary-fixed": "#d8e3fb",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#111c2d",
+                      "surface-bright": "#fff8f5",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-tertiary-fixed": "#2a1700",
+                      "inverse-primary": "#ffb77c",
+                      "inverse-on-surface": "#ffede2",
+                      "tertiary-container": "#a36700",
+                      "surface-dim": "#e8d7cc",
+                      "on-primary-fixed-variant": "#6d3900",
+                      "secondary-container": "#d5e0f8",
+                      "on-surface-variant": "#554336",
+                      "on-primary-fixed": "#2e1500",
+                      "on-secondary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "secondary": "#545f73",
+                      "inverse-surface": "#392e27",
+                      "on-primary": "#ffffff",
+                      "primary-fixed": "#ffdcc2",
+                      "on-surface": "#231a13",
+                      "surface-container": "#fdebdf",
+                      "surface": "#fff8f5",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "background": "#fff8f5",
+                      "surface-variant": "#f1dfd4",
+                      "on-secondary-container": "#586377"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Newsreader"
+                      ],
+                      "display": [
+                              "Newsreader"
+                      ],
+                      "body": [
+                              "Manrope"
+                      ],
+                      "label": [
+                              "Manrope"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-surface font-body text-on-surface h-full flex flex-col items-center justify-center min-h-screen p-6">
+<!-- Top Navigation (Hidden as per shell visibility rules for onboarding/transactional) -->
+<!-- Main Content Canvas -->
+<main class="w-full max-w-5xl mx-auto flex flex-col items-center gap-12">
+<div class="w-full max-w-md mx-auto">
+<div class="flex items-center justify-between relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-surface-variant -z-10 rounded-full"></div>
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-0 h-1 bg-primary -z-10 rounded-full"></div>
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label text-sm font-medium shadow-sm">1</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-label text-sm font-medium">2</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-label text-sm font-medium">3</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-label text-sm font-medium">4</div>
+</div>
+<div class="flex justify-between mt-3 text-xs font-label text-on-surface-variant px-1">
+<span class="text-primary font-medium tracking-wide uppercase">Role</span>
+<span class="tracking-wide uppercase">Profile</span>
+<span class="tracking-wide uppercase">Goals</span>
+<span class="tracking-wide uppercase">Ready</span>
+</div>
+</div>
+<div class="text-center space-y-4 max-w-2xl">
+<h1 class="font-headline text-5xl md:text-6xl text-on-surface tracking-tight">Select your academic path.</h1>
+<p class="font-body text-on-surface-variant text-lg">Define your role within the academy to tailor your intellectual journey and workspace tools.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+<!-- Card 1: The Scholarly Student -->
+<button class="group flex flex-col items-center text-center p-8 bg-surface-container-low rounded-xl border border-outline-variant/15 hover:bg-surface-container-highest hover:shadow-[0_20px_40px_-12px_rgba(35,26,19,0.08)] transition-all duration-300 relative overflow-hidden">
+<div class="w-24 h-24 mb-6 rounded-full overflow-hidden bg-surface-variant border border-outline-variant/30 group-hover:scale-105 transition-transform duration-300">
+<img alt="The Scholarly Student" class="w-full h-full object-cover" data-alt="A sophisticated, editorial portrait of a scholarly young adult holding a classic notebook, rendered in a warm amber and stone color palette. The lighting is soft and high-key, illuminating a clean, light-mode environment that conveys academic trust and modern learning." src="https://lh3.googleusercontent.com/aida/ADBb0ujW8Gg-2ANnVRWaqrSY3dWLxu8cQgTZcLWrP5hsecW7BJv8aQ34aYoGXs9tcHf7Q8gbA-nYa6ILHc-g2OykyiI4EA9GuyPgRFW2_qGpiNgC0Iy_zgzjtd7SKtQUPOtoJuSepfa8NaVAXAY0be1INoH8MzyMWf9x3TbjQZTxzJhJsd-_md50xwsErzioVOKAdIXof4qQN0oS6nEYBdV-K4NEeOUF49owmGD4LE8gsiQWHn1xRp3BQpMV6qS4LNZ_FSD2wolCESO5DKY"/>
+</div>
+<h2 class="font-headline text-2xl font-medium text-on-surface mb-2">The Scholarly Student</h2>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Engage with curated curriculum, track personal progress, and immerse yourself in the practice labs.</p>
+<!-- Active Indicator (Hidden by default, shown when selected) -->
+<div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-outline-variant group-hover:border-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px] text-primary hidden">check</span>
+</div>
+</button>
+<!-- Card 2: The Wise Instructor -->
+<button class="group flex flex-col items-center text-center p-8 bg-surface-container-low rounded-xl border border-outline-variant/15 hover:bg-surface-container-highest hover:shadow-[0_20px_40px_-12px_rgba(35,26,19,0.08)] transition-all duration-300 relative overflow-hidden">
+<div class="w-24 h-24 mb-6 rounded-full overflow-hidden bg-surface-variant border border-outline-variant/30 group-hover:scale-105 transition-transform duration-300">
+<img alt="The Wise Instructor" class="w-full h-full object-cover" data-alt="An elegant, editorial portrait of an experienced educator in a library setting, styled with warm amber tones and subtle gradients. The scene is bright and airy, reflecting a premium, high-end academic atmosphere without feeling generic or overly tech-focused." src="https://lh3.googleusercontent.com/aida/ADBb0uhQWspMvpTOoukriIiEnBqd6v9ujt0-xVp7PF5ijfaenrSJ8fFfa1pe4ZU98YP8FxvOtL2P6Foaif8wu3PxFY3yV-4gR_3UTg4i2NsMLrkKd2T-3WdHos0Ouhg2SfOsU8hsUJo-t0lo_c3zQ0hMgzgPsbHCK5kz8_DAbR9NiYVOTudoZW7X1Im9UGfncGeAvf-0WgyGti7muw1rOQIFwVBXH36EiuQFjAUwoEs6gofy_I_2ovdsvgV6eszo55dpdgt1X41-lyEAWQo"/>
+</div>
+<h2 class="font-headline text-2xl font-medium text-on-surface mb-2">The Wise Instructor</h2>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Design curriculum, review scholarly submissions, and guide the next generation of luminaries.</p>
+<div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-outline-variant group-hover:border-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px] text-primary hidden">check</span>
+</div>
+</button>
+<!-- Card 3: The Analytical Admin -->
+<button class="group flex flex-col items-center text-center p-8 bg-surface-container-low rounded-xl border border-outline-variant/15 hover:bg-surface-container-highest hover:shadow-[0_20px_40px_-12px_rgba(35,26,19,0.08)] transition-all duration-300 relative overflow-hidden">
+<div class="w-24 h-24 mb-6 rounded-full overflow-hidden bg-surface-variant border border-outline-variant/30 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-surface-variant to-surface-dim">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<h2 class="font-headline text-2xl font-medium text-on-surface mb-2">The Analytical Admin</h2>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Oversee institutional metrics, manage user cohorts, and ensure the operational excellence of the academy.</p>
+<div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-outline-variant group-hover:border-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px] text-primary hidden">check</span>
+</div>
+</button>
+</div>
+<div class="mt-8">
+<button class="font-label uppercase tracking-[0.1em] text-sm px-10 py-4 rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm hover:shadow">
+                Continue
+            </button>
+</div>
+</main>
+</body></html>

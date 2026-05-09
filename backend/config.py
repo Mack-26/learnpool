@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     oci_namespace: str = ""
     oci_bucket: str = "learnpool-documents"
     max_questions_per_session: int = 10
+    context_material_token_budget: int = 8000
+    max_answer_tokens: int = 800
 
     model_config = SettingsConfigDict(env_file=_env_path, env_file_encoding="utf-8")
 

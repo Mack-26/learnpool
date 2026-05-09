@@ -1,4 +1,4 @@
-import type { CommentOut, CourseOut, DocumentOut, SessionReportResponse, SessionSummary } from '../types/api'
+import type { CommentOut, CourseOut, DocumentCitationOut, DocumentOut, RichThreadOut, SessionReportResponse, SessionSummary, ThreadFeedbackOut } from '../types/api'
 import client from './client'
 
 export async function getProfessorCourses(): Promise<CourseOut[]> {
@@ -167,6 +167,39 @@ export async function deleteProfessorQuestionComment(questionId: string, comment
   await client.delete(`/api/professor/questions/${questionId}/comments/${commentId}`)
 }
 
+export async function getProfessorSharedThreads(sessionId: string): Promise<RichThreadOut[]> {
+  const res = await client.get<RichThreadOut[]>(`/api/professor/sessions/${sessionId}/shared-threads`)
+  return res.data
+}
+
+export async function updateThreadReview(
+  threadId: string,
+  labels: string[],
+  notes: string | null,
+): Promise<{ thread_id: string }> {
+  const res = await client.patch<{ thread_id: string }>(`/api/professor/threads/${threadId}`, { labels, notes })
+  return res.data
+}
+
+export async function getProfessorThreadComments(threadId: string): Promise<CommentOut[]> {
+  const res = await client.get<CommentOut[]>(`/api/professor/threads/${threadId}/comments`)
+  return res.data
+}
+
+export async function postProfessorThreadComment(threadId: string, content: string): Promise<CommentOut> {
+  const res = await client.post<CommentOut>(`/api/professor/threads/${threadId}/comments`, { content })
+  return res.data
+}
+
+export async function deleteProfessorThreadComment(threadId: string, commentId: string): Promise<void> {
+  await client.delete(`/api/professor/threads/${threadId}/comments/${commentId}`)
+}
+
+export async function submitProfessorThreadFeedback(threadId: string, feedback: 'up' | 'down'): Promise<ThreadFeedbackOut> {
+  const res = await client.post<ThreadFeedbackOut>(`/api/professor/threads/${threadId}/feedback`, { feedback })
+  return res.data
+}
+
 export interface CategoryAnalyticsItem {
   category: string
   count: number
@@ -174,5 +207,10 @@ export interface CategoryAnalyticsItem {
 
 export async function getCategoryAnalytics(courseId: string): Promise<CategoryAnalyticsItem[]> {
   const res = await client.get<CategoryAnalyticsItem[]>(`/api/professor/courses/${courseId}/category-analytics`)
+  return res.data
+}
+
+export async function getSessionCitationMap(sessionId: string): Promise<DocumentCitationOut[]> {
+  const res = await client.get<DocumentCitationOut[]>(`/api/professor/sessions/${sessionId}/citation-map`)
   return res.data
 }

@@ -21,8 +21,12 @@ def get_embedding(text: str) -> list[float]:
     return response.data[0].embedding
 
 
-def get_chat_completion(system_prompt: str, user_message: str) -> tuple[str, int]:
-    """Call GPT-4o and return (answer_text, latency_ms).
+def get_chat_completion(
+    system_prompt: str,
+    user_message: str,
+    max_tokens: int = 800,
+) -> tuple[str, int, tuple[int, int]]:
+    """Call GPT-4o and return (answer_text, latency_ms, (input_tokens, output_tokens)).
 
     Called via asyncio.to_thread() from async routes.
     """
@@ -34,10 +38,16 @@ def get_chat_completion(system_prompt: str, user_message: str) -> tuple[str, int
             {"role": "user", "content": user_message},
         ],
         temperature=0.2,
+        max_tokens=max_tokens,
     )
     latency_ms = int((time.perf_counter() - start) * 1000)
     content = response.choices[0].message.content or ""
-    return content, latency_ms
+    usage = response.usage
+    token_counts = (
+        usage.prompt_tokens if usage else 0,
+        usage.completion_tokens if usage else 0,
+    )
+    return content, latency_ms, token_counts
 
 
 QUESTION_CATEGORIES = ["Homework", "Doubts", "Summaries", "Exam Prep"]

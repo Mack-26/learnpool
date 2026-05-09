@@ -13,6 +13,7 @@ import os
 import sys
 
 import asyncpg
+import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
 from pgvector.asyncpg import register_vector
@@ -45,11 +46,11 @@ async def main():
         text = row["content"].replace("\n", " ").strip()
         response = client.embeddings.create(input=text, model=EMBEDDING_MODEL)
         embedding = response.data[0].embedding
-        embedding_str = "[" + ",".join(map(str, embedding)) + "]"
+        embedding_arr = np.array(embedding, dtype=np.float32)
 
         await conn.execute(
-            "UPDATE document_chunks SET embedding = $1::vector, embedding_model = $2 WHERE id = $3",
-            embedding_str,
+            "UPDATE document_chunks SET embedding = $1, embedding_model = $2 WHERE id = $3",
+            embedding_arr,
             EMBEDDING_MODEL,
             row["id"],
         )

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { BookOpen, LogOut, Settings, Users, FileText } from 'lucide-react'
+import { Bookmark, BookOpen, LogOut, Users, FileText } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
@@ -52,11 +52,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           label: 'Lecture Materials',
           path: '/instructor/materials',
         },
-        {
-          icon: Settings,
-          label: 'Settings',
-          path: '/instructor/settings',
-        },
       ]
     : [
         { icon: BookOpen, label: 'My Classes', path: '/classes' },
@@ -65,26 +60,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           label: 'Lecture Materials',
           path: '/classes/materials',
         },
-        { icon: Settings, label: 'Settings', path: '/settings' },
+        { icon: Bookmark, label: 'My Notes', path: '/notes' },
       ]
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
-      <aside className="w-60 shrink-0 border-r border-border bg-card flex flex-col">
+    <div className="min-h-screen flex" style={{ background: '#0c0c35' }}>
+      {/* Sidebar — light panel on dark background */}
+      <aside className="w-60 shrink-0 flex flex-col" style={{ background: '#ffffff', boxShadow: '1px 0 0 rgba(134,134,172,0.15)' }}>
         {/* Logo */}
-        <div className="p-5 border-b border-border flex items-center justify-center">
+        <div className="px-5 py-6 flex items-center">
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(isProfessor ? '/instructor' : '/classes')}
             style={{
               background: 'none',
               border: 'none',
               cursor: 'pointer',
               padding: 0,
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontSize: '1.65rem',
+              fontFamily: "'Newsreader', 'Georgia', serif",
+              fontSize: '1.5rem',
               fontWeight: 700,
-              color: '#92400e',
+              color: '#272757',
               letterSpacing: '-0.02em',
               lineHeight: 1,
               userSelect: 'none',
@@ -95,46 +90,59 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+        <nav className="flex-1 px-3 space-y-0.5">
+          {(() => {
+          const activeItem = navItems.reduce<typeof navItems[0] | null>((best, item) => {
+            const matches = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+            if (!matches) return best
+            if (!best || item.path.length > best.path.length) return item
+            return best
+          }, null)
+          return navItems.map((item) => {
+            const isActive = activeItem?.path === item.path
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-muted text-primary'
+                    : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                 }`}
+                style={isActive ? { boxShadow: '0 1px 3px rgba(35,26,19,0.06)' } : {}}
               >
                 <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
                 <span className="min-w-0 truncate" title={item.label}>
                   {item.label}
                 </span>
+                {isActive && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#272757' }} />
+                )}
               </button>
             )
-          })}
+          })
+          })()}
         </nav>
 
         {/* User + logout */}
-        <div className="p-3 border-t border-border">
+        <div className="p-3 mt-4" style={{ borderTop: '1px solid rgba(134,134,172,0.18)' }}>
           {user && (
             <div className="flex items-center gap-3 px-3 py-2 mb-1">
-              <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
-                <span className="text-xs font-bold text-white">
-                  {user.display_name?.charAt(0).toUpperCase()}
-                </span>
+              <div
+                className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #272757, #505081)' }}
+              >
+                {user.display_name?.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">{user.display_name}</p>
+                <p className="text-xs font-semibold text-foreground truncate">{user.display_name}</p>
                 <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
               </div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -142,8 +150,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto p-8">
+      {/* Main content — light panel on dark chrome */}
+      <main className="flex-1 overflow-auto p-8" style={{ background: '#f7f7fc' }}>
         {children}
       </main>
     </div>

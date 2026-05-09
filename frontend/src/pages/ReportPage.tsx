@@ -1,22 +1,71 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen, ChevronDown, ChevronUp, Users, AlertTriangle, ThumbsUp, ThumbsDown,
   MessageSquareText, TrendingUp, ChevronLeft, ChevronRight,
-  GitFork, CheckCircle2,
+  GitFork, CheckCircle2, MessageSquare,
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-import { getSessionReport, submitFeedback, forkQuestion } from '../api/sessions'
-import { getProfessorSessionReport, updateQuestionReview, submitProfessorFeedback } from '../api/professor'
+import {
+  getSessionReport, submitFeedback, getSharedThreads,
+  submitThreadFeedback, forkThread,
+} from '../api/sessions'
+import {
+  getProfessorSessionReport, updateQuestionReview, submitProfessorFeedback,
+  getProfessorSharedThreads, updateThreadReview, submitProfessorThreadFeedback,
+} from '../api/professor'
 import { useAuthStore } from '../store/authStore'
-import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
+import type {
+  ReportQuestionOut, SessionReportResponse, TopicGroup, RichThreadOut, ThreadFeedbackOut,
+} from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
 import CategoryBarChart from '@/components/CategoryBarChart'
+import LabelBarChart from '@/components/LabelBarChart'
 import CommentThread from '@/components/CommentThread'
+import { renderAnswerWithCitations } from '@/components/AnswerRenderer'
+import CitationMapCard from '@/components/CitationMapCard'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Label definitions ────────────────────────────────────────────────────────
+const DISCUSSED_LABEL = 'Discussed in class'
+
+const LABELS = [
+  { emoji: '✓', label: DISCUSSED_LABEL,        color: 'green'  },
+  { emoji: '⚡', label: 'Interesting Question', color: 'blue'   },
+  { emoji: '🎯', label: 'Good Analogy',         color: 'green'  },
+  { emoji: '❌', label: 'Wrong Answer',          color: 'red'    },
+  { emoji: '⚠️', label: 'Misleading',           color: 'yellow' },
+  { emoji: '🧠', label: 'Deep Understanding',   color: 'purple' },
+  { emoji: '📄', label: 'Surface Level',        color: 'gray'   },
+  { emoji: '🔄', label: 'Needs Follow-up',      color: 'orange' },
+] as const
+
+const LABEL_COLOR_MAP: Record<string, string> = {
+  blue:   'bg-amber-500 text-white border-amber-500',
+  green:  'bg-emerald-500 text-white border-emerald-500',
+  red:    'bg-red-500 text-white border-red-500',
+  yellow: 'bg-yellow-400 text-yellow-900 border-yellow-400',
+  purple: 'bg-violet-500 text-white border-violet-500',
+  gray:   'bg-slate-400 text-white border-slate-400',
+  orange: 'bg-orange-500 text-white border-orange-500',
+}
+
+const LABEL_INACTIVE = 'bg-muted text-muted-foreground border-border hover:border-primary/40 hover:bg-muted/80'
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Homework:    'bg-violet-500 text-white',
+  Doubts:      'bg-sky-500 text-white',
+  Summaries:   'bg-teal-500 text-white',
+  'Exam Prep': 'bg-orange-500 text-white',
+}
+
+function effectiveNeedsAttention(q: ReportQuestionOut): boolean {
+  if (!q.feedback?.needs_attention) return false
+  return !q.professor_labels?.includes(DISCUSSED_LABEL)
+}
+
+// ─── Optimistic helpers (used for unshared questions section) ─────────────────
 
 function applyOptimisticDiscussed(
   old: SessionReportResponse,
@@ -59,64 +108,329 @@ function applyOptimisticVote(
   }
 }
 
-// ─── Label definitions ────────────────────────────────────────────────────────
-const DISCUSSED_LABEL = 'Discussed in class'
+// ─── Rich Thread Card (primary unit for class dashboard) ─────────────────────
 
-const LABELS = [
-  { emoji: '✓', label: DISCUSSED_LABEL, color: 'green' },
-  { emoji: '⚡', label: 'Interesting Question', color: 'blue' },
-  { emoji: '🎯', label: 'Good Analogy',         color: 'green' },
-  { emoji: '❌', label: 'Wrong Answer',          color: 'red' },
-  { emoji: '⚠️', label: 'Misleading',           color: 'yellow' },
-  { emoji: '🧠', label: 'Deep Understanding',   color: 'purple' },
-  { emoji: '📄', label: 'Surface Level',        color: 'gray' },
-  { emoji: '🔄', label: 'Needs Follow-up',      color: 'orange' },
-] as const
+function RichThreadCard({
+  thread,
+  index,
+  isProfessor,
+  onForkSuccess,
+}: {
+  thread: RichThreadOut
+  index: number
+  isProfessor?: boolean
+  onForkSuccess?: () => void
+}) {
+  const { sessionId } = useParams<{ sessionId: string }>()
+  const navigate = useNavigate()
 
-const LABEL_COLOR_MAP: Record<string, string> = {
-  blue:   'bg-amber-500 text-white border-amber-500',
-  green:  'bg-emerald-500 text-white border-emerald-500',
-  red:    'bg-red-500 text-white border-red-500',
-  yellow: 'bg-yellow-400 text-yellow-900 border-yellow-400',
-  purple: 'bg-violet-500 text-white border-violet-500',
-  gray:   'bg-slate-400 text-white border-slate-400',
-  orange: 'bg-orange-500 text-white border-orange-500',
+  const [open, setOpen] = useState(false)
+  const [forkOpen, setForkOpen] = useState(false)
+  const [forkText, setForkText] = useState('')
+  const [forking, setForking] = useState(false)
+
+  // Local vote state for optimistic updates
+  const [myFeedback, setMyFeedback] = useState<'up' | 'down' | null>(thread.my_feedback)
+  const [feedback, setFeedback] = useState<ThreadFeedbackOut | null>(thread.feedback)
+
+  // Professor label/notes state
+  const [labels, setLabels] = useState<string[]>(thread.professor_labels)
+  const [notes, setNotes] = useState(thread.professor_notes ?? '')
+  const [labelsDirty, setLabelsDirty] = useState(false)
+  const [savingLabels, setSavingLabels] = useState(false)
+
+  const up = feedback?.thumbs_up ?? 0
+  const down = feedback?.thumbs_down ?? 0
+  const needsAttention = isProfessor && (down > up) && !labels.includes(DISCUSSED_LABEL)
+
+  const handleVote = async (v: 'up' | 'down') => {
+    const prev = myFeedback
+    const newVote = prev === v ? null : v
+    setMyFeedback(newVote)
+    let newUp = up
+    let newDown = down
+    if (prev === 'up') newUp = Math.max(0, newUp - 1)
+    if (prev === 'down') newDown = Math.max(0, newDown - 1)
+    if (newVote === 'up') newUp += 1
+    if (newVote === 'down') newDown += 1
+    setFeedback({ thumbs_up: newUp, thumbs_down: newDown, needs_attention: newDown > newUp })
+    try {
+      const result = isProfessor
+        ? await submitProfessorThreadFeedback(thread.thread_id, v)
+        : await submitThreadFeedback(thread.thread_id, v)
+      setFeedback(result)
+    } catch {
+      setMyFeedback(prev)
+      setFeedback(thread.feedback)
+    }
+  }
+
+  const toggleLabel = (label: string) => {
+    const next = labels.includes(label) ? labels.filter((l) => l !== label) : [...labels, label]
+    setLabels(next)
+    setLabelsDirty(true)
+  }
+
+  const handleSaveLabels = async () => {
+    setSavingLabels(true)
+    try {
+      await updateThreadReview(thread.thread_id, labels, notes || null)
+      setLabelsDirty(false)
+    } finally {
+      setSavingLabels(false)
+    }
+  }
+
+  const handleFork = async () => {
+    if (!forkText.trim()) return
+    setForking(true)
+    try {
+      await forkThread(thread.thread_id, forkText.trim())
+      setForkOpen(false)
+      setForkText('')
+      onForkSuccess?.()
+      navigate(`/sessions/${sessionId}/chat`)
+    } finally {
+      setForking(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      className={`rounded-xl border overflow-hidden transition-colors ${
+        needsAttention ? 'border-destructive/40 bg-destructive/5' : 'border-border bg-card'
+      }`}
+    >
+      {/* Header row */}
+      <div className="flex items-start gap-3 p-4">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex-1 min-w-0 text-left flex items-start gap-3"
+        >
+          <div className="h-8 w-8 rounded-lg gradient-primary text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+            {index + 1}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground leading-snug">
+              {thread.title || thread.exchanges[0]?.answer?.slice(0, 80) || 'Shared thread'}
+            </p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className="text-xs text-muted-foreground">{thread.student_display_name}</span>
+              {thread.is_mine && (
+                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">You</span>
+              )}
+              {thread.forked_from && (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <GitFork className="h-3 w-3" /> Forked
+                </span>
+              )}
+              {thread.fork_count > 0 && (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <GitFork className="h-3 w-3" /> {thread.fork_count} fork{thread.fork_count !== 1 ? 's' : ''}
+                </span>
+              )}
+              <Badge variant="secondary" className="text-xs">
+                <MessageSquare className="h-2.5 w-2.5 mr-1" />
+                {thread.exchange_count} exchange{thread.exchange_count !== 1 ? 's' : ''}
+              </Badge>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {new Date(thread.shared_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+            {/* Show applied labels for students */}
+            {!isProfessor && labels.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {labels.slice(0, 3).map((lbl) => {
+                  const def = LABELS.find((l) => l.label === lbl)
+                  return def ? (
+                    <span key={lbl} className="text-xs text-muted-foreground">{def.emoji} {def.label}</span>
+                  ) : null
+                })}
+                {labels.length > 3 && <span className="text-xs text-muted-foreground">+{labels.length - 3} more</span>}
+              </div>
+            )}
+          </div>
+          {open
+            ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+            : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />}
+        </button>
+
+        {/* Vote buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => handleVote('up')} className="group/v flex items-center gap-1 text-xs tabular-nums transition-colors">
+            <ThumbsUp className={`h-3.5 w-3.5 transition-all duration-150 group-hover/v:scale-110 ${
+              myFeedback === 'up' ? 'text-emerald-500' : 'text-muted-foreground/50 group-hover/v:text-muted-foreground'
+            }`} />
+            {up > 0 && <span className={myFeedback === 'up' ? 'text-emerald-600 font-medium' : 'text-muted-foreground'}>{up}</span>}
+          </button>
+          <button onClick={() => handleVote('down')} className="group/v flex items-center gap-1 text-xs tabular-nums transition-colors">
+            <ThumbsDown className={`h-3.5 w-3.5 transition-all duration-150 group-hover/v:scale-110 ${
+              myFeedback === 'down' ? 'text-red-500' : 'text-muted-foreground/50 group-hover/v:text-muted-foreground'
+            }`} />
+            {down > 0 && <span className={myFeedback === 'down' ? 'text-red-600 font-medium' : 'text-muted-foreground'}>{down}</span>}
+          </button>
+        </div>
+
+        {/* Fork button (students only) */}
+        {!isProfessor && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setForkOpen((v) => !v) }}
+            title="Ask a follow-up"
+            className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors border ${
+              forkOpen
+                ? 'bg-primary/10 text-primary border-primary/30'
+                : 'bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary border-transparent'
+            }`}
+          >
+            <GitFork className="h-3.5 w-3.5" />
+            Fork
+          </button>
+        )}
+      </div>
+
+      {/* Fork form */}
+      {forkOpen && !isProfessor && (
+        <div className="px-4 pb-3 border-t border-border bg-muted/20">
+          <p className="text-xs text-muted-foreground mt-3 mb-2">Ask a follow-up question based on this thread:</p>
+          <textarea
+            value={forkText}
+            onChange={(e) => setForkText(e.target.value)}
+            placeholder="Your follow-up question…"
+            rows={2}
+            className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+          />
+          <div className="flex items-center gap-2 mt-2 justify-end">
+            <button
+              onClick={() => { setForkOpen(false); setForkText('') }}
+              className="px-3 py-1.5 text-xs rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              disabled={!forkText.trim() || forking}
+              onClick={handleFork}
+              className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity flex items-center gap-1"
+            >
+              <GitFork className="h-3 w-3" />
+              {forking ? 'Forking…' : 'Fork & Ask'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Exchanges (accordion) */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
+              {thread.exchanges.map((ex, i) => (
+                <div key={i} className="space-y-2">
+                  {ex.question && (
+                    <div className="flex justify-end">
+                      <div
+                        className="max-w-[78%] rounded-2xl px-3 py-2.5 text-sm text-white"
+                        style={{ background: 'linear-gradient(135deg,#272757,#505081)' }}
+                      >
+                        {ex.question}
+                      </div>
+                    </div>
+                  )}
+                  {ex.answer && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-2xl px-3 py-2.5 bg-muted text-sm text-foreground" style={{ lineHeight: 1.7 }}>
+                        {renderAnswerWithCitations(ex.answer, ex.citations)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Professor labels + notes */}
+      {isProfessor && (
+        <div className="px-4 py-3 border-t border-border bg-muted/10">
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {LABELS.map(({ emoji, label, color }) => {
+              const active = labels.includes(label)
+              return (
+                <button
+                  key={label}
+                  onClick={() => toggleLabel(label)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-medium transition-all ${
+                    active ? LABEL_COLOR_MAP[color] : LABEL_INACTIVE
+                  }`}
+                >
+                  {emoji} {label}
+                </button>
+              )
+            })}
+          </div>
+          <textarea
+            value={notes}
+            onChange={(e) => { setNotes(e.target.value); setLabelsDirty(true) }}
+            placeholder="Add a note…"
+            rows={2}
+            className="w-full text-xs bg-background border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground mt-1"
+          />
+          {labelsDirty && (
+            <div className="flex justify-end gap-2 mt-2">
+              <button
+                onClick={() => {
+                  setLabels(thread.professor_labels)
+                  setNotes(thread.professor_notes ?? '')
+                  setLabelsDirty(false)
+                }}
+                className="px-3 py-1 text-xs rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveLabels}
+                disabled={savingLabels}
+                className="px-3 py-1 text-xs rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
+              >
+                {savingLabels ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Comments */}
+      <div className="px-4 pb-3">
+        <CommentThread threadId={thread.thread_id} commentCount={thread.comment_count} />
+      </div>
+    </motion.div>
+  )
 }
 
-const LABEL_INACTIVE = 'bg-muted text-muted-foreground border-border hover:border-primary/40 hover:bg-muted/80'
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Homework:    'bg-violet-500 text-white',
-  Doubts:      'bg-sky-500 text-white',
-  Summaries:   'bg-teal-500 text-white',
-  'Exam Prep': 'bg-orange-500 text-white',
-}
-
-function effectiveNeedsAttention(q: ReportQuestionOut): boolean {
-  if (!q.feedback?.needs_attention) return false
-  return !q.professor_labels?.includes(DISCUSSED_LABEL)
-}
-
-// ─── Single Q&A card ──────────────────────────────────────────────────────────
+// ─── Single Q&A card (used in unshared questions section) ─────────────────────
 function ReportItem({
   item,
   index,
   onVote,
   isProfessor,
   onMarkDiscussed,
-  onFork,
 }: {
   item: ReportQuestionOut
   index: number
   onVote: (answerId: string, val: 'up' | 'down') => void
   isProfessor?: boolean
   onMarkDiscussed?: (item: ReportQuestionOut, labels: string[]) => void
-  onFork?: (questionId: string, content: string) => Promise<void>
 }) {
   const [open, setOpen] = useState(false)
-  const [forkOpen, setForkOpen] = useState(false)
-  const [forkText, setForkText] = useState('')
-  const [forking, setForking] = useState(false)
   const { answer, feedback } = item
   const needsAttention = isProfessor && effectiveNeedsAttention(item)
   const isDiscussed = item.professor_labels?.includes(DISCUSSED_LABEL)
@@ -129,7 +443,6 @@ function ReportItem({
         needsAttention ? 'border-destructive/40 bg-destructive/5' : 'border-border bg-card'
       }`}
     >
-      {/* Header row */}
       <div className="flex items-start gap-3 p-4">
         <button
           onClick={() => setOpen((v) => !v)}
@@ -140,11 +453,9 @@ function ReportItem({
           }`}>
             <span className="text-xs font-bold">{index + 1}</span>
           </div>
-
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground mb-0.5">{item.anonymous_name}</p>
             <p className="text-sm font-medium text-foreground">{item.content}</p>
-
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <span className="text-xs text-muted-foreground">
                 {new Date(item.asked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -154,51 +465,24 @@ function ReportItem({
                   {item.category}
                 </span>
               )}
-              {item.forked_from && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <GitFork className="h-3 w-3" /> Forked
-                </span>
-              )}
-              {item.fork_count > 0 && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <GitFork className="h-3 w-3" /> {item.fork_count} fork{item.fork_count !== 1 ? 's' : ''}
-                </span>
-              )}
               {answer && (
                 <Badge variant="secondary" className="text-xs">
                   {answer.citations.length} citation{answer.citations.length !== 1 ? 's' : ''}
                 </Badge>
               )}
-              {!answer && (
-                <Badge variant="outline" className="text-xs text-muted-foreground">No answer yet</Badge>
-              )}
+              {!answer && <Badge variant="outline" className="text-xs text-muted-foreground">No answer yet</Badge>}
               {needsAttention && (
                 <Badge className="text-xs bg-destructive/15 text-destructive border-0 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> Needs discussion
                 </Badge>
               )}
-              {item.professor_labels && item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).length > 0 && (
-                <>
-                  {item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).slice(0, 2).map((lbl) => {
-                    const def = LABELS.find((l) => l.label === lbl)
-                    return def ? <span key={lbl} className="text-xs">{def.emoji} {def.label}</span> : null
-                  })}
-                  {item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).length > 2 && (
-                    <span className="text-xs text-muted-foreground">+{item.professor_labels.filter((l) => l !== DISCUSSED_LABEL).length - 2} more</span>
-                  )}
-                </>
-              )}
             </div>
           </div>
-
-          {answer && (
-            open
-              ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-              : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-          )}
+          {answer && (open
+            ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+            : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />)}
         </button>
 
-        {/* Professor: Mark discussed */}
         {isProfessor && onMarkDiscussed && (
           <button
             onClick={(e) => {
@@ -220,7 +504,6 @@ function ReportItem({
           </button>
         )}
 
-        {/* Vote buttons */}
         {answer && (
           <div className="flex items-center gap-3 shrink-0 ml-1 select-none">
             <button onClick={() => onVote(answer.answer_id, 'up')} className="group/vote flex items-center gap-1 text-xs tabular-nums transition-colors">
@@ -237,65 +520,8 @@ function ReportItem({
             </button>
           </div>
         )}
-
-        {/* Fork button (students only) */}
-        {!isProfessor && answer && onFork && (
-          <button
-            onClick={(e) => { e.stopPropagation(); setForkOpen((v) => !v) }}
-            title="Ask a follow-up question"
-            className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors border ${
-              forkOpen
-                ? 'bg-primary/10 text-primary border-primary/30'
-                : 'bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary border-transparent'
-            }`}
-          >
-            <GitFork className="h-3.5 w-3.5" />
-            Fork
-          </button>
-        )}
       </div>
 
-      {/* Fork form */}
-      {forkOpen && !isProfessor && (
-        <div className="px-4 pb-3 border-t border-border bg-muted/20">
-          <p className="text-xs text-muted-foreground mt-3 mb-2">Ask a follow-up question based on this answer:</p>
-          <textarea
-            value={forkText}
-            onChange={(e) => setForkText(e.target.value)}
-            placeholder="Your follow-up question…"
-            rows={2}
-            className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
-          />
-          <div className="flex items-center gap-2 mt-2 justify-end">
-            <button
-              onClick={() => { setForkOpen(false); setForkText('') }}
-              className="px-3 py-1.5 text-xs rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              disabled={!forkText.trim() || forking}
-              onClick={async () => {
-                if (!forkText.trim() || !onFork) return
-                setForking(true)
-                try {
-                  await onFork(item.question_id, forkText.trim())
-                } finally {
-                  setForking(false)
-                  setForkOpen(false)
-                  setForkText('')
-                }
-              }}
-              className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity flex items-center gap-1"
-            >
-              <GitFork className="h-3 w-3" />
-              {forking ? 'Forking…' : 'Fork & Ask'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Answer body */}
       {open && answer && (
         <div className="px-4 pb-4 pt-0 border-t border-border bg-muted/30">
           <div className="pl-9 pt-3">
@@ -321,7 +547,6 @@ function ReportItem({
         </div>
       )}
 
-      {/* Comment thread */}
       <div className="px-4 pb-3">
         <CommentThread questionId={item.question_id} commentCount={item.comment_count} />
       </div>
@@ -331,19 +556,13 @@ function ReportItem({
 
 // ─── Topic group card ─────────────────────────────────────────────────────────
 function TopicGroupCard({
-  group,
-  groupIndex,
-  onVote,
-  isProfessor,
-  onMarkDiscussed,
-  onFork,
+  group, groupIndex, onVote, isProfessor, onMarkDiscussed,
 }: {
   group: TopicGroup
   groupIndex: number
   onVote: (answerId: string, val: 'up' | 'down') => void
   isProfessor?: boolean
   onMarkDiscussed?: (item: ReportQuestionOut, labels: string[]) => void
-  onFork?: (questionId: string, content: string) => Promise<void>
 }) {
   const [expanded, setExpanded] = useState(true)
   const attentionCount = isProfessor ? group.questions.filter((q) => effectiveNeedsAttention(q)).length : 0
@@ -363,9 +582,7 @@ function TopicGroupCard({
           <span className="text-xs font-bold text-white">{groupIndex + 1}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-bold text-foreground">{group.topic_name}</p>
-          </div>
+          <p className="text-sm font-bold text-foreground">{group.topic_name}</p>
           {group.summary && <p className="text-xs text-muted-foreground mt-0.5 italic">{group.summary}</p>}
           <div className="flex items-center gap-3 mt-0.5">
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -383,7 +600,6 @@ function TopicGroupCard({
         </div>
         {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
       </button>
-
       {expanded && (
         <div className="px-4 pb-4 space-y-2 border-t border-border bg-muted/20">
           <div className="pt-3 space-y-2">
@@ -395,7 +611,6 @@ function TopicGroupCard({
                 onVote={onVote}
                 isProfessor={isProfessor}
                 onMarkDiscussed={onMarkDiscussed}
-                onFork={onFork}
               />
             ))}
           </div>
@@ -405,7 +620,7 @@ function TopicGroupCard({
   )
 }
 
-// ─── Review Card (professor review mode with Save/Cancel) ─────────────────────
+// ─── Review Card (professor review mode — for questions section) ───────────────
 function ReviewCard({
   item,
   queryKey,
@@ -436,16 +651,6 @@ function ReviewCard({
       : [...localLabels, label]
     setLocalLabels(next)
     setIsDirty(true)
-  }
-
-  const handleSave = () => {
-    reviewMutation.mutate({ labels: localLabels, notes: localNotes || null })
-  }
-
-  const handleCancel = () => {
-    setLocalLabels(savedLabels)
-    setLocalNotes(savedNotes)
-    setIsDirty(false)
   }
 
   const { answer } = item
@@ -535,19 +740,18 @@ function ReviewCard({
         />
       </div>
 
-      {/* Save / Cancel */}
       <div className="px-5 py-3 flex items-center justify-end gap-2">
         {reviewMutation.isPending && <span className="text-xs text-muted-foreground mr-auto">Saving…</span>}
         {!reviewMutation.isPending && isDirty && <span className="text-xs text-amber-600 mr-auto">Unsaved changes</span>}
         <button
-          onClick={handleCancel}
+          onClick={() => { setLocalLabels(savedLabels); setLocalNotes(savedNotes); setIsDirty(false) }}
           disabled={!isDirty || reviewMutation.isPending}
           className="px-3 py-1.5 text-xs rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-40 transition-colors"
         >
           Cancel
         </button>
         <button
-          onClick={handleSave}
+          onClick={() => reviewMutation.mutate({ labels: localLabels, notes: localNotes || null })}
           disabled={!isDirty || reviewMutation.isPending}
           className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
@@ -563,78 +767,86 @@ export default function ReportPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
   const role = useAuthStore((s) => s.user?.role)
+  const isProfessor = role === 'professor'
 
   const queryClient = useQueryClient()
-  const queryKey = ['session-report', sessionId, role] as const
+  const reportQueryKey = ['session-report', sessionId, role] as const
 
-  const { data, isLoading, error } = useQuery({
-    queryKey,
-    queryFn: () =>
-      role === 'professor'
-        ? getProfessorSessionReport(sessionId!)
-        : getSessionReport(sessionId!),
+  // ── Threads (primary data) ──
+  const { data: threads = [], isLoading: threadsLoading } = useQuery({
+    queryKey: ['shared-threads', sessionId],
+    queryFn: () => isProfessor
+      ? getProfessorSharedThreads(sessionId!)
+      : getSharedThreads(sessionId!),
     enabled: !!sessionId,
-    refetchInterval: role === 'professor' ? 60_000 : false,
+    refetchInterval: 30_000,
   })
 
+  // ── Questions (professor: unshared section; student: not shown) ──
+  const { data: reportData, isLoading: reportLoading } = useQuery({
+    queryKey: reportQueryKey,
+    queryFn: () => isProfessor
+      ? getProfessorSessionReport(sessionId!)
+      : getSessionReport(sessionId!),
+    enabled: !!sessionId && isProfessor,
+    refetchInterval: 60_000,
+  })
+
+  // ── UI state ──
+  const [showMineOnly, setShowMineOnly] = useState(false)
+  const [activeLabel, setActiveLabel] = useState<string | null>(null)
+  const [activeThreadCategory, setActiveThreadCategory] = useState<string | null>(null)
+  const [unsharedOpen, setUnsharedOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'review'>('list')
   const [reviewIndex, setReviewIndex] = useState(0)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
-  const voteMutation = useMutation({
-    mutationFn: ({ answerId, vote }: { answerId: string; vote: 'up' | 'down' }) =>
-      role === 'professor'
-        ? submitProfessorFeedback(answerId, vote)
-        : submitFeedback(answerId, vote),
-    onMutate: async ({ answerId, vote }) => {
-      const previous = queryClient.getQueryData<SessionReportResponse>(queryKey)
-      if (previous) queryClient.setQueryData(queryKey, applyOptimisticVote(previous, answerId, vote))
-      return { previous }
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
-    },
-  })
-  const handleVote = useCallback(
-    (answerId: string, vote: 'up' | 'down') => voteMutation.mutate({ answerId, vote }),
-    [voteMutation]
+  // ── Thread analytics ──
+  const threadMetrics = useMemo(() => {
+    if (threads.length === 0) return null
+    const totalForks = threads.reduce((s, t) => s + t.fork_count, 0)
+    const totalComments = threads.reduce((s, t) => s + t.comment_count, 0)
+    const totalVotes = threads.reduce((s, t) => s + (t.feedback?.thumbs_up ?? 0) + (t.feedback?.thumbs_down ?? 0), 0)
+    return { count: threads.length, totalForks, totalComments, totalVotes }
+  }, [threads])
+
+  const labelData = useMemo(() => LABELS.map(({ label }) => ({
+    label,
+    count: threads.filter((t) => t.professor_labels.includes(label)).length,
+  })), [threads])
+
+  const threadCategoryData = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const t of threads) {
+      for (const ex of t.exchanges) {
+        if (ex.category) counts[ex.category] = (counts[ex.category] ?? 0) + 1
+      }
+    }
+    return Object.entries(counts).map(([category, count]) => ({ category, count }))
+  }, [threads])
+
+  // ── Filtered threads ──
+  const visibleThreads = useMemo(
+    () => threads.filter((t) =>
+      (showMineOnly ? t.is_mine : true) &&
+      (activeLabel ? t.professor_labels.includes(activeLabel) : true) &&
+      (activeThreadCategory ? t.exchanges.some((ex) => ex.category === activeThreadCategory) : true)
+    ),
+    [threads, showMineOnly, activeLabel, activeThreadCategory]
   )
 
-  // ── Derived data ──
-  const allQs = useMemo(() => data?.groups.flatMap((g) => g.questions) ?? [], [data])
+  // ── Professor question section derived data ──
+  const allQs = useMemo(() => reportData?.groups.flatMap((g) => g.questions) ?? [], [reportData])
 
   const metrics = useMemo(() => {
-    if (!data) return null
+    if (!reportData) return null
     const totalVotes = allQs.reduce((s, q) => s + (q.feedback?.thumbs_up ?? 0) + (q.feedback?.thumbs_down ?? 0), 0)
     const questionsWithVotes = allQs.filter((q) => (q.feedback?.thumbs_up ?? 0) + (q.feedback?.thumbs_down ?? 0) > 0).length
     const engagementPct = allQs.length > 0 ? Math.round((questionsWithVotes / allQs.length) * 100) : 0
     const uniqueStudents = new Set(allQs.map((q) => q.anonymous_name)).size
-
-    const studentQCounts = Object.values(
-      allQs.reduce((acc, q) => {
-        const name = q.anonymous_name
-        acc[name] = (acc[name] ?? 0) + 1
-        return acc
-      }, {} as Record<string, number>)
-    ).sort((a, b) => a - b)
-    const mid = Math.floor(studentQCounts.length / 2)
-    const median = studentQCounts.length === 0
-      ? 0
-      : studentQCounts.length % 2 !== 0
-        ? studentQCounts[mid]
-        : (studentQCounts[mid - 1] + studentQCounts[mid]) / 2
-
     const totalForks = allQs.reduce((s, q) => s + (q.fork_count ?? 0), 0)
-
-    return {
-      totalQuestions: data.total_questions,
-      uniqueStudents,
-      totalVotes,
-      engagementPct,
-      medianQuestionsPerStudent: Math.round(median * 10) / 10,
-      totalForks,
-    }
-  }, [data, allQs])
+    return { totalQuestions: reportData.total_questions, uniqueStudents, totalVotes, engagementPct, totalForks }
+  }, [reportData, allQs])
 
   const categoryData = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -645,27 +857,46 @@ export default function ReportPage() {
   }, [allQs])
 
   const filteredGroups = useMemo(() => {
-    if (!activeCategory || !data) return data?.groups ?? []
-    return data.groups.map((g) => ({
-      ...g,
-      questions: g.questions.filter((q) => q.category === activeCategory),
-    })).filter((g) => g.questions.length > 0)
-  }, [data, activeCategory])
+    if (!activeCategory || !reportData) return reportData?.groups ?? []
+    return reportData.groups
+      .map((g) => ({ ...g, questions: g.questions.filter((q) => q.category === activeCategory) }))
+      .filter((g) => g.questions.length > 0)
+  }, [reportData, activeCategory])
 
-  const totalAttention = role === 'professor'
-    ? data?.groups.reduce((sum, g) => sum + g.questions.filter((q) => effectiveNeedsAttention(q)).length, 0) ?? 0
+  const totalAttention = isProfessor
+    ? reportData?.groups.reduce((sum, g) => sum + g.questions.filter((q) => effectiveNeedsAttention(q)).length, 0) ?? 0
     : 0
+
+  // ── Vote handler for questions section ──
+  const voteMutation = useMutation({
+    mutationFn: ({ answerId, vote }: { answerId: string; vote: 'up' | 'down' }) =>
+      isProfessor
+        ? submitProfessorFeedback(answerId, vote)
+        : submitFeedback(answerId, vote),
+    onMutate: async ({ answerId, vote }) => {
+      const previous = queryClient.getQueryData<SessionReportResponse>(reportQueryKey)
+      if (previous) queryClient.setQueryData(reportQueryKey, applyOptimisticVote(previous, answerId, vote))
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(reportQueryKey, context.previous)
+    },
+  })
+  const handleVote = useCallback(
+    (answerId: string, vote: 'up' | 'down') => voteMutation.mutate({ answerId, vote }),
+    [voteMutation]
+  )
 
   const markDiscussedMutation = useMutation({
     mutationFn: ({ questionId, labels, notes }: { questionId: string; labels: string[]; notes: string | null }) =>
       updateQuestionReview(questionId, labels, notes),
     onMutate: async ({ questionId, labels }) => {
-      const previous = queryClient.getQueryData<SessionReportResponse>(queryKey)
-      if (previous) queryClient.setQueryData(queryKey, applyOptimisticDiscussed(previous, questionId, labels))
+      const previous = queryClient.getQueryData<SessionReportResponse>(reportQueryKey)
+      if (previous) queryClient.setQueryData(reportQueryKey, applyOptimisticDiscussed(previous, questionId, labels))
       return { previous }
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+      if (context?.previous) queryClient.setQueryData(reportQueryKey, context.previous)
     },
   })
   const handleMarkDiscussed = useCallback(
@@ -675,16 +906,7 @@ export default function ReportPage() {
     [markDiscussedMutation]
   )
 
-  const handleFork = useCallback(
-    async (questionId: string, content: string) => {
-      await forkQuestion(questionId, content)
-      // navigate to the session chat so student sees the forked Q&A
-      navigate(`/sessions/${sessionId}/chat`)
-    },
-    [navigate, sessionId]
-  )
-
-  const allQuestions = useMemo(() => data?.groups.flatMap((g) => g.questions) ?? [], [data])
+  const allQuestions = useMemo(() => reportData?.groups.flatMap((g) => g.questions) ?? [], [reportData])
   const safeReviewIndex = Math.min(reviewIndex, Math.max(0, allQuestions.length - 1))
   const currentQuestion = allQuestions[safeReviewIndex]
 
@@ -703,166 +925,305 @@ export default function ReportPage() {
           ← Back to Lecture
         </button>
 
+        {/* Header */}
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-2xl font-bold text-foreground">Class Questions</h1>
-          <div className="flex items-center gap-3">
-            {totalAttention > 0 && (
-              <div className="flex items-center gap-1.5 text-sm text-destructive font-medium">
-                <AlertTriangle className="h-4 w-4" />
-                {totalAttention} need{totalAttention === 1 ? 's' : ''} attention
-              </div>
-            )}
-            {role === 'professor' && (
-              <div className="flex items-center rounded-lg border border-border overflow-hidden text-xs">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-3 py-1.5 transition-colors ${
-                    viewMode === 'list' ? 'bg-primary text-primary-foreground font-medium' : 'bg-background text-muted-foreground hover:bg-muted'
-                  }`}
-                >
-                  List
-                </button>
-                <button
-                  onClick={() => setViewMode('review')}
-                  className={`px-3 py-1.5 transition-colors ${
-                    viewMode === 'review' ? 'bg-primary text-primary-foreground font-medium' : 'bg-background text-muted-foreground hover:bg-muted'
-                  }`}
-                >
-                  Review
-                </button>
-              </div>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">Class Dashboard</h1>
+          {totalAttention > 0 && isProfessor && (
+            <div className="flex items-center gap-1.5 text-sm text-destructive font-medium">
+              <AlertTriangle className="h-4 w-4" />
+              {totalAttention} need{totalAttention === 1 ? 's' : ''} attention
+            </div>
+          )}
         </div>
-        <p className="text-muted-foreground mb-5">
-          All questions from this lecture, grouped by topic — identities are anonymous.
-          {role !== 'professor' && ' Vote on answers to help the professor prioritise discussion topics.'}
+        <p className="text-muted-foreground mb-6">
+          {isProfessor
+            ? 'Shared threads from this lecture. Labels, notes, and comments help you prepare discussion.'
+            : 'Threads shared by students in this session. Fork any thread to ask a follow-up.'}
         </p>
 
-        {/* ── Metrics row ── */}
-        {metrics && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {/* ── Thread metrics row ── */}
+        {threadMetrics && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             {[
-              { icon: MessageSquareText, label: 'Questions', value: metrics.totalQuestions, color: 'text-amber-500', bg: 'bg-amber-500/10', subtitle: undefined },
-              { icon: Users, label: 'Median Q / Student', value: metrics.medianQuestionsPerStudent, subtitle: `${metrics.uniqueStudents} student${metrics.uniqueStudents !== 1 ? 's' : ''}`, color: 'text-violet-500', bg: 'bg-violet-500/10' },
-              { icon: GitFork, label: 'Total Forks', value: metrics.totalForks, color: 'text-amber-500', bg: 'bg-amber-500/10', subtitle: undefined },
-              { icon: TrendingUp, label: 'Engagement', value: `${metrics.engagementPct}%`, subtitle: `${metrics.totalVotes} vote${metrics.totalVotes !== 1 ? 's' : ''}`, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.3 }}
-                className="rounded-xl border border-border bg-card p-3.5"
-              >
+              { icon: MessageSquare, label: 'Threads Shared', value: threadMetrics.count, color: 'text-primary', bg: 'bg-primary/10' },
+              { icon: GitFork, label: 'Total Forks', value: threadMetrics.totalForks, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+              { icon: MessageSquareText, label: 'Total Comments', value: threadMetrics.totalComments, color: 'text-sky-500', bg: 'bg-sky-500/10' },
+              { icon: ThumbsUp, label: 'Total Votes', value: threadMetrics.totalVotes, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-border bg-card p-3.5">
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`h-7 w-7 rounded-lg ${stat.bg} flex items-center justify-center`}>
                     <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
                   </div>
                   <span className="text-xs text-muted-foreground font-medium">{stat.label}</span>
                 </div>
-                <p className="text-lg font-bold text-foreground leading-tight">{stat.value}</p>
-                {stat.subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{stat.subtitle}</p>}
-              </motion.div>
+                <p className="text-lg font-bold text-foreground">{stat.value}</p>
+              </div>
             ))}
           </div>
         )}
 
-        {/* ── Category Bar Chart ── */}
-        {allQs.length > 0 && viewMode === 'list' && (
-          <div className="mb-6 rounded-xl border border-border bg-card p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-1">Questions by Category</h3>
-            <p className="text-xs text-muted-foreground mb-3">Click a bar to filter the question list below</p>
-            <CategoryBarChart
-              data={categoryData}
-              activeCategory={activeCategory}
-              onCategoryClick={setActiveCategory}
+        {/* ── Professor label chart ── */}
+        {isProfessor && threads.length > 0 && labelData.some((d) => d.count > 0) && (
+          <div className="rounded-xl border border-border bg-card p-4 mb-5">
+            <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Label</h3>
+            <p className="text-xs text-muted-foreground mb-3">Click a bar to filter threads by label</p>
+            <LabelBarChart
+              data={labelData}
+              activeLabel={activeLabel}
+              onLabelClick={setActiveLabel}
             />
           </div>
         )}
 
-        {isLoading && (
-          <div className="flex flex-col gap-3">
-            {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
-            <p className="text-xs text-center text-muted-foreground mt-2">Grouping questions by topic…</p>
-          </div>
-        )}
-        {error && <p className="text-destructive text-sm">Failed to load report.</p>}
-        {!isLoading && data?.total_questions === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-            <Users className="h-10 w-10 opacity-20" />
-            <p className="text-sm">No questions in this session yet.</p>
-          </div>
-        )}
-
-        {/* ── List view ── */}
-        {viewMode === 'list' && (
-          <div className="space-y-4">
-            {[...filteredGroups]
-              .sort((a, b) => {
-                const aNeed = a.questions.filter((q) => effectiveNeedsAttention(q)).length
-                const bNeed = b.questions.filter((q) => effectiveNeedsAttention(q)).length
-                if (bNeed !== aNeed) return bNeed - aNeed
-                return b.question_count - a.question_count
-              })
-              .map((group, i) => (
-                <TopicGroupCard
-                  key={group.topic_name}
-                  group={group}
-                  groupIndex={i}
-                  onVote={handleVote}
-                  isProfessor={role === 'professor'}
-                  onMarkDiscussed={role === 'professor' ? handleMarkDiscussed : undefined}
-                  onFork={role !== 'professor' ? handleFork : undefined}
+        {/* ── Thread category chart + Material Coverage side by side ── */}
+        {threads.length > 0 && sessionId && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 items-start">
+            {threadCategoryData.length > 0 ? (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Category</h3>
+                <p className="text-xs text-muted-foreground mb-3">Click a bar to filter</p>
+                <CategoryBarChart
+                  data={threadCategoryData}
+                  activeCategory={activeThreadCategory}
+                  onCategoryClick={setActiveThreadCategory}
                 />
-              ))}
-            {activeCategory && filteredGroups.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
-                <p className="text-sm">No questions in category "{activeCategory}".</p>
-                <button onClick={() => setActiveCategory(null)} className="text-xs text-primary hover:underline">Clear filter</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Review view (professor only) ── */}
-        {viewMode === 'review' && role === 'professor' && (
-          <div className="space-y-4">
-            {allQuestions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-                <Users className="h-10 w-10 opacity-20" />
-                <p className="text-sm">No questions to review.</p>
               </div>
             ) : (
-              <>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{safeReviewIndex + 1} of {allQuestions.length}</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setReviewIndex((i) => Math.max(0, i - 1))}
-                      disabled={safeReviewIndex === 0}
-                      className="p-1.5 rounded-lg border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setReviewIndex((i) => Math.min(allQuestions.length - 1, i + 1))}
-                      disabled={safeReviewIndex === allQuestions.length - 1}
-                      className="p-1.5 rounded-lg border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                {currentQuestion && (
-                  <ReviewCard
-                    key={currentQuestion.question_id}
-                    item={currentQuestion}
-                    queryKey={queryKey}
-                  />
-                )}
-              </>
+              <div />
             )}
+            <CitationMapCard sessionId={sessionId} />
+          </div>
+        )}
+
+        {/* ── My threads filter (students) ── */}
+        {!isProfessor && threads.length > 0 && (
+          <div className="flex items-center gap-2 mb-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showMineOnly}
+                onChange={(e) => setShowMineOnly(e.target.checked)}
+                className="h-4 w-4 rounded border-border accent-primary"
+              />
+              <span className="text-sm text-muted-foreground">My threads only</span>
+            </label>
+            {showMineOnly && (
+              <span className="text-xs text-primary">
+                {visibleThreads.length} of {threads.length}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── Thread list ── */}
+        {threadsLoading ? (
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+          </div>
+        ) : visibleThreads.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
+            <MessageSquare className="h-10 w-10 opacity-20" />
+            <p className="text-sm">
+              {showMineOnly
+                ? "You haven't shared any threads yet. Share from the Chat page!"
+                : isProfessor
+                  ? 'No threads shared yet. Students can share from the Chat page.'
+                  : 'No shared threads yet. Be the first to share from Chat!'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {visibleThreads.map((t, i) => (
+              <RichThreadCard
+                key={t.thread_id}
+                thread={t}
+                index={i}
+                isProfessor={isProfessor}
+                onForkSuccess={() => queryClient.invalidateQueries({ queryKey: ['shared-threads', sessionId] })}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ── Professor: collapsible All Questions section ── */}
+        {isProfessor && (
+          <div className="mt-8">
+            <button
+              onClick={() => setUnsharedOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">
+                  All session questions
+                  {metrics && <span className="text-muted-foreground font-normal ml-1">({metrics.totalQuestions})</span>}
+                </span>
+                {totalAttention > 0 && (
+                  <Badge className="text-xs bg-destructive/15 text-destructive border-0 ml-1">
+                    {totalAttention} need attention
+                  </Badge>
+                )}
+              </div>
+              {unsharedOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+
+            <AnimatePresence>
+              {unsharedOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-4 space-y-4">
+                    {/* List/Review toggle */}
+                    <div className="flex items-center justify-end">
+                      <div className="flex items-center rounded-lg border border-border overflow-hidden text-xs">
+                        <button
+                          onClick={() => setViewMode('list')}
+                          className={`px-3 py-1.5 transition-colors ${
+                            viewMode === 'list' ? 'bg-primary text-primary-foreground font-medium' : 'bg-background text-muted-foreground hover:bg-muted'
+                          }`}
+                        >
+                          List
+                        </button>
+                        <button
+                          onClick={() => setViewMode('review')}
+                          className={`px-3 py-1.5 transition-colors ${
+                            viewMode === 'review' ? 'bg-primary text-primary-foreground font-medium' : 'bg-background text-muted-foreground hover:bg-muted'
+                          }`}
+                        >
+                          Review
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Metrics */}
+                    {metrics && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[
+                          { icon: MessageSquareText, label: 'Questions', value: metrics.totalQuestions, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                          { icon: Users, label: 'Students', value: metrics.uniqueStudents, color: 'text-violet-500', bg: 'bg-violet-500/10' },
+                          { icon: GitFork, label: 'Total Forks', value: metrics.totalForks, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                          { icon: TrendingUp, label: 'Engagement', value: `${metrics.engagementPct}%`, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                        ].map((stat) => (
+                          <div key={stat.label} className="rounded-xl border border-border bg-card p-3.5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className={`h-7 w-7 rounded-lg ${stat.bg} flex items-center justify-center`}>
+                                <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
+                              </div>
+                              <span className="text-xs text-muted-foreground font-medium">{stat.label}</span>
+                            </div>
+                            <p className="text-lg font-bold text-foreground">{stat.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Category chart */}
+                    {allQs.length > 0 && viewMode === 'list' && (
+                      <div className="rounded-xl border border-border bg-card p-4">
+                        <h3 className="text-sm font-semibold text-foreground mb-1">Questions by Category</h3>
+                        <p className="text-xs text-muted-foreground mb-3">Click a bar to filter</p>
+                        <CategoryBarChart
+                          data={categoryData}
+                          activeCategory={activeCategory}
+                          onCategoryClick={setActiveCategory}
+                        />
+                      </div>
+                    )}
+
+
+                    {/* Loading / empty */}
+                    {reportLoading && (
+                      <div className="flex flex-col gap-3">
+                        {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+                      </div>
+                    )}
+                    {!reportLoading && (reportData?.total_questions ?? 0) === 0 && (
+                      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+                        <Users className="h-8 w-8 opacity-20" />
+                        <p className="text-sm">No questions in this session yet.</p>
+                      </div>
+                    )}
+
+                    {/* List view */}
+                    {viewMode === 'list' && (
+                      <div className="space-y-4">
+                        {[...filteredGroups]
+                          .sort((a, b) => {
+                            const aNeed = a.questions.filter((q) => effectiveNeedsAttention(q)).length
+                            const bNeed = b.questions.filter((q) => effectiveNeedsAttention(q)).length
+                            if (bNeed !== aNeed) return bNeed - aNeed
+                            return b.question_count - a.question_count
+                          })
+                          .map((group, i) => (
+                            <TopicGroupCard
+                              key={group.topic_name}
+                              group={group}
+                              groupIndex={i}
+                              onVote={handleVote}
+                              isProfessor
+                              onMarkDiscussed={handleMarkDiscussed}
+                            />
+                          ))}
+                        {activeCategory && filteredGroups.length === 0 && (
+                          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+                            <p className="text-sm">No questions in category "{activeCategory}".</p>
+                            <button onClick={() => setActiveCategory(null)} className="text-xs text-primary hover:underline">
+                              Clear filter
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Review view */}
+                    {viewMode === 'review' && (
+                      <div className="space-y-4">
+                        {allQuestions.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+                            <Users className="h-8 w-8 opacity-20" />
+                            <p className="text-sm">No questions to review.</p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>{safeReviewIndex + 1} of {allQuestions.length}</span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setReviewIndex((i) => Math.max(0, i - 1))}
+                                  disabled={safeReviewIndex === 0}
+                                  className="p-1.5 rounded-lg border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => setReviewIndex((i) => Math.min(allQuestions.length - 1, i + 1))}
+                                  disabled={safeReviewIndex === allQuestions.length - 1}
+                                  className="p-1.5 rounded-lg border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                            {currentQuestion && (
+                              <ReviewCard
+                                key={currentQuestion.question_id}
+                                item={currentQuestion}
+                                queryKey={reportQueryKey}
+                              />
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </motion.div>

@@ -10,18 +10,23 @@ from auth import get_current_user
 from database import get_db
 from models import (
     AddDocumentRequest,
+    CitationPageOut,
     CommentOut,
     CourseOut,
     CreateCommentRequest,
     CreateScheduleRequest,
     CreateSessionRequest,
+    DocumentCitationOut,
     DocumentOut,
     ProfessorReviewRequest,
+    RichThreadOut,
     SessionDetail,
     SessionReportResponse,
     SessionSummary,
     SessionWithDocuments,
     SubmitFeedbackRequest,
+    SubmitThreadFeedbackRequest,
+    ThreadFeedbackOut,
     UpdateSessionStatusRequest,
 )
 from services.document_service import process_text_document
@@ -980,6 +985,188 @@ async def delete_question_comment(
 
 
 # ---------------------------------------------------------------------------
+# GET /api/professor/sessions/{session_id}/shared-threads
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions/{session_id}/shared-threads", response_model=list[RichThreadOut])
+async def get_professor_shared_threads(
+    session_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Return all shared threads for a session. Professor must own the course."""
+    from routers.student_router import _fetch_rich_threads
+    owned = await db.fetchval(
+        """
+        SELECT 1 FROM sessions s
+        JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
+        WHERE s.id = $2
+        """,
+        current_user["id"],
+        session_id,
+    )
+    if not owned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your session")
+
+    return await _fetch_rich_threads(db, session_id, str(current_user["id"]))
+
+
+# ---------------------------------------------------------------------------
+# PATCH /api/professor/threads/{thread_id}
+# ---------------------------------------------------------------------------
+
+@router.patch("/threads/{thread_id}")
+async def update_thread_review(
+    thread_id: str,
+    body: ProfessorReviewRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Update professor labels and notes on a thread."""
+    await _require_thread_professor_access(db, thread_id, current_user["id"])
+    await db.execute(
+        "UPDATE threads SET professor_labels = $1, professor_notes = $2 WHERE id = $3",
+        body.labels,
+        body.notes,
+        thread_id,
+    )
+    return {"thread_id": thread_id}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/threads/{thread_id}/comments
+# ---------------------------------------------------------------------------
+
+@router.get("/threads/{thread_id}/comments", response_model=list[CommentOut])
+async def get_thread_comments(
+    thread_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    await _require_thread_professor_access(db, thread_id, current_user["id"])
+    rows = await db.fetch(
+        """
+        SELECT tc.id, tc.user_id, u.display_name, u.role, tc.content, tc.created_at
+        FROM thread_comments tc
+        JOIN users u ON u.id = tc.user_id
+        WHERE tc.thread_id = $1
+        ORDER BY tc.created_at ASC
+        """,
+        thread_id,
+    )
+    return [
+        CommentOut(
+            comment_id=str(r["id"]),
+            user_id=str(r["user_id"]),
+            display_name=r["display_name"],
+            role=r["role"],
+            content=r["content"],
+            created_at=r["created_at"],
+        )
+        for r in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# POST /api/professor/threads/{thread_id}/comments
+# ---------------------------------------------------------------------------
+
+@router.post("/threads/{thread_id}/comments", response_model=CommentOut, status_code=status.HTTP_201_CREATED)
+async def post_thread_comment(
+    thread_id: str,
+    body: CreateCommentRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    await _require_thread_professor_access(db, thread_id, current_user["id"])
+    row = await db.fetchrow(
+        "INSERT INTO thread_comments (thread_id, user_id, content) VALUES ($1, $2, $3) RETURNING id, created_at",
+        thread_id,
+        str(current_user["id"]),
+        body.content,
+    )
+    return CommentOut(
+        comment_id=str(row["id"]),
+        user_id=str(current_user["id"]),
+        display_name=current_user["display_name"],
+        role="professor",
+        content=body.content,
+        created_at=row["created_at"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/professor/threads/{thread_id}/comments/{comment_id}
+# ---------------------------------------------------------------------------
+
+@router.delete("/threads/{thread_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_thread_comment(
+    thread_id: str,
+    comment_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Delete a thread comment. Professor can only delete their own comments."""
+    row = await db.fetchrow(
+        "SELECT id, user_id FROM thread_comments WHERE id = $1 AND thread_id = $2",
+        comment_id,
+        thread_id,
+    )
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    if str(row["user_id"]) != str(current_user["id"]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your comment")
+    await db.execute("DELETE FROM thread_comments WHERE id = $1", comment_id)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/professor/threads/{thread_id}/feedback
+# ---------------------------------------------------------------------------
+
+@router.post("/threads/{thread_id}/feedback", response_model=ThreadFeedbackOut)
+async def submit_thread_feedback(
+    thread_id: str,
+    body: SubmitThreadFeedbackRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    from routers.student_router import _thread_feedback_counts
+    await _require_thread_professor_access(db, thread_id, current_user["id"])
+    await db.execute(
+        """
+        INSERT INTO thread_feedback (thread_id, user_id, feedback)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (thread_id, user_id) DO UPDATE SET feedback = EXCLUDED.feedback, created_at = now()
+        """,
+        thread_id,
+        str(current_user["id"]),
+        body.feedback,
+    )
+    return await _thread_feedback_counts(db, thread_id)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+async def _require_thread_professor_access(db, thread_id: str, professor_id) -> str:
+    """Returns session_id if professor owns the thread's course, else raises 403."""
+    row = await db.fetchrow(
+        """
+        SELECT t.session_id FROM threads t
+        JOIN sessions s ON s.id = t.session_id
+        JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
+        WHERE t.id = $2
+        """,
+        professor_id,
+        thread_id,
+    )
+    if not row:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    return str(row["session_id"])
+
+
+# ---------------------------------------------------------------------------
 # GET /api/professor/courses/{course_id}/category-analytics
 # ---------------------------------------------------------------------------
 
@@ -1013,3 +1200,79 @@ async def get_category_analytics(
         course_id,
     )
     return [{"category": r["category"], "count": int(r["count"])} for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/sessions/{session_id}/citation-map
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions/{session_id}/citation-map", response_model=list[DocumentCitationOut])
+async def get_session_citation_map(
+    session_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Return per-document, per-page citation frequency for all questions in a session."""
+    # Verify professor owns the session's course
+    owns = await db.fetchval(
+        """
+        SELECT 1 FROM sessions s
+        JOIN courses c ON c.id = s.course_id
+        WHERE s.id = $1 AND c.professor_id = $2
+        """,
+        session_id,
+        current_user["id"],
+    )
+    if not owns:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    rows = await db.fetch(
+        """
+        SELECT d.id AS document_id, d.filename, d.page_count,
+               dc.page_number,
+               COUNT(ac.id) AS citation_count,
+               ROUND(AVG(ac.relevance_score)::numeric, 3) AS avg_relevance
+        FROM answer_citations ac
+        JOIN document_chunks dc ON dc.id = ac.chunk_id
+        JOIN documents d ON d.id = dc.document_id
+        JOIN answers a ON a.id = ac.answer_id
+        JOIN questions q ON q.id = a.question_id
+        WHERE q.session_id = $1
+        GROUP BY d.id, d.filename, d.page_count, dc.page_number
+        ORDER BY d.filename, dc.page_number NULLS LAST
+        """,
+        session_id,
+    )
+
+    # Group by document
+    docs: dict[str, dict] = {}
+    for r in rows:
+        doc_id = str(r["document_id"])
+        if doc_id not in docs:
+            docs[doc_id] = {
+                "document_id": doc_id,
+                "filename": r["filename"],
+                "page_count": r["page_count"],
+                "total_citations": 0,
+                "pages": [],
+            }
+        count = int(r["citation_count"])
+        docs[doc_id]["total_citations"] += count
+        docs[doc_id]["pages"].append(CitationPageOut(
+            page_number=r["page_number"],
+            citation_count=count,
+            avg_relevance=float(r["avg_relevance"]),
+        ))
+
+    # Sort documents by total_citations DESC
+    result = sorted(docs.values(), key=lambda d: d["total_citations"], reverse=True)
+    return [
+        DocumentCitationOut(
+            document_id=d["document_id"],
+            filename=d["filename"],
+            page_count=d["page_count"],
+            total_citations=d["total_citations"],
+            pages=sorted(d["pages"], key=lambda p: p.citation_count, reverse=True),
+        )
+        for d in result
+    ]

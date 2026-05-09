@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Editorial Intelligence - Collaborative Correction</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#fff1e9",
+                        "on-primary-container": "#fffbff",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#e8d7cc",
+                        "inverse-primary": "#ffb77c",
+                        "surface-container-highest": "#f1dfd4",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-primary-fixed-variant": "#6d3900",
+                        "inverse-on-surface": "#ffede2",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "primary": "#8c4b00",
+                        "outline": "#887364",
+                        "tertiary": "#825100",
+                        "primary-fixed-dim": "#ffb77c",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-primary-fixed": "#2e1500",
+                        "inverse-surface": "#392e27",
+                        "on-secondary-container": "#586377",
+                        "surface-bright": "#fff8f5",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#ffddb8",
+                        "secondary-fixed": "#d8e3fb",
+                        "on-secondary-fixed": "#111c2d",
+                        "background": "#fff8f5",
+                        "tertiary-container": "#a36700",
+                        "primary-fixed": "#ffdcc2",
+                        "surface-container": "#fdebdf",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#231a13",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#d5e0f8",
+                        "outline-variant": "#dbc2b0",
+                        "secondary": "#545f73",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "on-background": "#231a13",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#f7e5d9",
+                        "on-surface-variant": "#554336",
+                        "surface": "#fff8f5",
+                        "surface-tint": "#904d00",
+                        "primary-container": "#b06000",
+                        "surface-variant": "#f1dfd4",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader", "serif"],
+                        "display": ["Newsreader", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .gradient-brand {
+            background-image: linear-gradient(135deg, theme('colors.primary') 0%, theme('colors.primary-container') 100%);
+        }
+        .shadow-ambient {
+            box-shadow: 0 20px 40px -12px rgba(35, 26, 19, 0.08);
+        }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen flex items-center justify-center p-8">
+<main class="w-full max-w-[1440px] aspect-[14/9] flex flex-col md:flex-row gap-12 bg-surface-container-low rounded-3xl overflow-hidden shadow-ambient relative">
+<!-- Left Side: Interactive Area -->
+<section class="flex-1 p-12 flex items-center justify-center relative">
+<div class="absolute inset-0 z-0">
+<img alt="Background abstract" class="w-full h-full object-cover opacity-20" data-alt="A soft, abstract background composition featuring warm amber tones and subtle, out-of-focus geometric shapes. The image conveys a sense of intellectual depth and modern academic environment, with a light-mode aesthetic. Soft, diffuse lighting creates a welcoming, contemplative mood suitable for an educational interface." src="https://lh3.googleusercontent.com/aida/ADBb0uhQWspMvpTOoukriIiEnBqd6v9ujt0-xVp7PF5ijfaenrSJ8fFfa1pe4ZU98YP8FxvOtL2P6Foaif8wu3PxFY3yV-4gR_3UTg4i2NsMLrkKd2T-3WdHos0Ouhg2SfOsU8hsUJo-t0lo_c3zQ0hMgzgPsbHCK5kz8_DAbR9NiYVOTudoZW7X1Im9UGfncGeAvf-0WgyGti7muw1rOQIFwVBXH36EiuQFjAUwoEs6gofy_I_2ovdsvgV6eszo55dpdgt1X41-lyEAWQo"/>
+</div>
+<div class="relative z-10 w-full max-w-lg flex flex-col gap-6">
+<!-- AI Synthesis Card -->
+<article class="bg-surface-container-highest rounded-xl p-8 relative isolate shadow-ambient transition-transform hover:-translate-y-1 duration-300">
+<div class="absolute -top-3 -right-3">
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-error-container text-on-error-container text-xs font-bold font-label uppercase tracking-widest rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[16px] fill">warning</span>
+                            Correction Needed
+                        </span>
+</div>
+<header class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full gradient-brand flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold text-on-surface">AI Synthesis</h3>
+<p class="font-label text-xs text-on-surface-variant uppercase tracking-wider">Subject: Photosynthesis</p>
+</div>
+</header>
+<p class="font-body text-sm text-on-surface leading-relaxed mb-6">
+                        Photosynthesis is the process used by plants, algae and certain bacteria to harness energy from sunlight and turn it into chemical energy. It occurs primarily in the chloroplasts, where chlorophyll captures light energy to convert carbon dioxide and water into glucose and oxygen. This process is entirely dependent on continuous light exposure to function effectively.
+                    </p>
+<div class="h-[1px] w-full bg-outline-variant opacity-30 mb-6"></div>
+<!-- Comment Thread -->
+<div class="space-y-4">
+<div class="flex gap-4">
+<img alt="Student Avatar" class="w-8 h-8 rounded-full object-cover mt-1" data-alt="A small, circular profile portrait of a young student in a modern academic setting. The student looks thoughtful and engaged. The lighting is bright and clear, reflecting a premium light-mode UI style with warm, sophisticated undertones consistent with an educational environment." src="https://lh3.googleusercontent.com/aida/ADBb0ujW8Gg-2ANnVRWaqrSY3dWLxu8cQgTZcLWrP5hsecW7BJv8aQ34aYoGXs9tcHf7Q8gbA-nYa6ILHc-g2OykyiI4EA9GuyPgRFW2_qGpiNgC0Iy_zgzjtd7SKtQUPOtoJuSepfa8NaVAXAY0be1INoH8MzyMWf9x3TbjQZTxzJhJsd-_md50xwsErzioVOKAdIXof4qQN0oS6nEYBdV-K4NEeOUF49owmGD4LE8gsiQWHn1xRp3BQpMV6qS4LNZ_FSD2wolCESO5DKY"/>
+<div class="flex-1">
+<div class="bg-surface-container-low rounded-xl p-4 shadow-sm border border-outline-variant/15">
+<div class="flex justify-between items-start mb-2">
+<span class="font-headline font-bold text-sm">Student A</span>
+<span class="font-label text-xs text-on-surface-variant">2 mins ago</span>
+</div>
+<p class="font-body text-sm text-on-surface-variant mb-3">
+                                        Actually, the AI missed the dark reaction phase (Calvin cycle). While the light-dependent reactions require continuous light, the light-independent reactions can occur without it, using ATP and NADPH produced earlier.
+                                    </p>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-1 text-primary hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+<span class="font-label text-xs font-bold">14</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">reply</span>
+<span class="font-label text-xs font-bold">Reply</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- Right Side: Editorial Content -->
+<section class="flex-1 p-12 lg:p-24 flex flex-col justify-center bg-surface relative">
+<div class="absolute top-12 right-12">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Step 03</span>
+</div>
+<h1 class="font-headline text-5xl md:text-6xl text-on-surface leading-tight mb-6">
+                Peer-Refined <br/>
+<span class="italic text-primary">Accuracy.</span>
+</h1>
+<p class="font-body text-lg text-on-surface-variant leading-relaxed mb-12 max-w-md">
+                Intelligence is a collaborative pursuit. When our AI encounters nuanced academic topics, the community acts as the final editor. Correct, refine, and elevate the discourse to ensure every synthesis meets the highest scholarly standards.
+            </p>
+<div class="flex items-center gap-6">
+<button class="gradient-brand text-on-primary font-label text-sm uppercase tracking-widest font-bold py-4 px-8 rounded-full shadow-ambient hover:opacity-90 transition-opacity flex items-center gap-2">
+                    Continue Journey
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="text-on-surface font-label text-sm uppercase tracking-widest font-bold py-4 px-8 rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors">
+                    Skip
+                </button>
+</div>
+<div class="mt-auto pt-12 flex gap-2">
+<div class="h-1 w-8 bg-outline-variant/30 rounded-full"></div>
+<div class="h-1 w-8 bg-outline-variant/30 rounded-full"></div>
+<div class="h-1 w-12 gradient-brand rounded-full"></div>
+<div class="h-1 w-8 bg-outline-variant/30 rounded-full"></div>
+</div>
+</section>
+</main>
+</body></html>

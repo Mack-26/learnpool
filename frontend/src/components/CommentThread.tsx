@@ -1,36 +1,48 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { MessageCircle, Send, X } from 'lucide-react'
+import { getThreadComments, postThreadComment } from '../api/sessions'
 import { getQuestionComments, postQuestionComment } from '../api/sessions'
+import { getProfessorThreadComments, postProfessorThreadComment, deleteProfessorThreadComment } from '../api/professor'
 import { getProfessorQuestionComments, postProfessorQuestionComment, deleteProfessorQuestionComment } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
 import type { CommentOut } from '../types/api'
 
 interface CommentThreadProps {
-  questionId: string
   commentCount: number
+  threadId?: string
+  questionId?: string
 }
 
-export default function CommentThread({ questionId, commentCount }: CommentThreadProps) {
+export default function CommentThread({ commentCount, threadId, questionId }: CommentThreadProps) {
   const [expanded, setExpanded] = useState(false)
   const [draft, setDraft] = useState('')
   const { user } = useAuthStore()
   const isProfessor = user?.role === 'professor'
   const queryClient = useQueryClient()
 
-  const queryKey = ['comments', questionId]
+  const isThread = !!threadId
+  const id = threadId ?? questionId ?? ''
+  const queryKey = isThread ? ['thread-comments', id] : ['comments', id]
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey,
-    queryFn: () => isProfessor ? getProfessorQuestionComments(questionId) : getQuestionComments(questionId),
+    queryFn: () => {
+      if (isThread) {
+        return isProfessor ? getProfessorThreadComments(id) : getThreadComments(id)
+      }
+      return isProfessor ? getProfessorQuestionComments(id) : getQuestionComments(id)
+    },
     enabled: expanded,
   })
 
   const postMutation = useMutation({
-    mutationFn: (content: string) =>
-      isProfessor
-        ? postProfessorQuestionComment(questionId, content)
-        : postQuestionComment(questionId, content),
+    mutationFn: (content: string) => {
+      if (isThread) {
+        return isProfessor ? postProfessorThreadComment(id, content) : postThreadComment(id, content)
+      }
+      return isProfessor ? postProfessorQuestionComment(id, content) : postQuestionComment(id, content)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
       setDraft('')
@@ -38,7 +50,10 @@ export default function CommentThread({ questionId, commentCount }: CommentThrea
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (commentId: string) => deleteProfessorQuestionComment(questionId, commentId),
+    mutationFn: (commentId: string) =>
+      isThread
+        ? deleteProfessorThreadComment(id, commentId)
+        : deleteProfessorQuestionComment(id, commentId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   })
 
@@ -52,7 +67,6 @@ export default function CommentThread({ questionId, commentCount }: CommentThrea
 
   return (
     <div className="mt-2">
-      {/* Toggle button */}
       <button
         onClick={() => setExpanded((v) => !v)}
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -61,7 +75,6 @@ export default function CommentThread({ questionId, commentCount }: CommentThrea
         <span>{displayCount} comment{displayCount !== 1 ? 's' : ''}</span>
       </button>
 
-      {/* Expanded thread */}
       {expanded && (
         <div className="mt-3 space-y-2 border-t border-border pt-3">
           {isLoading && <p className="text-xs text-muted-foreground">Loading…</p>}
@@ -95,7 +108,6 @@ export default function CommentThread({ questionId, commentCount }: CommentThrea
             <p className="text-xs text-muted-foreground italic">No comments yet. Be the first!</p>
           )}
 
-          {/* Add comment */}
           <div className="flex items-end gap-2 pt-1">
             <textarea
               value={draft}

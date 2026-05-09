@@ -3,6 +3,7 @@ import asyncio
 import asyncpg
 import numpy as np
 
+from config import settings
 from models import AnswerOut, CitationOut, QuestionOut
 from services import openai_client
 
@@ -29,7 +30,7 @@ async def handle_question(
     personality: str = "supportive",
     anonymous: bool = False,
 ) -> QuestionOut:
-    """Full 9-step RAG pipeline: save question → embed → retrieve → generate → save answer+citations → return."""
+    """Full RAG pipeline: save question → embed → retrieve top chunks → generate → save answer+citations → return."""
 
     # Step 1: Save question
     q_row = await db.fetchrow(
@@ -41,7 +42,7 @@ async def handle_question(
     )
     question_id = str(q_row["id"])
 
-    # Step 2: Embed the question (sync OpenAI SDK → run in thread pool)
+    # Step 2: Embed the question
     query_embedding = await asyncio.to_thread(openai_client.get_embedding, content)
 
     # Step 3: Get active document IDs for this session
@@ -51,68 +52,84 @@ async def handle_question(
     )
     active_doc_ids = [str(r["document_id"]) for r in doc_rows]
 
-    # Step 4a: Fetch ALL chunks from all active session documents (full context)
-    all_chunks = []
-    if active_doc_ids:
-        all_chunk_rows = await db.fetch(
-            """
-            SELECT dc.id, dc.content, dc.page_number, d.filename
-            FROM document_chunks dc
-            JOIN documents d ON d.id = dc.document_id
-            WHERE dc.document_id = ANY($1::uuid[])
-            ORDER BY d.filename, dc.chunk_index
-            """,
-            active_doc_ids,
-        )
-        all_chunks = [dict(r) for r in all_chunk_rows]
-        # Fallback: include documents with content but no chunks (e.g. inline text)
-        doc_content_rows = await db.fetch(
-            """
-            SELECT d.filename, d.content
-            FROM documents d
-            WHERE d.id = ANY($1::uuid[]) AND d.content IS NOT NULL AND trim(d.content) != ''
-            """,
-            active_doc_ids,
-        )
-        docs_with_content = {r["filename"]: r["content"] for r in doc_content_rows}
-        docs_with_chunks = {c.get("filename") for c in all_chunks}
-        for filename, content in docs_with_content.items():
-            if filename not in docs_with_chunks:
-                all_chunks.append({"content": content, "filename": filename, "page_number": None})
-        all_chunks.sort(key=lambda c: (c.get("filename", ""), c.get("page_number") or 0))
-
-    # Step 4b: Vector similarity search for top 5 chunks (used for citations)
-    chunks = []
+    # Step 4: Vector similarity search — top 20 candidates, ranked by relevance
+    chunks: list[dict] = []
     if active_doc_ids:
         embedding_vec = np.array(query_embedding, dtype=np.float32)
         chunk_rows = await db.fetch(
             """
-            SELECT dc.id, dc.content, dc.page_number,
+            SELECT dc.id, dc.content, dc.page_number, dc.token_count, d.id AS document_id, d.filename,
                    1 - (dc.embedding <=> $2) AS cosine_similarity
             FROM document_chunks dc
+            JOIN documents d ON d.id = dc.document_id
             WHERE dc.document_id = ANY($1::uuid[])
               AND dc.embedding IS NOT NULL
             ORDER BY dc.embedding <=> $2
-            LIMIT 5
+            LIMIT 20
             """,
             active_doc_ids,
             embedding_vec,
         )
-        chunks = [dict(r) for r in chunk_rows]
+        chunks = [dict(r) | {"is_real_chunk": True} for r in chunk_rows]
 
-    # Step 5: Build grounded system prompt (use ALL chunks for full context)
-    personality_instruction = _PERSONALITY_INSTRUCTIONS.get(personality, _PERSONALITY_INSTRUCTIONS["supportive"])
-    if all_chunks:
-        materials = "\n\n".join(
-            f"[{c.get('filename', 'Doc')}] (Page {c['page_number'] or '?'}):\n{c['content']}"
-            for c in all_chunks
+        # Append inline-text documents (no chunks/embeddings) ranked last
+        doc_content_rows = await db.fetch(
+            """
+            SELECT d.id, d.filename, d.content
+            FROM documents d
+            WHERE d.id = ANY($1::uuid[])
+              AND d.content IS NOT NULL
+              AND trim(d.content) != ''
+              AND NOT EXISTS (
+                  SELECT 1 FROM document_chunks dc WHERE dc.document_id = d.id
+              )
+            """,
+            active_doc_ids,
         )
+        for r in doc_content_rows:
+            chunks.append({
+                "id": str(r["id"]),
+                "content": r["content"],
+                "filename": r["filename"],
+                "page_number": None,
+                "token_count": max(1, len(r["content"].split())),
+                "cosine_similarity": 0.0,
+                "is_real_chunk": False,
+            })
+
+    # Step 5: Budget-trim — greedily take chunks in relevance order until token budget exhausted
+    budget = settings.context_material_token_budget
+    context_chunks: list[dict] = []
+    tokens_used = 0
+    for chunk in chunks:
+        t = chunk["token_count"] or max(1, len(chunk["content"].split()))
+        if tokens_used + t > budget:
+            break
+        context_chunks.append(chunk)
+        tokens_used += t
+
+    # Citations = top 5 real chunks from what was actually fed to the model
+    citation_chunks = [c for c in context_chunks[:5] if c["is_real_chunk"]]
+
+    # Step 6: Build grounded system prompt — number real chunks so AI can cite them inline
+    personality_instruction = _PERSONALITY_INSTRUCTIONS.get(personality, _PERSONALITY_INSTRUCTIONS["supportive"])
+    if context_chunks:
+        materials_parts = []
+        cite_num = 1
+        for c in context_chunks:
+            if c["is_real_chunk"]:
+                header = f"[{cite_num}] {c.get('filename', 'Document')} (Page {c['page_number'] or '?'})"
+                cite_num += 1
+            else:
+                header = f"[Ref] {c.get('filename', 'Document')}"
+            materials_parts.append(f"{header}:\n{c['content']}")
+        materials = "\n\n".join(materials_parts)
         system_prompt = (
             f"You are an AI teaching assistant. {personality_instruction} "
-            "Answer the student's question using ONLY the following course materials from the posted files. "
-            "You have access to the full content of all documents. Use this context to give accurate, comprehensive answers. "
-            "If the answer cannot be found in the materials, say so clearly - do not use outside knowledge.\n\n"
-            f"--- Course Materials (all posted files) ---\n{materials}\n---"
+            "Answer the student's question using ONLY the following numbered course materials. "
+            "Whenever you use information from a source, place its citation number inline in your answer like [1] or [2]. "
+            "If the answer cannot be found in the materials, say so clearly — do not use outside knowledge.\n\n"
+            f"--- Course Materials ---\n{materials}\n---"
         )
     else:
         system_prompt = (
@@ -121,26 +138,31 @@ async def handle_question(
             "Let the student know their question cannot be answered from course materials right now."
         )
 
-    # Step 6: Call GPT-4o (sync → thread pool)
-    answer_text, latency_ms = await asyncio.to_thread(
-        openai_client.get_chat_completion, system_prompt, content
+    # Step 7: Call GPT-4o — unpack 3-tuple (text, latency_ms, (input_tokens, output_tokens))
+    answer_text, latency_ms, (input_tokens, output_tokens) = await asyncio.to_thread(
+        openai_client.get_chat_completion,
+        system_prompt,
+        content,
+        settings.max_answer_tokens,
     )
 
-    # Step 7: Save answer
+    # Step 8: Save answer with token counts
     a_row = await db.fetchrow(
         """
-        INSERT INTO answers (question_id, content, model_used, generation_latency_ms)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO answers (question_id, content, model_used, generation_latency_ms, input_tokens, output_tokens)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id
         """,
         question_id,
         answer_text,
         openai_client.CHAT_MODEL,
         latency_ms,
+        input_tokens or None,
+        output_tokens or None,
     )
     answer_id = str(a_row["id"])
 
-    # Step 7.5: Classify question category (fire-and-forget, don't block)
+    # Step 8.5: Classify question category (fire-and-forget, don't block)
     try:
         category = await asyncio.to_thread(openai_client.classify_question, content)
         await db.execute(
@@ -149,11 +171,11 @@ async def handle_question(
             question_id,
         )
     except Exception:
-        pass  # Category is optional — don't fail the whole pipeline
+        pass
 
-    # Step 8: Save citations
+    # Step 9: Save citations (only real chunk rows — inline-text docs have no chunk FK)
     citation_outs = []
-    for i, chunk in enumerate(chunks):
+    for i, chunk in enumerate(citation_chunks):
         await db.execute(
             """
             INSERT INTO answer_citations (answer_id, chunk_id, relevance_score, citation_order)
@@ -170,9 +192,11 @@ async def handle_question(
             page_number=chunk["page_number"],
             relevance_score=round(float(chunk["cosine_similarity"]), 4),
             citation_order=i + 1,
+            filename=chunk.get("filename"),
+            document_id=str(chunk["document_id"]) if chunk.get("document_id") else None,
         ))
 
-    # Step 9: Return full QuestionOut
+    # Step 10: Return full QuestionOut
     return QuestionOut(
         question_id=question_id,
         content=content,

@@ -9,15 +9,15 @@ import { Badge } from '@/components/ui/badge'
 const cards = [
   {
     icon: Radio,
-    title: 'Join Q&A',
-    description: 'Ask questions and get AI-powered answers from course materials',
+    title: 'Chat with lecture materials',
+    description: 'Ask questions and get AI-powered answers grounded in your course materials',
     path: 'chat',
     accent: true,
   },
   {
     icon: BarChart3,
-    title: 'Class Questions',
-    description: 'View all questions asked in this lecture — anonymised class report',
+    title: 'Class Dashboard',
+    description: 'See shared class threads and all questions from this lecture',
     path: 'report',
     accent: false,
   },
@@ -61,7 +61,9 @@ export default function SessionDetailPage() {
         <div className="flex items-center gap-3 mb-1">
           <h1 className="text-2xl font-bold text-foreground">Lecture</h1>
           {isActive ? (
-            <Badge className="gradient-primary text-white border-0 animate-pulse text-xs">● Live</Badge>
+            <Badge className="animate-pulse text-xs border-0" style={{ background: '#dcfce7', color: '#166534' }}>● Live</Badge>
+          ) : check?.session_status === 'upcoming' ? (
+            <Badge className="text-xs border-0" style={{ background: '#fef9c3', color: '#854d0e' }}>Upcoming</Badge>
           ) : check && (
             <Badge variant="outline" className="text-xs capitalize">{check.session_status}</Badge>
           )}

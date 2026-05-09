@@ -11,6 +11,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    display_name: str
+    role: str = Field(..., pattern="^(student|professor)$")
+
+
 class PostQuestionRequest(BaseModel):
     content: str = Field(..., min_length=5, max_length=2000)
     personality: str = Field(default="supportive", pattern="^(supportive|normal|funny)$")
@@ -77,6 +84,8 @@ class SessionCheckResponse(BaseModel):
     session_id: str
     enrolled: bool
     session_status: str
+    questions_used: int = 0
+    questions_limit: int = 10
 
 
 class CitationOut(BaseModel):
@@ -85,6 +94,8 @@ class CitationOut(BaseModel):
     page_number: int | None
     relevance_score: float
     citation_order: int
+    filename: str | None = None
+    document_id: str | None = None
 
 
 class AnswerOut(BaseModel):
@@ -197,3 +208,98 @@ class AddDocumentRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=10, max_length=100_000)
     session_ids: list[str] = Field(..., min_length=1, max_length=50)
+
+
+class ShareThreadRequest(BaseModel):
+    title: str | None = Field(None, max_length=200)
+
+
+class CreateThreadRequest(BaseModel):
+    question_ids: list[str] = Field(..., min_length=1, max_length=10)
+    title: str | None = Field(None, max_length=120)
+    include_questions: bool = False
+
+
+class SharedThreadExchange(BaseModel):
+    question: str
+    answer: str
+    citations_count: int
+
+
+class SharedThreadOut(BaseModel):
+    thread_id: str
+    title: str | None
+    exchange_count: int
+    shared_at: datetime
+    exchanges: list[SharedThreadExchange]
+    include_questions: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Rich thread models (threads-as-primary-unit)
+# ---------------------------------------------------------------------------
+
+class ThreadFeedbackOut(BaseModel):
+    thumbs_up: int
+    thumbs_down: int
+    needs_attention: bool  # thumbs_down > thumbs_up AND not 'Discussed in class' label
+
+
+class RichThreadExchange(BaseModel):
+    question: str   # empty string when include_questions=False
+    answer: str
+    citations: list[CitationOut] = []
+    category: str | None = None
+
+
+class RichThreadOut(BaseModel):
+    thread_id: str
+    title: str | None
+    exchange_count: int
+    shared_at: datetime
+    exchanges: list[RichThreadExchange]
+    include_questions: bool
+    professor_labels: list[str]
+    professor_notes: str | None
+    fork_count: int
+    forked_from: str | None   # parent thread_id
+    comment_count: int
+    feedback: ThreadFeedbackOut | None
+    my_feedback: str | None   # 'up' | 'down' | None
+    student_display_name: str  # anonymized e.g. "Student 3"
+    is_mine: bool
+
+
+class ForkThreadRequest(BaseModel):
+    content: str = Field(..., min_length=5, max_length=2000)
+    personality: str = Field(default="supportive", pattern="^(supportive|normal|funny)$")
+    title: str | None = Field(None, max_length=120)
+
+
+class SubmitThreadFeedbackRequest(BaseModel):
+    feedback: str = Field(..., pattern="^(up|down)$")
+
+
+class SavedAnswerOut(BaseModel):
+    save_id: str
+    answer_id: str
+    question_content: str
+    answer_content: str
+    saved_at: datetime
+    session_id: str
+    session_title: str
+    citations: list[CitationOut]
+
+
+class CitationPageOut(BaseModel):
+    page_number: int | None
+    citation_count: int
+    avg_relevance: float
+
+
+class DocumentCitationOut(BaseModel):
+    document_id: str
+    filename: str
+    page_count: int | None
+    total_citations: int
+    pages: list[CitationPageOut]

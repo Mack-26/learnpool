@@ -23,6 +23,13 @@ export interface TokenResponse {
   role: string
 }
 
+export interface SignupRequest {
+  email: string
+  password: string
+  display_name: string
+  role: 'student' | 'professor'
+}
+
 export interface SessionSummary {
   id: string
   title: string
@@ -34,6 +41,8 @@ export interface SessionCheckResponse {
   session_id: string
   enrolled: boolean
   session_status: string
+  questions_used?: number
+  questions_limit?: number
 }
 
 export interface CitationOut {
@@ -42,6 +51,8 @@ export interface CitationOut {
   page_number: number | null
   relevance_score: number
   citation_order: number
+  filename?: string | null
+  document_id?: string | null
 }
 
 export interface AnswerOut {
@@ -58,8 +69,54 @@ export interface QuestionOut {
   asked_at: string
   student_id: string
   anonymous: boolean
-  published: boolean
+  published?: boolean
   answer: AnswerOut | null
+}
+
+export interface SharedThreadExchange {
+  question: string
+  answer: string
+  citations_count: number
+}
+
+export interface SharedThreadOut {
+  thread_id: string
+  title: string | null
+  exchange_count: number
+  shared_at: string
+  exchanges: SharedThreadExchange[]
+  include_questions: boolean
+}
+
+export interface ThreadFeedbackOut {
+  thumbs_up: number
+  thumbs_down: number
+  needs_attention: boolean
+}
+
+export interface RichThreadExchange {
+  question: string
+  answer: string
+  citations: CitationOut[]
+  category: string | null
+}
+
+export interface RichThreadOut {
+  thread_id: string
+  title: string | null
+  exchange_count: number
+  shared_at: string
+  exchanges: RichThreadExchange[]
+  include_questions: boolean
+  professor_labels: string[]
+  professor_notes: string | null
+  fork_count: number
+  forked_from: string | null
+  comment_count: number
+  feedback: ThreadFeedbackOut | null
+  my_feedback: 'up' | 'down' | null
+  student_display_name: string
+  is_mine: boolean
 }
 
 export interface AnswerFeedbackOut {
@@ -117,3 +174,28 @@ export interface SessionReportResponse {
 }
 
 export type Personality = 'supportive' | 'normal' | 'funny'
+
+export interface CitationPageOut {
+  page_number: number | null
+  citation_count: number
+  avg_relevance: number
+}
+
+export interface DocumentCitationOut {
+  document_id: string
+  filename: string
+  page_count: number | null
+  total_citations: number
+  pages: CitationPageOut[]
+}
+
+export interface SavedAnswerOut {
+  save_id: string
+  answer_id: string
+  question_content: string
+  answer_content: string
+  saved_at: string
+  session_id: string
+  session_title: string
+  citations: CitationOut[]
+}
