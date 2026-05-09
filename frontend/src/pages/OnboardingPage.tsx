@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, useRef, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signup } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
@@ -35,33 +35,34 @@ type Role = 'student' | 'professor'
 
 // ── Step 1: Role Selection ────────────────────────────────────────────────────
 function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r: Role) => void }) {
+  const mobile = useIsMobile()
   const roles: { role: Role; title: string; icon: string; desc: string }[] = [
     {
       role: 'student',
       title: 'Student',
       icon: '🎓',
-      desc: 'Ask questions during live lectures and get AI answers grounded in your course materials. See what your classmates are asking too.',
+      desc: 'Ask questions live. Get cited answers. See what your class is wrestling with.',
     },
     {
       role: 'professor',
       title: 'Instructor',
       icon: '📚',
-      desc: 'Upload your lecture materials, run live sessions, and see in real time what\'s confusing your class.',
+      desc: 'Upload your materials, run live sessions, and know what\'s confusing your class.',
     },
   ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', width: '100%', maxWidth: '640px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', gap: '1rem' }}>
-        <p style={{ fontFamily: sans, fontSize: '0.9rem', color: T.onSurfaceVariant, marginBottom: '0.75rem', lineHeight: 1.6, maxWidth: '520px', margin: '0 auto 0.75rem' }}>
-          You already use AI to study. VibeLearning makes it a classroom sport — AI answers from your professor's materials, your whole class sees the same responses, and wrong answers get corrected together.
-        </p>
+      <div style={{ textAlign: 'center' }}>
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(2rem, 5vw, 3.25rem)', color: T.onSurface, margin: 0, lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           Who are you here as?
         </h1>
+        <p style={{ fontFamily: sans, fontSize: '0.9rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.6, maxWidth: '440px', margin: '0.75rem auto 0' }}>
+          AI answers from your professor's materials. Everyone learns together.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', width: '100%', marginTop: '0.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '1.25rem', width: '100%' }}>
         {roles.map(({ role, title, icon, desc }) => {
           const isSelected = selected === role
           return (
@@ -117,11 +118,11 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
   )
 }
 
-// ── Step 2: Feature Showcase — Course-Grounded AI ────────────────────────────
+// ── Step 2: Course-Grounded AI ────────────────────────────────────────────────
 function StepInsight() {
   const mobile = useIsMobile()
   return (
-    <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: mobile ? 'center' : 'center', gap: mobile ? '1.5rem' : '3rem', width: '100%', maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'center', gap: mobile ? '1.5rem' : '3rem', width: '100%', maxWidth: '900px', margin: '0 auto' }}>
       <div style={{ textAlign: mobile ? 'center' : 'left', flex: mobile ? undefined : 1 }}>
         <span style={{ fontFamily: sans, fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: T.primary, fontWeight: 700 }}>
           Course-Grounded AI
@@ -129,14 +130,12 @@ function StepInsight() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           AI that actually knows your course.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          Most AI tools answer from the internet — and sometimes get it wrong. Here, the AI only reads what your professor activates for this session: your exact textbook chapters, lecture slides, your specific class. Ask anything. Every answer cites its source.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          Your professor activates today's chapters. Every answer cites the exact page. Nothing from the internet — only your specific class.
         </p>
       </div>
 
-      {/* Mock UI card — Q&A with citation */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* Question bubble */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
           <div style={{ background: T.gradient, borderRadius: '1rem 1rem 0.25rem 1rem', padding: '0.75rem 1rem', maxWidth: '80%' }}>
             <p style={{ fontFamily: sans, fontSize: '0.875rem', color: '#fff', margin: 0, lineHeight: 1.5 }}>
@@ -145,7 +144,6 @@ function StepInsight() {
           </div>
         </div>
 
-        {/* AI answer bubble */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
           <div style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem' }}>
             ✨
@@ -157,7 +155,6 @@ function StepInsight() {
             <p style={{ fontFamily: sans, fontSize: '0.85rem', color: T.onSurface, lineHeight: 1.6, margin: '0 0 0.75rem 0' }}>
               Supervised learning trains on labelled examples where the correct answer is known. Unsupervised learning finds patterns in unlabelled data without a predefined output…
             </p>
-            {/* Citation chip */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: T.surfaceHigh, borderRadius: '9999px', padding: '0.2rem 0.65rem' }}>
               <span style={{ fontSize: '0.7rem' }}>📄</span>
               <span style={{ fontFamily: sans, fontSize: '0.65rem', color: T.onSurfaceVariant, fontWeight: 600 }}>Page 14 · 94% relevance</span>
@@ -165,7 +162,6 @@ function StepInsight() {
           </div>
         </div>
 
-        {/* Footer */}
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textAlign: 'center', margin: '1rem 0 0 0' }}>
           Nothing from outside the course. No guessing.
         </p>
@@ -174,7 +170,7 @@ function StepInsight() {
   )
 }
 
-// ── Step 3: Feature Showcase — Crowd-Checked Intelligence ─────────────────────
+// ── Step 3: Shared Intelligence ───────────────────────────────────────────────
 function StepBranch() {
   const mobile = useIsMobile()
   return (
@@ -186,14 +182,12 @@ function StepBranch() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           Your class catches what AI gets wrong.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          When you use AI alone, a wrong answer goes unchallenged. Here, every AI response is visible to your whole class — anonymously. One person spots the mistake. Everyone benefits. This is the crowd-checking that's missing from every private AI chat.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          Every answer is visible to the whole class, anonymously. Someone spots a mistake — everyone benefits. The crowd-checking that's missing from every private AI chat.
         </p>
       </div>
 
-      {/* Mock UI card — AI answer being crowd-corrected */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* AI answer with a highlighted error */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
           <div style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem' }}>
             ✨
@@ -211,13 +205,12 @@ function StepBranch() {
           </div>
         </div>
 
-        {/* Classmate correction */}
-        <div style={{ background: T.surfaceHighest, borderRadius: '0.5rem', padding: '0.875rem 1rem', marginBottom: '1rem', borderLeft: `3px solid ${T.primary}` }}>
+        <div style={{ background: T.surfaceHighest, borderRadius: '0.5rem', padding: '0.875rem 1rem', borderLeft: `3px solid ${T.primary}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
             <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '9999px', background: T.surfaceHigh, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>🦊</div>
             <span style={{ fontFamily: sans, fontSize: '0.75rem', color: T.onSurfaceVariant }}>Anonymous Peer</span>
-            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: '0.65rem', background: 'rgba(186,26,26,0.1)', color: '#c0392b', borderRadius: '9999px', padding: '0.15rem 0.5rem', fontWeight: 600 }}>
-              Correction
+            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: '0.65rem', background: T.surfaceHigh, color: T.onSurfaceVariant, borderRadius: '9999px', padding: '0.15rem 0.5rem', fontWeight: 600 }}>
+              Discussion
             </span>
           </div>
           <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurface, lineHeight: 1.6, margin: 0 }}>
@@ -225,16 +218,8 @@ function StepBranch() {
           </p>
         </div>
 
-        {/* Vote row confirming the correction */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: T.gradient, border: 'none', borderRadius: '9999px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontFamily: sans, fontSize: '0.8rem', color: '#fff', fontWeight: 600 }}>
-            👍 14 classmates agree
-          </button>
-        </div>
-
-        {/* Footer */}
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, margin: '1rem 0 0 0' }}>
-          🔒 Anonymous — your name is never visible to classmates
+          Anonymous — your name is never visible to classmates
         </p>
       </div>
     </div>
@@ -253,14 +238,12 @@ function StepClassPulse() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           See what your whole class is thinking.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          Every question in a session is categorised automatically — Doubts, Exam Prep, Summaries, Homework. Browse what everyone's wrestling with, upvote questions you're also confused about, and jump to answers that matter to you. No more studying in isolation.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          Questions sorted by category automatically. Upvote what confuses you. Jump straight to the answers that matter.
         </p>
       </div>
 
-      {/* Mock UI card */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* Category pills */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
           {[
             { label: 'Doubts', count: 8, active: true },
@@ -279,7 +262,6 @@ function StepClassPulse() {
           ))}
         </div>
 
-        {/* Anonymous question rows */}
         {[
           { avatar: '🦊', question: 'Why does the learning rate affect convergence so much?', votes: 12 },
           { avatar: '🐻', question: "What's the difference between bias and variance?", votes: 8 },
@@ -303,7 +285,7 @@ function StepClassPulse() {
         ))}
 
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textAlign: 'center', margin: '1rem 0 0 0' }}>
-          Ask your own or upvote ones you relate to — both help the class
+          Ask your own or upvote what resonates — both help the class
         </p>
       </div>
     </div>
@@ -322,14 +304,12 @@ function StepFork() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           Build on where someone else left off.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          See a question that's close to what you want, but not quite? Fork it. Your fork starts with the same context, adds your specific angle, and the AI answers again — grounded in the same materials. You're not starting from scratch. You're building on shared progress.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          See a question close to what you need? Fork it, add your angle, get a fresh answer grounded in the same materials. You're not starting from scratch.
         </p>
       </div>
 
-      {/* Mock UI card — parent → child fork */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* Parent question card */}
         <div style={{ background: T.surfaceHighest, borderRadius: '0.75rem', padding: '1rem', opacity: 0.75 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '9999px', background: T.surfaceHigh, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>🐻</div>
@@ -348,14 +328,12 @@ function StepFork() {
           </div>
         </div>
 
-        {/* Fork connector */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem 0', gap: '0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem 0' }}>
           <div style={{ width: '2px', height: '0.6rem', background: T.outlineVariant }} />
           <span style={{ fontFamily: sans, fontSize: '0.9rem', color: T.primary, fontWeight: 700, lineHeight: 1 }}>⑂</span>
           <div style={{ width: '2px', height: '0.6rem', background: T.outlineVariant }} />
         </div>
 
-        {/* Child question card */}
         <div style={{ background: '#fff', borderRadius: '0.75rem', padding: '1rem', outline: `2px solid ${T.primary}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#fff', fontWeight: 700 }}>You</div>
@@ -371,7 +349,7 @@ function StepFork() {
         </div>
 
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, margin: '1rem 0 0 0' }}>
-          🔒 Your fork is yours. Classmates see the original thread — not your addition.
+          Your fork builds on a shared question — the AI answers your exact angle from the same materials.
         </p>
       </div>
     </div>
@@ -392,6 +370,7 @@ function StepCreate({
   isLoading: boolean
   error: string | null
 }) {
+  const mobile = useIsMobile()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -412,171 +391,150 @@ function StepCreate({
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', width: '100%', maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
-        {/* Left: celebration */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', boxShadow: T.shadow, flexShrink: 0 }}>
-              🏆
-            </div>
-            <div>
-              <span style={{ fontFamily: sans, fontSize: '0.7rem', color: T.primary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', display: 'block', marginBottom: '0.2rem' }}>
-                Step 6 of 6
-              </span>
-              <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', color: T.onSurface, margin: 0, lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                Create your account
-              </h1>
-            </div>
+    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? '1.5rem' : '3rem', width: '100%', maxWidth: '900px', margin: '0 auto', alignItems: 'center' }}>
+      {/* Left: celebration */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', boxShadow: T.shadow, flexShrink: 0 }}>
+            🏆
           </div>
-
-          <p style={{ fontFamily: sans, fontSize: '1rem', color: T.onSurfaceVariant, lineHeight: 1.65, margin: 0 }}>
-            You're all set on how it works. Save your account to get started.
-          </p>
-
-          {/* Bento summary */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.25rem', boxShadow: T.shadow }}>
-              <span style={{ fontSize: '1.25rem' }}>🎓</span>
-              <p style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, margin: '0.5rem 0 0.25rem 0' }}>Selected Path</p>
-              <p style={{ fontFamily: serif, fontSize: '1rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>
-                {role === 'student' ? 'Student Path' : 'Instructor Path'}
-              </p>
-            </div>
-            <div style={{ background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.25rem', boxShadow: T.shadow }}>
-              <span style={{ fontSize: '1.25rem' }}>🔥</span>
-              <p style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, margin: '0.5rem 0 0.25rem 0' }}>Approach</p>
-              <p style={{ fontFamily: serif, fontSize: '1rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>Crowd-Checked AI</p>
-            </div>
+          <div>
+            <span style={{ fontFamily: sans, fontSize: '0.7rem', color: T.primary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', display: 'block', marginBottom: '0.2rem' }}>
+              Last step
+            </span>
+            <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', color: T.onSurface, margin: 0, lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+              Create your account
+            </h1>
           </div>
         </div>
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, lineHeight: 1.65, margin: 0 }}>
+          {role === 'student'
+            ? 'You know how it works. Now join your class.'
+            : 'Ready to run your first session. Let\'s get you set up.'}
+        </p>
+      </div>
 
-        {/* Right: signup form (glassmorphism) */}
-        <div style={{
-          background: 'rgba(255,255,255,0.8)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '1.5rem',
-          padding: '2rem',
-          boxShadow: T.shadow,
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Decorative glow */}
-          <div style={{ position: 'absolute', top: '-3rem', right: '-3rem', width: '8rem', height: '8rem', background: 'rgba(140,75,0,0.08)', borderRadius: '9999px', filter: 'blur(24px)' }} />
+      {/* Right: signup form */}
+      <div style={{
+        background: 'rgba(255,255,255,0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '1.5rem',
+        padding: '2rem',
+        boxShadow: T.shadow,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', top: '-3rem', right: '-3rem', width: '8rem', height: '8rem', background: 'rgba(39,39,87,0.05)', borderRadius: '9999px', filter: 'blur(24px)' }} />
 
-          <h2 style={{ fontFamily: serif, fontSize: '1.5rem', color: T.onSurface, margin: '0 0 0.25rem 0', position: 'relative' }}>Almost there</h2>
-          <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, margin: '0 0 1.75rem 0', position: 'relative' }}>Your role is saved — just create your credentials.</p>
+        <h2 style={{ fontFamily: serif, fontSize: '1.5rem', color: T.onSurface, margin: '0 0 0.25rem 0', position: 'relative' }}>Almost there</h2>
+        <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, margin: '0 0 1.75rem 0', position: 'relative' }}>Your role is saved — just create your credentials.</p>
 
-          <form
-            onSubmit={(e: FormEvent) => { e.preventDefault(); onSubmit(displayName, email, password) }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative' }}
-          >
-            {/* Full Name */}
-            <div>
-              <label style={{ fontFamily: sans, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, display: 'block', marginBottom: '0.5rem' }}>
-                Full Name
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>👤</span>
-                <input
-                  type="text"
-                  placeholder="Your full name"
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  required
-                  style={inputStyle}
-                  onFocus={e => (e.currentTarget.style.borderBottomColor = T.primary)}
-                  onBlur={e => (e.currentTarget.style.borderBottomColor = T.outlineVariant)}
-                />
-              </div>
+        <form
+          onSubmit={(e: FormEvent) => { e.preventDefault(); onSubmit(displayName, email, password) }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative' }}
+        >
+          <div>
+            <label style={{ fontFamily: sans, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, display: 'block', marginBottom: '0.5rem' }}>
+              Full Name
+            </label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>👤</span>
+              <input
+                type="text"
+                placeholder="Your full name"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                required
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderBottomColor = T.primary)}
+                onBlur={e => (e.currentTarget.style.borderBottomColor = T.outlineVariant)}
+              />
             </div>
+          </div>
 
-            {/* Email */}
-            <div>
-              <label style={{ fontFamily: sans, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, display: 'block', marginBottom: '0.5rem' }}>
-                Email Address
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>✉️</span>
-                <input
-                  type="email"
-                  placeholder="scholar@academy.edu"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  style={inputStyle}
-                  onFocus={e => (e.currentTarget.style.borderBottomColor = T.primary)}
-                  onBlur={e => (e.currentTarget.style.borderBottomColor = T.outlineVariant)}
-                />
-              </div>
+          <div>
+            <label style={{ fontFamily: sans, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, display: 'block', marginBottom: '0.5rem' }}>
+              Email Address
+            </label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>✉️</span>
+              <input
+                type="email"
+                placeholder="scholar@academy.edu"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderBottomColor = T.primary)}
+                onBlur={e => (e.currentTarget.style.borderBottomColor = T.outlineVariant)}
+              />
             </div>
+          </div>
 
-            {/* Password */}
-            <div>
-              <label style={{ fontFamily: sans, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, display: 'block', marginBottom: '0.5rem' }}>
-                Secure Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>🔒</span>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  style={inputStyle}
-                  onFocus={e => (e.currentTarget.style.borderBottomColor = T.primary)}
-                  onBlur={e => (e.currentTarget.style.borderBottomColor = T.outlineVariant)}
-                />
-              </div>
+          <div>
+            <label style={{ fontFamily: sans, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: T.onSurfaceVariant, display: 'block', marginBottom: '0.5rem' }}>
+              Secure Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>🔒</span>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                minLength={8}
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderBottomColor = T.primary)}
+                onBlur={e => (e.currentTarget.style.borderBottomColor = T.outlineVariant)}
+              />
             </div>
+          </div>
 
-            {error && (
-              <p style={{ fontFamily: sans, fontSize: '0.8rem', color: '#c0392b', margin: 0, background: 'rgba(186,26,26,0.06)', borderRadius: '0.5rem', padding: '0.75rem 1rem' }}>
-                {error}
-              </p>
-            )}
+          {error && (
+            <p style={{ fontFamily: sans, fontSize: '0.8rem', color: '#c0392b', margin: 0, background: 'rgba(186,26,26,0.06)', borderRadius: '0.5rem', padding: '0.75rem 1rem' }}>
+              {error}
+            </p>
+          )}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              style={{
-                marginTop: '0.5rem',
-                width: '100%',
-                background: isLoading ? T.outlineVariant : T.gradient,
-                color: '#fff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '1rem',
-                fontFamily: sans,
-                fontWeight: 700,
-                fontSize: '1rem',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                boxShadow: isLoading ? 'none' : T.shadow,
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {isLoading ? 'Creating your account…' : <>Create Account →</>}
-            </button>
-          </form>
-
-          <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textAlign: 'center', marginTop: '1.25rem' }}>
-            By creating an account, you agree to our Terms of Service.
-          </p>
           <button
-            type="button"
-            onClick={onBack}
-            style={{ display: 'block', margin: '0.5rem auto 0', background: 'none', border: 'none', fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, cursor: 'pointer', padding: '0.25rem 0' }}
+            type="submit"
+            disabled={isLoading}
+            style={{
+              marginTop: '0.5rem',
+              width: '100%',
+              background: isLoading ? T.outlineVariant : T.gradient,
+              color: '#fff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '1rem',
+              fontFamily: sans,
+              fontWeight: 700,
+              fontSize: '1rem',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              boxShadow: isLoading ? 'none' : T.shadow,
+              transition: 'all 0.2s ease',
+            }}
           >
-            ← Back
+            {isLoading ? 'Creating your account…' : <>Create Account →</>}
           </button>
-        </div>
+        </form>
+
+        <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textAlign: 'center', marginTop: '1.25rem' }}>
+          By creating an account, you agree to our Terms of Service.
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          style={{ display: 'block', margin: '0.5rem auto 0', background: 'none', border: 'none', fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, cursor: 'pointer', padding: '0.25rem 0' }}
+        >
+          ← Back
+        </button>
       </div>
     </div>
   )
@@ -594,14 +552,12 @@ function StepInstructorSetup() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           Build your lecture in minutes.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          Create your course once. For each class, create a named session — "Lecture 4: Gradient Descent" — and pick exactly which materials are relevant today. The AI is custom-configured per session. Toggle on today's readings; leave last week's off.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          Create a session, name it, pick today's chapters. The AI reads only what you activate — nothing from last week bleeds in.
         </p>
       </div>
 
-      {/* Mock UI card */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* 3-step setup strip */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0', marginBottom: '1.25rem' }}>
           {[
             { num: '①', label: 'Course', done: true },
@@ -620,12 +576,10 @@ function StepInstructorSetup() {
           ))}
         </div>
 
-        {/* Course breadcrumb */}
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, margin: '0 0 1rem 0' }}>
           Intro to Machine Learning <span style={{ color: T.outlineVariant }}>›</span> <strong style={{ color: T.onSurface }}>Lecture 4: Gradient Descent</strong>
         </p>
 
-        {/* Document chips */}
         <p style={{ fontFamily: sans, fontSize: '0.65rem', color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.75rem 0' }}>Activate for today</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
           {[
@@ -651,7 +605,6 @@ function StepInstructorSetup() {
           ))}
         </div>
 
-        {/* Go Live button */}
         <div style={{ background: T.gradient, borderRadius: '9999px', padding: '0.75rem 1.5rem', textAlign: 'center', marginBottom: '0.75rem' }}>
           <span style={{ fontFamily: sans, fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>Go Live →</span>
         </div>
@@ -675,14 +628,12 @@ function StepInstructorLive() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           Watch your class think in real time.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          Once you go live, questions flow in anonymously. The AI answers each one instantly from your materials. You see every question categorised as it arrives — Doubts, Exam Prep, Homework. If something's confusing half the class, you'll know before the lecture ends.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          Questions flow in anonymously, answered instantly, categorised automatically. If six students ask the same thing — you'll see it before class ends.
         </p>
       </div>
 
-      {/* Mock UI card */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* Session header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
           <div>
             <p style={{ fontFamily: serif, fontSize: '1rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>Lecture 4 · Gradient Descent</p>
@@ -691,7 +642,6 @@ function StepInstructorLive() {
           <span style={{ fontFamily: sans, fontSize: '0.65rem', background: '#dcfce7', color: '#166534', borderRadius: '9999px', padding: '0.25rem 0.7rem', fontWeight: 700 }}>● Live</span>
         </div>
 
-        {/* Live question feed */}
         {[
           { tag: 'Doubts', q: 'Why does momentum help escape local minima?', time: 'just now' },
           { tag: 'Exam Prep', q: 'Is Adam always better than SGD for practical use?', time: '1 min ago' },
@@ -710,7 +660,6 @@ function StepInstructorLive() {
           </div>
         ))}
 
-        {/* Confusion banner */}
         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.5rem', padding: '0.75rem 1rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>⚠️</span>
           <p style={{ fontFamily: sans, fontSize: '0.75rem', color: '#92400e', margin: 0, lineHeight: 1.45 }}>
@@ -738,20 +687,17 @@ function StepInstructorReview() {
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
           Review before your students see it.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          After your session ends, you enter Review mode. Read through every AI answer. Label what you covered in class, flag anything the AI got wrong, and add notes where context is missing. Your labels become part of the shared thread students access.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          After class, read through every AI answer. Label what you covered, flag anything wrong. Your notes become part of what students see when it's released.
         </p>
       </div>
 
-      {/* Mock UI card */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* Session status */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
           <p style={{ fontFamily: serif, fontSize: '0.95rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>Lecture 4 · Gradient Descent</p>
           <span style={{ fontFamily: sans, fontSize: '0.65rem', background: '#fef3c7', color: '#92400e', borderRadius: '9999px', padding: '0.2rem 0.65rem', fontWeight: 700 }}>Pending Review</span>
         </div>
 
-        {/* Question card in review mode */}
         <div style={{ background: T.surfaceHighest, borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 700, background: '#e2e2ee', color: '#272757', borderRadius: '9999px', padding: '0.15rem 0.5rem' }}>Doubts</span>
@@ -761,7 +707,7 @@ function StepInstructorReview() {
             What happens to gradient descent when the learning rate is too high?
           </p>
           <p style={{ fontFamily: sans, fontSize: '0.75rem', color: T.onSurfaceVariant, margin: '0 0 0.875rem 0', lineHeight: 1.55 }}>
-            If α is too large, the optimizer overshoots the minimum and may diverge entirely, causing loss to increase rather than decrease…
+            If α is too large, the optimizer overshoots the minimum and may diverge entirely…
           </p>
 
           <p style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: T.onSurfaceVariant, margin: '0 0 0.5rem 0' }}>Professor Labels</p>
@@ -797,16 +743,14 @@ function StepInstructorRelease() {
           Release
         </span>
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-          One tap. Your class gets course notes they built together.
+          One tap. Your class gets the whole thread.
         </h1>
-        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '480px' : 'none' }}>
-          When you release a session, every student unlocks the full shared Q&amp;A thread — all 19 questions, every AI answer, your labels, your notes. Anonymous identities stay hidden. What they get is a crowd-verified study resource grounded in your exact materials.
+        <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
+          Every question, every AI answer, your labels. A study resource built live — grounded in your exact materials.
         </p>
       </div>
 
-      {/* Mock UI card */}
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
-        {/* Professor release section */}
         <div style={{ background: T.surfaceHighest, borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <p style={{ fontFamily: serif, fontSize: '0.95rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>Lecture 4 — Review Complete</p>
@@ -817,14 +761,12 @@ function StepInstructorRelease() {
           </div>
         </div>
 
-        {/* Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0 0 1rem 0' }}>
           <div style={{ flex: 1, height: '1px', background: T.surfaceHighest }} />
           <span style={{ fontFamily: sans, fontSize: '0.65rem', color: T.outlineVariant, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Students will receive</span>
           <div style={{ flex: 1, height: '1px', background: T.surfaceHighest }} />
         </div>
 
-        {/* Student preview */}
         <div style={{ border: `1.5px solid ${T.surfaceHighest}`, borderRadius: '0.75rem', padding: '1rem', opacity: 0.9 }}>
           <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.75rem 0' }}>Lecture 4 — Released · 19 questions</p>
           {[
@@ -848,15 +790,14 @@ function StepInstructorRelease() {
 
 // ── Progress Indicator ────────────────────────────────────────────────────────
 function ProgressBar({ step, labels }: { step: number; labels: string[] }) {
-  const steps = labels
   return (
     <div style={{ width: '100%', maxWidth: `${labels.length * 100}px`, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' }}>
         {/* Track — top: 1rem centers on the 2rem-tall circle */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.surfaceHighest, borderRadius: '9999px', zIndex: 0 }} />
         <div style={{ position: 'absolute', left: 0, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.gradient, borderRadius: '9999px', zIndex: 0, width: `${(step / (labels.length - 1)) * 100}%`, transition: 'width 0.4s ease' }} />
 
-        {steps.map((label, i) => {
+        {labels.map((label, i) => {
           const done = i < step
           const active = i === step
           return (
@@ -891,6 +832,7 @@ export default function OnboardingPage() {
   const [role, setRole] = useState<Role | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const touchStartX = useRef<number | null>(null)
 
   const canContinue = step === 0 ? role !== null : true
   const maxStep = 5
@@ -921,7 +863,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem)' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 5vw, 3rem)', paddingBottom: step < maxStep ? '6rem' : 'clamp(1.25rem, 3vw, 2rem)' }}>
       {/* Ambient glows */}
       <div style={{ position: 'fixed', top: '-8rem', left: '20%', width: '24rem', height: '24rem', background: T.primary, opacity: 0.04, filter: 'blur(80px)', borderRadius: '9999px', pointerEvents: 'none' }} />
       <div style={{ position: 'fixed', bottom: '-8rem', right: '15%', width: '30rem', height: '30rem', background: T.primaryContainer, opacity: 0.04, filter: 'blur(100px)', borderRadius: '9999px', pointerEvents: 'none' }} />
@@ -935,9 +877,14 @@ export default function OnboardingPage() {
 
       {/* Logo */}
       <div style={{ width: '100%', maxWidth: '900px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <span style={{ fontFamily: serif, fontSize: '1.4rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.02em' }}>
-          VibeLearning
-        </span>
+        <div>
+          <span style={{ fontFamily: serif, fontSize: '1.4rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.02em', display: 'block' }}>
+            VibeLearning
+          </span>
+          <span style={{ fontFamily: sans, fontSize: '0.6rem', color: T.outlineVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            by Manan Arora
+          </span>
+        </div>
         <a href="/login" style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, textDecoration: 'none' }}>
           Already a member? Sign in →
         </a>
@@ -954,7 +901,17 @@ export default function OnboardingPage() {
       </div>
 
       {/* Step content */}
-      <div style={{ width: '100%', maxWidth: '900px', flex: 1 }}>
+      <div
+        style={{ width: '100%', maxWidth: '900px', flex: 1 }}
+        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+        onTouchEnd={(e) => {
+          if (touchStartX.current === null || step === maxStep) return
+          const delta = touchStartX.current - e.changedTouches[0].clientX
+          if (delta > 60 && canContinue) next()
+          if (delta < -60 && step > 0) back()
+          touchStartX.current = null
+        }}
+      >
         {step === 0 && <StepRole selected={role} onSelect={setRole} />}
         {step === 1 && role !== 'professor' && <StepInsight />}
         {step === 1 && role === 'professor' && <StepInstructorSetup />}
@@ -973,30 +930,43 @@ export default function OnboardingPage() {
             error={error}
           />
         )}
+      </div>
 
-        {/* Navigation buttons (steps 0-4) */}
-        {step < maxStep && (
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {step > 0 && (
-              <button
-                onClick={back}
-                style={{
-                  background: 'none',
-                  border: `1.5px solid ${T.outlineVariant}`,
-                  borderRadius: '9999px',
-                  padding: '0.875rem 1.75rem',
-                  fontFamily: sans,
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  color: T.onSurfaceVariant,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                ← Back
-              </button>
-            )}
+      {/* Fixed bottom navigation — always at the same position, never jumps */}
+      {step < maxStep && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0, left: 0, right: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.4rem',
+          padding: '0.75rem 1.5rem 1.25rem',
+          background: `linear-gradient(to bottom, transparent, ${T.surface} 28%)`,
+          zIndex: 40,
+        }}>
+          {/* Button row: Back absolute-left, Continue centered */}
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '480px' }}>
+            <button
+              onClick={back}
+              style={{
+                position: 'absolute',
+                left: 0,
+                visibility: step > 0 ? 'visible' : 'hidden',
+                background: 'none',
+                border: `1.5px solid ${T.outlineVariant}`,
+                borderRadius: '9999px',
+                padding: '0.75rem 1.5rem',
+                fontFamily: sans,
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                color: T.onSurfaceVariant,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ← Back
+            </button>
             <button
               onClick={next}
               disabled={!canContinue}
@@ -1006,6 +976,7 @@ export default function OnboardingPage() {
                 border: 'none',
                 borderRadius: '9999px',
                 padding: '0.875rem 2.5rem',
+                minWidth: '10rem',
                 fontFamily: sans,
                 fontWeight: 700,
                 fontSize: '0.9rem',
@@ -1019,17 +990,23 @@ export default function OnboardingPage() {
               Continue
             </button>
           </div>
-          {step > 0 && (
-            <button
-              onClick={next}
-              style={{ background: 'none', border: 'none', fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, cursor: 'pointer', padding: '0.25rem 0.75rem' }}
-            >
-              Skip for now
-            </button>
-          )}
+          <button
+            onClick={next}
+            style={{
+              visibility: step > 0 ? 'visible' : 'hidden',
+              background: 'none',
+              border: 'none',
+              fontFamily: sans,
+              fontSize: '0.8rem',
+              color: T.onSurfaceVariant,
+              cursor: 'pointer',
+              padding: '0.25rem 0.75rem',
+            }}
+          >
+            Skip for now
+          </button>
         </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }
