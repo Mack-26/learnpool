@@ -434,9 +434,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p style={{ fontFamily: "'Manrope', sans-serif", textAlign: 'center', fontSize: '0.7rem', color: '#8686AC', marginTop: '1.5rem' }}>
-            Demo accounts: alice@example.com · prof@example.com · password: devpassword
-          </p>
           <p style={{ fontFamily: "'Manrope', sans-serif", textAlign: 'center', fontSize: '0.875rem', color: '#505081', marginTop: '1rem' }}>
             Don't have an account?{' '}
             <Link to="/signup" style={{ color: '#272757', fontWeight: 700 }}>

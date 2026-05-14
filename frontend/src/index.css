@@ -33,10 +33,10 @@
   --background: 240 50% 98%;        /* #f7f7fc — base surface (used inside panels) */
   --foreground: 241 67% 17%;        /* #0F0E47 — deep navy */
 
-  --card: 240 30% 94%;              /* #ededf5 — surface-container-low */
+  --card: 0 0% 100%;                /* #ffffff — white cards on lavender background */
   --card-foreground: 241 67% 17%;
 
-  --popover: 240 30% 94%;
+  --popover: 0 0% 100%;
   --popover-foreground: 241 67% 17%;
 
   /* Primary — #272757 deep indigo */
@@ -55,7 +55,7 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 240 19% 78%;            /* soft periwinkle */
+  --border: 240 20% 91%;            /* matches session card subtle border */
   --input: 240 22% 88%;             /* muted */
   --ring: 240 37% 25%;
 

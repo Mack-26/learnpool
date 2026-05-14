@@ -1,5 +1,3 @@
-import { Users } from 'lucide-react'
-
 interface ClassCardProps {
   name: string
   professor?: string
@@ -8,24 +6,26 @@ interface ClassCardProps {
   onClick?: () => void
 }
 
-// Deterministic gradient from course name
-const HEADER_GRADIENTS = [
-  'linear-gradient(135deg, #0F0E47 0%, #272757 100%)',
-  'linear-gradient(135deg, #272757 0%, #505081 100%)',
-  'linear-gradient(135deg, #1a1a5e 0%, #272757 100%)',
-  'linear-gradient(135deg, #0d0d3b 0%, #505081 100%)',
-  'linear-gradient(135deg, #272757 0%, #3a3a7a 100%)',
+const BANNER_COLORS = [
+  '#0e7490',  // teal
+  '#7c3aed',  // violet
+  '#1d4ed8',  // blue
+  '#047857',  // emerald
+  '#9333ea',  // purple
+  '#0369a1',  // sky
+  '#b45309',  // amber
+  '#be123c',  // rose
 ]
 
-function pickGradient(name: string) {
+function pickColor(name: string) {
   const code = [...name].reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
-  return HEADER_GRADIENTS[code % HEADER_GRADIENTS.length]
+  return BANNER_COLORS[code % BANNER_COLORS.length]
 }
 
-export default function ClassCard({ name, professor, status, students, onClick }: ClassCardProps) {
+export default function ClassCard({ name, professor, status, onClick }: ClassCardProps) {
   const isLive = status === 'live' || status === 'active'
-  const isUpcoming = status === 'upcoming'
-  const gradient = pickGradient(name)
+  const bannerColor = pickColor(name)
+  const initial = professor ? professor.charAt(0).toUpperCase() : '?'
 
   return (
     <button
@@ -47,71 +47,69 @@ export default function ClassCard({ name, professor, status, students, onClick }
         ;(e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
       }}
     >
-      {/* Header band */}
+      {/* Banner */}
       <div
-        className="relative flex flex-col justify-between p-4"
-        style={{ background: gradient, minHeight: '108px' }}
+        className="relative flex flex-col justify-between p-4 overflow-hidden"
+        style={{ background: bannerColor, minHeight: '120px' }}
       >
-        {/* Status badge top-right */}
-        <div className="flex justify-end">
-          {isLive ? (
+        {/* Decorative circles */}
+        <div style={{
+          position: 'absolute', bottom: '-20px', right: '-20px',
+          width: '100px', height: '100px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.10)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '10px', right: '40px',
+          width: '60px', height: '60px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.07)',
+        }} />
+
+        {/* Live badge */}
+        {isLive && (
+          <div className="flex justify-start">
             <span
               className="text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse"
               style={{ background: '#dcfce7', color: '#166534' }}
             >
               ● Live
             </span>
-          ) : isUpcoming ? (
-            <span
-              className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-              style={{ background: '#fef9c3', color: '#854d0e' }}
-            >
-              Upcoming
-            </span>
-          ) : (
-            <span
-              className="text-xs font-medium px-2.5 py-0.5 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}
-            >
-              Past
-            </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Course name */}
         <h3
-          className="font-semibold text-white leading-snug line-clamp-2"
+          className="font-semibold text-white leading-snug line-clamp-2 mt-auto"
           style={{
             fontFamily: "'Newsreader', 'Georgia', serif",
             fontSize: '1.05rem',
             fontWeight: 600,
             letterSpacing: '-0.01em',
+            position: 'relative',
           }}
         >
           {name}
         </h3>
       </div>
 
-      {/* Body */}
-      <div className="flex-1 flex flex-col justify-between px-4 py-3">
+      {/* Footer */}
+      <div
+        className="flex items-center gap-2.5 px-4 py-3"
+        style={{ borderTop: '1px solid rgba(134,134,172,0.12)' }}
+      >
+        <div
+          className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
+          style={{ background: bannerColor }}
+        >
+          {initial}
+        </div>
         {professor && (
-          <p className="text-xs truncate" style={{ color: '#505081', fontFamily: "'Manrope', sans-serif" }}>
+          <p
+            className="text-xs truncate"
+            style={{ color: '#505081', fontFamily: "'Manrope', sans-serif" }}
+          >
             {professor}
           </p>
         )}
-
-        {/* Footer */}
-        <div
-          className="flex items-center justify-end mt-3 pt-2"
-          style={{ borderTop: '1px solid rgba(134,134,172,0.12)' }}
-        >
-          {students != null && (
-            <span className="flex items-center gap-1 text-xs" style={{ color: '#8686AC' }}>
-              <Users className="h-3 w-3" />
-              {students}
-            </span>
-          )}
-        </div>
       </div>
     </button>
   )

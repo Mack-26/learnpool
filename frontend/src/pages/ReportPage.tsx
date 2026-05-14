@@ -42,13 +42,13 @@ const LABELS = [
 ] as const
 
 const LABEL_COLOR_MAP: Record<string, string> = {
-  blue:   'bg-amber-500 text-white border-amber-500',
-  green:  'bg-emerald-500 text-white border-emerald-500',
-  red:    'bg-red-500 text-white border-red-500',
-  yellow: 'bg-yellow-400 text-yellow-900 border-yellow-400',
-  purple: 'bg-violet-500 text-white border-violet-500',
-  gray:   'bg-slate-400 text-white border-slate-400',
-  orange: 'bg-orange-500 text-white border-orange-500',
+  blue:   'bg-amber-50 text-amber-700 border-amber-200',
+  green:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  red:    'bg-red-50 text-red-600 border-red-200',
+  yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  purple: 'bg-violet-50 text-violet-700 border-violet-200',
+  gray:   'bg-slate-50 text-slate-500 border-slate-200',
+  orange: 'bg-orange-50 text-orange-600 border-orange-200',
 }
 
 const LABEL_INACTIVE = 'bg-muted text-muted-foreground border-border hover:border-primary/40 hover:bg-muted/80'
@@ -572,7 +572,7 @@ function TopicGroupCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: groupIndex * 0.1, duration: 0.35 }}
-      className="rounded-xl border-2 border-border bg-background overflow-hidden"
+      className="rounded-xl border border-border bg-background overflow-hidden"
     >
       <button
         onClick={() => setExpanded((v) => !v)}
@@ -656,7 +656,7 @@ function ReviewCard({
   const { answer } = item
 
   return (
-    <div className="rounded-xl border-2 border-border bg-card overflow-hidden">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-5 pt-5 pb-3 border-b border-border">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs text-muted-foreground">{item.anonymous_name}</span>
@@ -978,9 +978,9 @@ export default function ReportPage() {
 
         {/* ── Thread category chart + Material Coverage side by side ── */}
         {threads.length > 0 && sessionId && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
             {threadCategoryData.length > 0 ? (
-              <div className="rounded-xl border border-border bg-card p-4">
+              <div className="rounded-xl border border-border bg-card p-4 h-full">
                 <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Category</h3>
                 <p className="text-xs text-muted-foreground mb-3">Click a bar to filter</p>
                 <CategoryBarChart
@@ -992,7 +992,7 @@ export default function ReportPage() {
             ) : (
               <div />
             )}
-            <CitationMapCard sessionId={sessionId} />
+            <div className="h-full"><CitationMapCard sessionId={sessionId} /></div>
           </div>
         )}
 

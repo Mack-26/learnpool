@@ -790,18 +790,32 @@ function StepInstructorRelease() {
 
 // ── Progress Indicator ────────────────────────────────────────────────────────
 function ProgressBar({ step, labels }: { step: number; labels: string[] }) {
+  const n = labels.length
+  // Each cell is 1/n wide. Circle centers sit at 1/(2n) and 1 - 1/(2n).
+  // Track runs between those centers so it never overhangs past the first/last circle.
+  const halfCell = `calc(100% / ${2 * n})`
+  const trackWidth = `calc(100% - 100% / ${n})`
+  const filledWidth = step === 0
+    ? '0%'
+    : `calc(${step / (n - 1)} * (100% - 100% / ${n}))`
+
   return (
-    <div style={{ width: '100%', maxWidth: `${labels.length * 100}px`, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' }}>
-        {/* Track — top: 1rem centers on the 2rem-tall circle */}
-        <div style={{ position: 'absolute', left: 0, right: 0, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.surfaceHighest, borderRadius: '9999px', zIndex: 0 }} />
-        <div style={{ position: 'absolute', left: 0, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.gradient, borderRadius: '9999px', zIndex: 0, width: `${(step / (labels.length - 1)) * 100}%`, transition: 'width 0.4s ease' }} />
+    <div style={{ width: '100%', maxWidth: `${n * 100}px`, margin: '0 auto' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${n}, 1fr)`,
+        position: 'relative',
+      }}>
+        {/* Track background */}
+        <div style={{ position: 'absolute', left: halfCell, width: trackWidth, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.surfaceHighest, borderRadius: '9999px', zIndex: 0 }} />
+        {/* Filled track */}
+        <div style={{ position: 'absolute', left: halfCell, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.gradient, borderRadius: '9999px', zIndex: 0, width: filledWidth, transition: 'width 0.4s ease' }} />
 
         {labels.map((label, i) => {
           const done = i < step
           const active = i === step
           return (
-            <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, gap: '0.4rem' }}>
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, gap: '0.4rem' }}>
               <div style={{
                 width: '2rem', height: '2rem', borderRadius: '9999px',
                 background: done || active ? T.gradient : T.surfaceHighest,
@@ -828,6 +842,7 @@ function ProgressBar({ step, labels }: { step: number; labels: string[] }) {
 export default function OnboardingPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const mobile = useIsMobile()
   const [step, setStep] = useState(0)
   const [role, setRole] = useState<Role | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -863,7 +878,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 5vw, 3rem)', paddingBottom: step < maxStep ? '6rem' : 'clamp(1.25rem, 3vw, 2rem)' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 5vw, 3rem)', paddingBottom: step < maxStep ? (mobile ? '9rem' : '7rem') : 'clamp(1.25rem, 3vw, 2rem)' }}>
       {/* Ambient glows */}
       <div style={{ position: 'fixed', top: '-8rem', left: '20%', width: '24rem', height: '24rem', background: T.primary, opacity: 0.04, filter: 'blur(80px)', borderRadius: '9999px', pointerEvents: 'none' }} />
       <div style={{ position: 'fixed', bottom: '-8rem', right: '15%', width: '30rem', height: '30rem', background: T.primaryContainer, opacity: 0.04, filter: 'blur(100px)', borderRadius: '9999px', pointerEvents: 'none' }} />
@@ -897,7 +912,7 @@ export default function OnboardingPage() {
 
       {/* Step content */}
       <div
-        style={{ width: '100%', maxWidth: '900px', flex: 1 }}
+        style={{ width: '100%', maxWidth: '900px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
         onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
         onTouchEnd={(e) => {
           if (touchStartX.current === null || step === maxStep) return
@@ -925,13 +940,6 @@ export default function OnboardingPage() {
             error={error}
           />
         )}
-      </div>
-
-      {/* MA mark — fixed bottom right */}
-      <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.75rem', zIndex: 39, pointerEvents: 'none' }}>
-        <span style={{ fontFamily: serif, fontSize: '2.5rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.06em', lineHeight: 1, fontStyle: 'italic', opacity: 0.22 }}>
-          MA
-        </span>
       </div>
 
       {/* Fixed bottom navigation — always at the same position, never jumps */}

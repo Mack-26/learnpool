@@ -8,6 +8,10 @@
 
 -- Truncate in reverse dependency order so this script is safely re-runnable.
 TRUNCATE TABLE
+    thread_feedback,
+    thread_comments,
+    threads,
+    saved_answers,
     answer_feedback,
     answer_citations,
     answers,
@@ -510,6 +514,200 @@ WHERE id = '00000000-0000-0000-0000-000000000033';
 
 
 -- =============================================================================
+-- TUTORIAL COURSE — "Joke Writing Workshop"
+-- Auto-enrolled for every new signup via auth_router.py
+-- =============================================================================
+
+-- System professor user (no real login needed — password hash is a bcrypt of 'unusable')
+INSERT INTO users (id, email, password_hash, display_name, role)
+VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    'system@vibelearning.com',
+    '$2b$12$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    'VibeLearning',
+    'professor'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Tutorial course (professor_id references the seed professor user)
+INSERT INTO courses (id, name, professor_id)
+VALUES (
+    '00000000-0000-0000-0000-000000000011',
+    'Joke Writing Workshop',
+    '00000000-0000-0000-0000-000000000001'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Enroll existing seed students in the tutorial course
+INSERT INTO course_enrollments (course_id, student_id)
+VALUES
+    ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000002'),
+    ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000003')
+ON CONFLICT DO NOTHING;
+
+-- Tutorial document (inline — no real PDF)
+INSERT INTO documents (id, course_id, uploaded_by, filename, storage_path, processing_status)
+VALUES (
+    '00000000-0000-0000-0000-000000000040',
+    '00000000-0000-0000-0000-000000000011',
+    '00000000-0000-0000-0000-000000000000',
+    'joke_writing_guide.txt',
+    'inline',
+    'ready'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Tutorial session (released so all enrolled users can see it)
+INSERT INTO sessions (id, course_id, title, status)
+VALUES (
+    '00000000-0000-0000-0000-000000000023',
+    '00000000-0000-0000-0000-000000000011',
+    'Session 1: Write Your First Joke',
+    'released'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Link document to session
+INSERT INTO session_documents (session_id, document_id, is_active)
+VALUES (
+    '00000000-0000-0000-0000-000000000023',
+    '00000000-0000-0000-0000-000000000040',
+    true
+) ON CONFLICT (session_id, document_id) DO NOTHING;
+
+-- 9 document chunks (embeddings NULL — populated by embed_seed_chunks.py)
+INSERT INTO document_chunks (id, document_id, chunk_index, content, page_number)
+VALUES
+    ('00000000-0000-0000-0040-000000000000',
+     '00000000-0000-0000-0000-000000000040',
+     0,
+     'Introduction & Incongruity Theory. Humor is not magic — it is engineering. Every joke that makes someone laugh follows a predictable structure, even when it feels spontaneous. The most widely accepted theory of humor, called the Incongruity Theory, states that we laugh when an expectation is set up and then violated in a non-threatening way. The non-threatening part matters: we laugh at absurdity, wordplay, and surprise — not at genuine danger or cruelty. Understanding this principle is the foundation of writing anything funny.',
+     1),
+    ('00000000-0000-0000-0040-000000000001',
+     '00000000-0000-0000-0000-000000000040',
+     1,
+     'Anatomy of a Joke. Every joke has two parts: the setup and the punchline. The setup establishes a context and plants an expectation. The punchline subverts it in a surprising but logical way — surprising enough to catch you off guard, logical enough that you immediately get it. Example: "I told my wife she should embrace her mistakes. She gave me a hug." The setup plants one meaning of "embrace"; the punchline reveals a second. The trick: both meanings must be genuinely available in the setup. The punchline reveals something that was always there, hiding in plain sight.',
+     1),
+    ('00000000-0000-0000-0040-000000000002',
+     '00000000-0000-0000-0000-000000000040',
+     2,
+     'The Rule of Three. Lists of two feel like a pattern; lists of three confirm the pattern and then break it. Two items establish the expectation; the third violates it. "I need focus, discipline, and probably a second coffee." The first two are serious; the third deflates them. The rhythm matters as much as the words — the third item lands harder when it is short. Compare: "I need strength, courage, and an overwhelming desire to take a nap" versus "I need strength, courage, and a nap." The second hits cleaner because the brevity of "a nap" creates the drop.',
+     1),
+    ('00000000-0000-0000-0040-000000000003',
+     '00000000-0000-0000-0000-000000000040',
+     3,
+     'Misdirection. Misdirection is the art of leading an audience confidently in the wrong direction so the punchline hits like a left turn. The setup should be detailed enough to feel credible — the more convinced the audience is, the harder they fall. "I asked my dog what two minus two is. He said nothing." The joke works because "nothing" has two meanings: the correct mathematical answer, and the dog''s literal silence. The setup makes the punchline feel earned because dogs do not talk — but here, the dog''s silence IS the answer.',
+     2),
+    ('00000000-0000-0000-0040-000000000004',
+     '00000000-0000-0000-0000-000000000040',
+     4,
+     'Types of Humor. Wordplay and Puns exploit multiple meanings of words. "I used to hate facial hair, but then it grew on me." Observational humor finds universal absurdity in everyday situations — the comedy lives in recognition. Self-deprecating humor makes you the butt of the joke, which paradoxically builds trust. Absurdist humor abandons realistic logic: "I bought some shoes from a drug dealer. I don''t know what he laced them with, but I was tripping all day." Anti-jokes set up the joke format and deliver a literal, non-funny answer: "Why did the chicken cross the road? Because it was a short distance and posed no risk of predation."',
+     2),
+    ('00000000-0000-0000-0040-000000000005',
+     '00000000-0000-0000-0000-000000000040',
+     5,
+     'The Writing Process. Start with the punchline, not the setup. The punchline is the destination — figure out where you are going before you build the road. Ask: what is the surprising word, fact, or image I want to land on? Then build backward: what is the most convincing setup that plants the wrong expectation? Next, find the angle — the unexpected lens through which you view a familiar topic. Students understand exams, deadlines, dining hall food, and group projects. These topics are not inherently funny, but every one has an absurd angle waiting to be found. "Group projects: where your GPA is determined by a stranger''s relationship with their alarm clock."',
+     2),
+    ('00000000-0000-0000-0040-000000000006',
+     '00000000-0000-0000-0000-000000000040',
+     6,
+     'AI-Assisted Joke Writing. AI can generate the structural skeleton of a joke — the setup/punchline pattern, the double meaning, the rule of three. What AI cannot easily do is make a joke feel yours. The key to making AI-generated jokes land is specificity. "Write me a joke about procrastination" produces generic output. "Write me a joke about saving a 3000-word essay to a USB drive at 11:58pm while also ordering pizza" produces something that feels lived-in. The more specific and personal your prompt, the more specific and personal the output. Use AI to generate options, then edit ruthlessly. The funniest version is almost always shorter than the first draft.',
+     3),
+    ('00000000-0000-0000-0040-000000000007',
+     '00000000-0000-0000-0000-000000000040',
+     7,
+     'Common Mistakes. Overexplaining the punchline kills the joke. If you add "get it?" you have murdered it. Trust the audience. Telegraphing the twist happens when the setup is too obviously angled — if the audience sees the punchline coming, the surprise evaporates. Being too clever means the joke requires so much reasoning that most people fall out before the punchline. The best jokes are understood instantly. Meanness without redemption — punching down at a real person without any softening twist — creates discomfort, not laughter. Too long — every extra word is a chance for the audience to lose the thread. Cut until it hurts, then cut a little more.',
+     3),
+    ('00000000-0000-0000-0040-000000000008',
+     '00000000-0000-0000-0000-000000000040',
+     8,
+     'The Exercise. Ask the AI to write you a joke about something from your academic life — a class, a concept, an exam, dining hall food, roommates, or anything else that is actually part of your experience right now. The AI will use the joke-writing principles in this guide to construct its response. Then read what your classmates asked for and what came back. The best jokes almost always come from the most specific prompts. Bonus challenge: if you see someone else''s joke that is close but not quite right for your angle, fork their question and take it in your own direction.',
+     3)
+ON CONFLICT (id) DO NOTHING;
+
+-- Pre-seeded Q&As (asked by alice, seed student)
+INSERT INTO questions (id, session_id, student_id, content, anonymous, category)
+VALUES
+    ('00000000-0000-0000-0000-000000000100',
+     '00000000-0000-0000-0000-000000000023',
+     '00000000-0000-0000-0000-000000000002',
+     'Write me a joke about pulling an all-nighter before an exam',
+     false,
+     'Homework'),
+    ('00000000-0000-0000-0000-000000000101',
+     '00000000-0000-0000-0000-000000000023',
+     '00000000-0000-0000-0000-000000000002',
+     'Write a Rule of Three joke about being a college student',
+     false,
+     'Exam Prep'),
+    ('00000000-0000-0000-0000-000000000102',
+     '00000000-0000-0000-0000-000000000023',
+     '00000000-0000-0000-0000-000000000002',
+     'Write an observational joke about group projects',
+     false,
+     'Doubts'),
+    ('00000000-0000-0000-0000-000000000103',
+     '00000000-0000-0000-0000-000000000023',
+     '00000000-0000-0000-0000-000000000002',
+     'Write a self-deprecating joke I can use to introduce myself',
+     false,
+     'Summaries'),
+    ('00000000-0000-0000-0000-000000000104',
+     '00000000-0000-0000-0000-000000000023',
+     '00000000-0000-0000-0000-000000000002',
+     'Make a pun about the library',
+     false,
+     'Homework'),
+    ('00000000-0000-0000-0000-000000000105',
+     '00000000-0000-0000-0000-000000000023',
+     '00000000-0000-0000-0000-000000000002',
+     'Write a joke about AI doing my homework',
+     false,
+     'Exam Prep')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO answers (question_id, content, model_used)
+VALUES
+    ('00000000-0000-0000-0000-000000000100',
+     'Setup: I studied all night for my exam. I reviewed every formula, memorized every concept, rehearsed every proof. By 6am I had mastered everything. Punchline: Then I sat down to write and realized the only thing I''d retained was the anxiety. (Using Incongruity Theory: the setup promises mastery; the punchline delivers its opposite in the most relatable way possible.)',
+     'gpt-4o'),
+    ('00000000-0000-0000-0000-000000000101',
+     'Being a student requires three things: time, money, and sleep. University generously offers a package deal — you get to pick one. Financial aid already chose for you.',
+     'gpt-4o'),
+    ('00000000-0000-0000-0000-000000000102',
+     'Group projects: five people, five very different relationships with the concept of a due date. One person does everything. One person does nothing. Three people reply "sounds good!" to messages sent four days ago.',
+     'gpt-4o'),
+    ('00000000-0000-0000-0000-000000000103',
+     'Hi, I''m the person who highlights the entire textbook, color-codes all their notes, and then completely blanks on the one thing the professor actually asked about. Great to meet you.',
+     'gpt-4o'),
+    ('00000000-0000-0000-0000-000000000104',
+     'I tried to write a joke about the library, but I was overdue. (Classic pun — the double meaning of "overdue" does the heavy lifting: both late returning a book and late delivering the joke.)',
+     'gpt-4o'),
+    ('00000000-0000-0000-0000-000000000105',
+     'I asked AI to write my essay. My professor said it was the best essay I''d never written. I''m not sure if that''s a compliment or a disciplinary hearing.',
+     'gpt-4o')
+ON CONFLICT (question_id) DO NOTHING;
+
+-- Document content for inline preview
+UPDATE documents SET content = 'Writing Funny: A Practical Guide to Joke Construction
+
+Introduction: Humor is not magic — it is engineering. Every joke follows a predictable structure based on the Incongruity Theory: we laugh when an expectation is set up and then violated in a non-threatening way.
+
+Anatomy of a Joke: Every joke has two parts — the setup plants an expectation, the punchline subverts it in a surprising but logical way. Example: "I told my wife she should embrace her mistakes. She gave me a hug."
+
+The Rule of Three: Two items establish a pattern; the third breaks it. "I need focus, discipline, and probably a second coffee." Brevity in the third item amplifies the drop.
+
+Misdirection: Lead the audience confidently in the wrong direction. "I asked my dog what two minus two is. He said nothing." Both the math answer and the dog''s silence are "nothing."
+
+Types of Humor: Wordplay exploits double meanings. Observational humor finds absurdity in everyday situations. Self-deprecating humor builds trust. Absurdist humor abandons logic. Anti-jokes deliver literal answers to joke-format setups.
+
+The Writing Process: Start with the punchline, build backward. Find the unexpected angle on a familiar topic. "Group projects: where your GPA is determined by a stranger''s relationship with their alarm clock."
+
+AI-Assisted Joke Writing: Specificity is the key. "Write a joke about procrastination" is too generic. "Write a joke about saving a 3000-word essay to USB at 11:58pm while ordering pizza" produces something that feels real.
+
+Common Mistakes: Overexplaining kills the joke. Telegraphing the twist removes surprise. Being too clever loses the audience. Meanness without redemption creates discomfort. Every extra word is a liability — cut ruthlessly.
+
+The Exercise: Ask the AI to write you a joke about something from your academic life. The more specific your prompt, the better the output. Then read what your classmates asked — the best jokes almost always come from the most specific angles.'
+WHERE id = '00000000-0000-0000-0000-000000000040';
+
+
+-- =============================================================================
 -- VERIFY
 -- =============================================================================
 
@@ -525,4 +723,8 @@ UNION ALL SELECT 'answers',            count(*) FROM answers
 UNION ALL SELECT 'answer_citations',   count(*) FROM answer_citations
 UNION ALL SELECT 'answer_feedback',    count(*) FROM answer_feedback
 UNION ALL SELECT 'question_comments',  count(*) FROM question_comments
+UNION ALL SELECT 'threads',            count(*) FROM threads
+UNION ALL SELECT 'thread_comments',    count(*) FROM thread_comments
+UNION ALL SELECT 'thread_feedback',    count(*) FROM thread_feedback
+UNION ALL SELECT 'saved_answers',      count(*) FROM saved_answers
 ORDER BY table_name;

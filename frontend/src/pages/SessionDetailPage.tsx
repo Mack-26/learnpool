@@ -12,14 +12,12 @@ const cards = [
     title: 'Chat with lecture materials',
     description: 'Ask questions and get AI-powered answers grounded in your course materials',
     path: 'chat',
-    accent: true,
   },
   {
     icon: BarChart3,
     title: 'Class Dashboard',
     description: 'See shared class threads and all questions from this lecture',
     path: 'report',
-    accent: false,
   },
 ]
 
@@ -82,19 +80,9 @@ export default function SessionDetailPage() {
                 transition={{ delay: i * 0.08, duration: 0.35 }}
                 onClick={() => navigate(`/sessions/${sessionId}/${card.path}`)}
                 disabled={chatDisabled}
-                className={`p-6 rounded-xl border-2 text-left transition-all group disabled:opacity-40 disabled:cursor-not-allowed ${
-                  card.accent
-                    ? 'border-primary/30 bg-accent hover:border-primary hover:hover-shadow'
-                    : 'border-border bg-card hover:border-primary/40 hover:hover-shadow'
-                }`}
+                className="p-6 rounded-xl border-2 text-left transition-all group disabled:opacity-40 disabled:cursor-not-allowed border-border bg-card hover:border-primary/40 hover:hover-shadow"
               >
-                <div
-                  className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${
-                    card.accent
-                      ? 'gradient-primary text-white'
-                      : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
-                  }`}
-                >
+                <div className="h-12 w-12 rounded-xl flex items-center justify-center mb-4 transition-colors bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary">
                   <card.icon className="h-6 w-6" />
                 </div>
                 <h3 className="font-semibold text-foreground text-base mb-1">{card.title}</h3>

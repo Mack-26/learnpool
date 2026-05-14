@@ -138,12 +138,33 @@ async def handle_question(
             "Let the student know their question cannot be answered from course materials right now."
         )
 
+    # Step 6.5: Fetch prior Q&A history for this student in this session (last 5, oldest first)
+    history_rows = await db.fetch(
+        """
+        SELECT q.content AS question, a.content AS answer
+        FROM questions q
+        JOIN answers a ON a.question_id = q.id
+        WHERE q.session_id = $1 AND q.student_id = $2
+          AND q.id != $3::uuid
+        ORDER BY q.asked_at DESC
+        LIMIT 5
+        """,
+        session_id,
+        student_id,
+        question_id,
+    )
+    history: list[dict] = []
+    for row in reversed(history_rows):
+        history.append({"role": "user", "content": row["question"]})
+        history.append({"role": "assistant", "content": row["answer"]})
+
     # Step 7: Call GPT-4o — unpack 3-tuple (text, latency_ms, (input_tokens, output_tokens))
     answer_text, latency_ms, (input_tokens, output_tokens) = await asyncio.to_thread(
         openai_client.get_chat_completion,
         system_prompt,
         content,
         settings.max_answer_tokens,
+        history or None,
     )
 
     # Step 8: Save answer with token counts

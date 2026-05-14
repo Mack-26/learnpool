@@ -13,7 +13,7 @@ class LoginRequest(BaseModel):
 
 class SignupRequest(BaseModel):
     email: str
-    password: str
+    password: str = Field(..., min_length=8)
     display_name: str
     role: str = Field(..., pattern="^(student|professor)$")
 

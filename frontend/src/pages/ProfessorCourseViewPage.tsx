@@ -12,7 +12,7 @@ import {
 import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import ClassCard from '@/components/ClassCard'
+import SessionCard from '@/components/SessionCard'
 import type { SessionSummary } from '../types/api'
 
 function toCardStatus(s: SessionSummary['status']): 'live' | 'upcoming' | 'past' {
@@ -220,9 +220,9 @@ export default function ProfessorCourseViewPage() {
                   transition={{ delay: 0.08 + i * 0.05, duration: 0.35 }}
                   className="relative"
                 >
-                  <ClassCard
-                    name={session.title}
-                    professor={date}
+                  <SessionCard
+                    title={session.title}
+                    date={date}
                     status={toCardStatus(session.status)}
                     onClick={() =>
                       isUpcoming ? undefined : navigate(`/sessions/${session.id}/report`)

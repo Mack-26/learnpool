@@ -134,7 +134,7 @@ export default function CitationMapCard({ sessionId }: CitationMapCardProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-xl border border-border bg-card p-4 h-full">
       <h3 className="text-sm font-semibold text-foreground mb-1">Material Coverage</h3>
       <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
         <span>Which pages students asked about most</span>

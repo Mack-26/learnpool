@@ -347,7 +347,7 @@ export default function ChatPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [shareModal, setShareModal] = useState(false)
   const [shareTitle, setShareTitle] = useState('')
-  const [includeQuestions, setIncludeQuestions] = useState(false)
+  const [includeQuestions, setIncludeQuestions] = useState(true)
   const [sharing, setSharing] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -578,7 +578,7 @@ export default function ChatPage() {
   const handleOpenShareModal = () => {
     const firstSelected = questions.find((q) => selectedIds.has(q.question_id))
     setShareTitle(firstSelected?.content.slice(0, 80) || '')
-    setIncludeQuestions(false)
+    setIncludeQuestions(true)
     setShareModal(true)
   }
 
@@ -596,8 +596,9 @@ export default function ChatPage() {
     }
   }
 
-  // Show optimistic bubble only while the mutation is in flight
-  const showOptimistic = mutation.isPending && optimisticContent !== null
+  // Show optimistic bubble only while the mutation is in flight AND the real question hasn't arrived yet
+  const showOptimistic = mutation.isPending && optimisticContent !== null &&
+    !questions.some(q => q.content === optimisticContent)
 
   const isActive = check?.session_status === 'active'
   const isEnded = check?.session_status === 'ended'
@@ -794,7 +795,7 @@ export default function ChatPage() {
                   onShareThis={() => {
                     setSelectedIds(new Set([q.question_id]))
                     setShareTitle(q.content.slice(0, 80))
-                    setIncludeQuestions(false)
+                    setIncludeQuestions(true)
                     setShareModal(true)
                   }}
                   onTextSelect={handleTextSelect}

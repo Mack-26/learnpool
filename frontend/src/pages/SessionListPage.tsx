@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { getSessionsForCourse } from '../api/sessions'
 import type { SessionSummary } from '../types/api'
 import DashboardLayout from '@/components/DashboardLayout'
-import ClassCard from '@/components/ClassCard'
+import SessionCard from '@/components/SessionCard'
 
 function toCardStatus(status: SessionSummary['status']): 'live' | 'upcoming' | 'past' | 'active' | 'ended' {
   if (status === 'active') return 'live'
@@ -62,9 +62,9 @@ export default function SessionListPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.35 }}
               >
-                <ClassCard
-                  name={session.title}
-                  professor={date}
+                <SessionCard
+                  title={session.title}
+                  date={date}
                   status={toCardStatus(session.status)}
                   onClick={() => navigate(`/sessions/${session.id}`)}
                 />

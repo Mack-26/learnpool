@@ -25,18 +25,21 @@ def get_chat_completion(
     system_prompt: str,
     user_message: str,
     max_tokens: int = 800,
+    history: list[dict] | None = None,
 ) -> tuple[str, int, tuple[int, int]]:
     """Call GPT-4o and return (answer_text, latency_ms, (input_tokens, output_tokens)).
 
     Called via asyncio.to_thread() from async routes.
+    history: optional list of prior {"role": "user"/"assistant", "content": str} messages.
     """
+    messages = [{"role": "system", "content": system_prompt}]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": user_message})
     start = time.perf_counter()
     response = _client.chat.completions.create(
         model=CHAT_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
+        messages=messages,
         temperature=0.2,
         max_tokens=max_tokens,
     )
