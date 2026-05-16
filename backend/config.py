@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
     openai_api_key: str
-    oci_namespace: str = ""
-    oci_bucket: str = "learnpool-documents"
+    azure_storage_connection_string: str = ""
+    azure_storage_container: str = "documents"
     max_questions_per_session: int = 10
     context_material_token_budget: int = 8000
     max_answer_tokens: int = 800

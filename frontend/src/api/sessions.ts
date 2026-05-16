@@ -1,4 +1,4 @@
-import type { CommentOut, CourseOut, DocumentCitationOut, DocumentOut, Personality, QuestionOut, RichThreadOut, SavedAnswerOut, SessionCheckResponse, SessionReportResponse, SessionSummary, SharedThreadOut, ThreadFeedbackOut } from '../types/api'
+import type { ClassmateOut, CommentOut, CourseOut, DocumentCitationOut, DocumentOut, Personality, QuestionOut, RichThreadOut, SavedAnswerOut, SessionCheckResponse, SessionReportResponse, SessionSummary, SharedThreadOut, ThreadFeedbackOut } from '../types/api'
 import client from './client'
 
 export async function getCourses(): Promise<CourseOut[]> {
@@ -127,5 +127,15 @@ export async function getSavedAnswers(): Promise<SavedAnswerOut[]> {
 
 export async function getStudentCitationMap(sessionId: string): Promise<DocumentCitationOut[]> {
   const res = await client.get<DocumentCitationOut[]>(`/api/student/sessions/${sessionId}/citation-map`)
+  return res.data
+}
+
+export async function joinCourseByCode(inviteCode: string): Promise<CourseOut> {
+  const res = await client.post<CourseOut>('/api/student/courses/join', { invite_code: inviteCode })
+  return res.data
+}
+
+export async function getCourseClassmates(courseId: string): Promise<ClassmateOut[]> {
+  const res = await client.get<ClassmateOut[]>(`/api/student/courses/${courseId}/classmates`)
   return res.data
 }

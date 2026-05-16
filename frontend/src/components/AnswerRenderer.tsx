@@ -70,6 +70,16 @@ export function renderInline(text: string, citations: CitationRef[]): React.Reac
       const num = parseInt(cite[1])
       const citation = citations.find(c => c.citation_order === num)
       if (citation) return <CitationBadge key={i} num={num} citation={citation} />
+      // Citation number in text has no matching source — render greyed badge
+      return (
+        <sup key={i} style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          minWidth: '1rem', height: '1rem', borderRadius: '3px',
+          background: '#d8d8e8', color: '#8686AC',
+          fontSize: '0.58rem', fontWeight: 700,
+          verticalAlign: 'super', margin: '0 1px', padding: '0 2px', lineHeight: 1,
+        }}>{num}</sup>
+      )
     }
     return <span key={i}>{part}</span>
   })

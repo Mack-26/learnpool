@@ -1,4 +1,4 @@
-import type { CommentOut, CourseOut, DocumentCitationOut, DocumentOut, RichThreadOut, SessionReportResponse, SessionSummary, ThreadFeedbackOut } from '../types/api'
+import type { CommentOut, CourseOut, DocumentCitationOut, DocumentOut, RichThreadOut, SessionReportResponse, SessionSummary, StudentOut, ThreadFeedbackOut } from '../types/api'
 import client from './client'
 
 export async function getProfessorCourses(): Promise<CourseOut[]> {
@@ -195,6 +195,14 @@ export async function deleteProfessorThreadComment(threadId: string, commentId: 
   await client.delete(`/api/professor/threads/${threadId}/comments/${commentId}`)
 }
 
+export async function updateThreadTitle(threadId: string, title: string): Promise<void> {
+  await client.patch(`/api/professor/threads/${threadId}/title`, { title })
+}
+
+export async function deleteProfessorThread(threadId: string): Promise<void> {
+  await client.delete(`/api/professor/threads/${threadId}`)
+}
+
 export async function submitProfessorThreadFeedback(threadId: string, feedback: 'up' | 'down'): Promise<ThreadFeedbackOut> {
   const res = await client.post<ThreadFeedbackOut>(`/api/professor/threads/${threadId}/feedback`, { feedback })
   return res.data
@@ -212,5 +220,20 @@ export async function getCategoryAnalytics(courseId: string): Promise<CategoryAn
 
 export async function getSessionCitationMap(sessionId: string): Promise<DocumentCitationOut[]> {
   const res = await client.get<DocumentCitationOut[]>(`/api/professor/sessions/${sessionId}/citation-map`)
+  return res.data
+}
+
+export async function getCourseInviteCode(courseId: string): Promise<{ invite_code: string }> {
+  const res = await client.get<{ invite_code: string }>(`/api/professor/courses/${courseId}/invite-code`)
+  return res.data
+}
+
+export async function regenerateCourseInviteCode(courseId: string): Promise<{ invite_code: string }> {
+  const res = await client.post<{ invite_code: string }>(`/api/professor/courses/${courseId}/invite-code/regenerate`)
+  return res.data
+}
+
+export async function getCourseStudents(courseId: string): Promise<StudentOut[]> {
+  const res = await client.get<StudentOut[]>(`/api/professor/courses/${courseId}/students`)
   return res.data
 }

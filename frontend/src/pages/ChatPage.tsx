@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Send, Bookmark, Zap, Eye, EyeOff, X, AlertCircle, FileText, Share2, Copy, Check, RefreshCw, Paperclip, Mic, MicOff, Quote, Settings2,
+  Send, Bookmark, Zap, Eye, EyeOff, X, AlertCircle, FileText, Share2, Copy, Check, RefreshCw, Mic, MicOff, Quote, Settings2,
 } from 'lucide-react'
 import { checkSession, createThread, getQuestions, getSessionDocuments, getSavedAnswers, postQuestion, saveAnswer, unsaveAnswer } from '../api/sessions'
 import { renderAnswerWithCitations } from '../components/AnswerRenderer'
@@ -140,6 +140,7 @@ function MessageBubble({
   onToggleSelect: (questionId: string) => void
 }) {
   const [copied, setCopied] = useState(false)
+  const [confirmUnsave, setConfirmUnsave] = useState(false)
   const answer = question.answer
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -203,7 +204,7 @@ function MessageBubble({
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
           >
-            <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-muted text-foreground">
+            <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-card text-foreground" style={{ border: '1px solid rgba(134,134,172,0.15)' }}>
               <div className="text-sm" onMouseUp={onTextSelect} style={{ userSelect: 'text', cursor: 'text', lineHeight: 1.7 }}>
                 {renderAnswerWithCitations(answer.content, answer.citations)}
               </div>
@@ -244,22 +245,37 @@ function MessageBubble({
                       <span>Regenerate</span>
                     </button>
 
-                    {/* Save */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onToggleSave(answer.answer_id) }}
-                      title={isSaved ? 'Remove from notes' : 'Save to notes'}
-                      style={{
-                        marginLeft: 'auto',
-                        display: 'flex', alignItems: 'center', gap: '0.2rem',
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: isSaved ? '#272757' : '#8686AC',
-                        padding: '0.25rem 0.5rem', borderRadius: '0.375rem',
-                        fontSize: '0.7rem', transition: 'color 0.2s',
-                      }}
-                    >
-                      <Bookmark className="h-3.5 w-3.5" fill={isSaved ? 'currentColor' : 'none'} />
-                      <span>{isSaved ? 'Saved' : 'Save'}</span>
-                    </button>
+                    {/* Save / unsave with confirmation */}
+                    <div style={{ marginLeft: 'auto', position: 'relative' }}>
+                      {confirmUnsave ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.7rem', color: '#505081' }}>Remove?</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onToggleSave(answer.answer_id); setConfirmUnsave(false) }}
+                            style={{ fontSize: '0.7rem', fontWeight: 700, color: '#c0392b', background: 'rgba(186,26,26,0.08)', border: 'none', borderRadius: '0.3rem', padding: '0.2rem 0.5rem', cursor: 'pointer' }}
+                          >Yes</button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmUnsave(false) }}
+                            style={{ fontSize: '0.7rem', color: '#8686AC', background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem 0.4rem' }}
+                          >No</button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); isSaved ? setConfirmUnsave(true) : onToggleSave(answer.answer_id) }}
+                          title={isSaved ? 'Remove from notes' : 'Save to notes'}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.2rem',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: isSaved ? '#272757' : '#8686AC',
+                            padding: '0.25rem 0.5rem', borderRadius: '0.375rem',
+                            fontSize: '0.7rem', transition: 'color 0.2s',
+                          }}
+                        >
+                          <Bookmark className="h-3.5 w-3.5" fill={isSaved ? 'currentColor' : 'none'} />
+                          <span>{isSaved ? 'Saved' : 'Save'}</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Follow-up chips */}
@@ -324,6 +340,12 @@ export default function ChatPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false)
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
 
   const [input, setInput] = useState('')
   const [optimisticContent, setOptimisticContent] = useState<string | null>(null)
@@ -332,11 +354,9 @@ export default function ChatPage() {
   const [savedAnswers, setSavedAnswers] = useState<Set<string>>(new Set())
   const [sendError, setSendError] = useState<string | null>(null)
   const [rateLimited, setRateLimited] = useState(false)
-  const [attachments, setAttachments] = useState<File[]>([])
   const [isListening, setIsListening] = useState(false)
   const [selectionPopup, setSelectionPopup] = useState<{ text: string; x: number; y: number } | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
 
@@ -478,19 +498,9 @@ export default function ChatPage() {
     const trimmed = input.trim()
     if (!trimmed || trimmed.length < 5 || mutation.isPending) return
     if (trimmed.length > 2000) return
-    const content = attachments.length > 0
-      ? `${trimmed}\n\n[Attached: ${attachments.map(f => f.name).join(', ')}]`
-      : trimmed
-    setOptimisticContent(content)
-    mutation.mutate(content)
+    setOptimisticContent(trimmed)
+    mutation.mutate(trimmed)
     setInput('')
-    setAttachments([])
-  }
-
-  const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    setAttachments((prev) => [...prev, ...files].slice(0, 5))
-    e.target.value = ''
   }
 
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -879,33 +889,6 @@ export default function ChatPage() {
                   </div>
                 ) : (
                   <form onSubmit={(e) => { e.preventDefault(); handleSend() }}>
-                    {/* Attachment chips — above the pill */}
-                    {attachments.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem', paddingLeft: '0.75rem' }}>
-                        {attachments.map((file, i) => (
-                          <span key={i} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                            background: 'rgba(39,39,87,0.07)', borderRadius: '99px',
-                            padding: '0.2rem 0.6rem 0.2rem 0.5rem', fontSize: '0.72rem', color: '#272757',
-                            border: '1px solid rgba(39,39,87,0.12)',
-                          }}>
-                            <FileText style={{ width: '0.75rem', height: '0.75rem', flexShrink: 0 }} />
-                            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {file.name}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#8686AC', display: 'flex', lineHeight: 1, marginLeft: '0.1rem' }}
-                              aria-label={`Remove ${file.name}`}
-                            >
-                              <X style={{ width: '0.65rem', height: '0.65rem' }} />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
                     {/* Pill */}
                     <div style={{
                       background: '#ffffff',
@@ -916,17 +899,6 @@ export default function ChatPage() {
                       padding: '0.4rem 0.4rem 0.4rem 1rem',
                       gap: '0.25rem',
                     }}>
-                      {/* Hidden file input */}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*,.pdf,.txt,.doc,.docx"
-                        multiple
-                        onChange={handleFileAttach}
-                        style={{ display: 'none' }}
-                        aria-hidden="true"
-                      />
-
                       {/* Textarea — grows vertically, pill stays rounded */}
                       <textarea
                         ref={inputRef}
@@ -955,24 +927,6 @@ export default function ChatPage() {
                         }}
                         aria-label="Ask a question"
                       />
-
-                      {/* Attach */}
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        title="Attach file"
-                        aria-label="Attach file"
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          color: '#b0b0cc', padding: '0.4rem', borderRadius: '50%',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          transition: 'color 0.15s, background 0.15s', flexShrink: 0,
-                        }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#272757'; (e.currentTarget as HTMLElement).style.background = 'rgba(39,39,87,0.07)' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#b0b0cc'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-                      >
-                        <Paperclip style={{ width: '1rem', height: '1rem' }} />
-                      </button>
 
                       {/* Mic */}
                       {voiceSupported && (
@@ -1040,14 +994,16 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Drag divider */}
-          <div
-            onMouseDown={onDividerMouseDown}
-            className="w-1.5 shrink-0 bg-border hover:bg-primary/40 cursor-col-resize transition-colors"
-          />
-
-          {/* PDF Panel */}
-          <DocumentPanel sessionId={sessionId!} width={pdfWidth} />
+          {/* Drag divider + PDF Panel — desktop only */}
+          {!isMobile && (
+            <>
+              <div
+                onMouseDown={onDividerMouseDown}
+                className="w-1.5 shrink-0 bg-border hover:bg-primary/40 cursor-col-resize transition-colors"
+              />
+              <DocumentPanel sessionId={sessionId!} width={pdfWidth} />
+            </>
+          )}
         </div>
       </div>
 

@@ -76,7 +76,7 @@ export default function LectureMaterialsPage() {
         {courses.length > 0 && (
           <div className="mb-8">
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Course</label>
-            <div ref={dropdownRef} style={{ position: 'relative', maxWidth: '320px' }}>
+            <div ref={dropdownRef} style={{ position: 'relative', maxWidth: 'min(320px, 100%)' }}>
               <button
                 onClick={() => setDropdownOpen((v) => !v)}
                 style={{
@@ -216,7 +216,7 @@ export default function LectureMaterialsPage() {
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:border-primary/40 hover:bg-accent/50 transition-colors text-left"
                         >
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <span className="text-sm font-medium truncate max-w-[200px]">
+                          <span className="text-sm font-medium truncate max-w-[120px] sm:max-w-[200px]">
                             {doc.filename}
                           </span>
                           <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

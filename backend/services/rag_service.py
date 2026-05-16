@@ -108,17 +108,17 @@ async def handle_question(
         context_chunks.append(chunk)
         tokens_used += t
 
-    # Citations = top 5 real chunks from what was actually fed to the model
-    citation_chunks = [c for c in context_chunks[:5] if c["is_real_chunk"]]
-
     # Step 6: Build grounded system prompt — number real chunks so AI can cite them inline
+    # Track citation number per chunk so saved citation_order matches what the model sees
     personality_instruction = _PERSONALITY_INSTRUCTIONS.get(personality, _PERSONALITY_INSTRUCTIONS["supportive"])
+    citation_chunks = []  # (chunk, cite_num) pairs — built while constructing the prompt
     if context_chunks:
         materials_parts = []
         cite_num = 1
         for c in context_chunks:
             if c["is_real_chunk"]:
                 header = f"[{cite_num}] {c.get('filename', 'Document')} (Page {c['page_number'] or '?'})"
+                citation_chunks.append((c, cite_num))
                 cite_num += 1
             else:
                 header = f"[Ref] {c.get('filename', 'Document')}"
@@ -194,9 +194,9 @@ async def handle_question(
     except Exception:
         pass
 
-    # Step 9: Save citations (only real chunk rows — inline-text docs have no chunk FK)
+    # Step 9: Save citations — use the exact cite_num assigned in the prompt so [n] always resolves
     citation_outs = []
-    for i, chunk in enumerate(citation_chunks):
+    for chunk, cite_num in citation_chunks:
         await db.execute(
             """
             INSERT INTO answer_citations (answer_id, chunk_id, relevance_score, citation_order)
@@ -205,14 +205,14 @@ async def handle_question(
             answer_id,
             str(chunk["id"]),
             float(chunk["cosine_similarity"]),
-            i + 1,
+            cite_num,
         )
         citation_outs.append(CitationOut(
             chunk_id=str(chunk["id"]),
             content=chunk["content"],
             page_number=chunk["page_number"],
             relevance_score=round(float(chunk["cosine_similarity"]), 4),
-            citation_order=i + 1,
+            citation_order=cite_num,
             filename=chunk.get("filename"),
             document_id=str(chunk["document_id"]) if chunk.get("document_id") else None,
         ))

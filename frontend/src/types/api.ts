@@ -4,6 +4,20 @@ export interface CourseOut {
   description: string | null
   professor_name: string
   session_count: number
+  invite_code?: string | null
+}
+
+export interface StudentOut {
+  id: string
+  display_name: string
+  email: string
+  enrolled_at: string
+}
+
+export interface ClassmateOut {
+  id: string
+  display_name: string
+  role: 'student' | 'professor'
 }
 
 export interface DocumentOut {

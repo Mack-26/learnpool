@@ -34,6 +34,24 @@ class CourseOut(BaseModel):
     description: str | None
     professor_name: str
     session_count: int
+    invite_code: str | None = None
+
+
+class StudentOut(BaseModel):
+    id: str
+    display_name: str
+    email: str
+    enrolled_at: str
+
+
+class ClassmateOut(BaseModel):
+    id: str
+    display_name: str
+    role: str  # 'student' | 'professor'
+
+
+class JoinCourseRequest(BaseModel):
+    invite_code: str = Field(..., min_length=1, max_length=20)
 
 
 class DocumentOut(BaseModel):

@@ -40,13 +40,13 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
     {
       role: 'student',
       title: 'Student',
-      icon: '🎓',
+      icon: 'S',
       desc: 'Ask questions live. Get cited answers. See what your class is wrestling with.',
     },
     {
       role: 'professor',
       title: 'Instructor',
-      icon: '📚',
+      icon: 'I',
       desc: 'Upload your materials, run live sessions, and know what\'s confusing your class.',
     },
   ]
@@ -58,7 +58,7 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
           Who are you here as?
         </h1>
         <p style={{ fontFamily: sans, fontSize: '0.9rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.6, maxWidth: '440px', margin: '0.75rem auto 0' }}>
-          AI answers from your professor's materials. Everyone learns together.
+          Cited answers from your course materials. Your class learns together.
         </p>
       </div>
 
@@ -98,7 +98,8 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
                 width: '5rem', height: '5rem', borderRadius: '9999px',
                 background: isSelected ? T.gradient : T.surfaceHighest,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '2rem', marginBottom: '1.25rem',
+                fontSize: '1.5rem', fontWeight: 700, fontFamily: serif, marginBottom: '1.25rem',
+                color: isSelected ? '#fff' : T.primary,
                 boxShadow: isSelected ? T.shadow : 'none',
                 transition: 'all 0.25s ease',
               }}>
@@ -125,10 +126,10 @@ function StepInsight() {
     <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'center', gap: mobile ? '1.5rem' : '3rem', width: '100%', maxWidth: '900px', margin: '0 auto' }}>
       <div style={{ textAlign: mobile ? 'center' : 'left', flex: mobile ? undefined : 1 }}>
         <span style={{ fontFamily: sans, fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: T.primary, fontWeight: 700 }}>
-          Course-Grounded AI
+          Source-Cited Answers
         </span>
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-          AI that actually knows your course.
+          Answers from your lecture notes. Cited to the page.
         </h1>
         <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
           Your professor activates today's chapters. Every answer cites the exact page. Nothing from the internet — only your specific class.
@@ -180,10 +181,10 @@ function StepBranch() {
           Shared Intelligence
         </span>
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-          Your class catches what AI gets wrong.
+          Your class catches what the answers get wrong.
         </h1>
         <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
-          Every answer is visible to the whole class, anonymously. Someone spots a mistake — everyone benefits. The crowd-checking that's missing from every private AI chat.
+          Every answer is visible to the whole class, anonymously. Someone spots a mistake — everyone benefits. The crowd-checking that's missing from every private study session.
         </p>
       </div>
 
@@ -194,7 +195,7 @@ function StepBranch() {
           </div>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: sans, fontSize: '0.65rem', color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.3rem 0' }}>
-              AI · Microeconomics_Ch4.pdf
+              Microeconomics_Ch4.pdf · Page 8
             </p>
             <p style={{ fontFamily: sans, fontSize: '0.875rem', color: T.onSurface, lineHeight: 1.6, margin: 0 }}>
               Price elasticity measures consumer sensitivity to price.{' '}
@@ -349,7 +350,7 @@ function StepFork() {
         </div>
 
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, margin: '1rem 0 0 0' }}>
-          Your fork builds on a shared question — the AI answers your exact angle from the same materials.
+          Your follow-up builds on a shared question — you get an answer grounded in the same materials.
         </p>
       </div>
     </div>
@@ -381,7 +382,7 @@ function StepCreate({
     border: 'none',
     borderBottom: `2px solid ${T.outlineVariant}`,
     borderRadius: '0.5rem',
-    padding: '0.75rem 1rem 0.75rem 2.75rem',
+    padding: '0.75rem 1rem',
     fontFamily: sans,
     fontSize: '0.95rem',
     color: T.onSurface,
@@ -439,7 +440,6 @@ function StepCreate({
               Full Name
             </label>
             <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>👤</span>
               <input
                 type="text"
                 placeholder="Your full name"
@@ -458,7 +458,6 @@ function StepCreate({
               Email Address
             </label>
             <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>✉️</span>
               <input
                 type="email"
                 placeholder="scholar@academy.edu"
@@ -477,7 +476,6 @@ function StepCreate({
               Secure Password
             </label>
             <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: T.onSurfaceVariant, fontSize: '1.1rem', userSelect: 'none' }}>🔒</span>
               <input
                 type="password"
                 placeholder="••••••••"
@@ -525,9 +523,6 @@ function StepCreate({
           </button>
         </form>
 
-        <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textAlign: 'center', marginTop: '1.25rem' }}>
-          By creating an account, you agree to our Terms of Service.
-        </p>
         <button
           type="button"
           onClick={onBack}
@@ -789,10 +784,8 @@ function StepInstructorRelease() {
 }
 
 // ── Progress Indicator ────────────────────────────────────────────────────────
-function ProgressBar({ step, labels }: { step: number; labels: string[] }) {
+function ProgressBar({ step, labels, onStepClick }: { step: number; labels: string[]; onStepClick?: (i: number) => void }) {
   const n = labels.length
-  // Each cell is 1/n wide. Circle centers sit at 1/(2n) and 1 - 1/(2n).
-  // Track runs between those centers so it never overhangs past the first/last circle.
   const halfCell = `calc(100% / ${2 * n})`
   const trackWidth = `calc(100% - 100% / ${n})`
   const filledWidth = step === 0
@@ -815,7 +808,11 @@ function ProgressBar({ step, labels }: { step: number; labels: string[] }) {
           const done = i < step
           const active = i === step
           return (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, gap: '0.4rem' }}>
+            <div
+              key={i}
+              onClick={() => onStepClick?.(i)}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, gap: '0.4rem', cursor: 'pointer' }}
+            >
               <div style={{
                 width: '2rem', height: '2rem', borderRadius: '9999px',
                 background: done || active ? T.gradient : T.surfaceHighest,
@@ -901,13 +898,37 @@ export default function OnboardingPage() {
       </div>
 
       {/* Progress indicator */}
-      <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '900px' }}>
-        <ProgressBar
-          step={step}
-          labels={role === 'professor'
-            ? ['Role', 'Setup', 'Live', 'Review', 'Release', 'Ready']
-            : ['Role', 'Grounded', 'Verified', 'Pulse', 'Fork', 'Ready']}
-        />
+      <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '900px', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ flex: 1 }}>
+          <ProgressBar
+            step={step}
+            labels={role === 'professor'
+              ? ['Role', 'Setup', 'Live', 'Review', 'Release', 'Ready']
+              : ['Role', 'Grounded', 'Verified', 'Pulse', 'Fork', 'Ready']}
+            onStepClick={(i) => setStep(i)}
+          />
+        </div>
+        {step > 0 ? (
+          <button
+            onClick={next}
+            style={{
+              flexShrink: 0,
+              background: 'transparent',
+              border: `1px solid ${T.onSurfaceVariant}55`,
+              borderRadius: '999px',
+              fontFamily: sans,
+              fontSize: '0.8rem',
+              color: T.onSurfaceVariant,
+              cursor: 'pointer',
+              padding: '0.3rem 1rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Skip for now
+          </button>
+        ) : (
+          <div style={{ flexShrink: 0, width: '6rem' }} />
+        )}
       </div>
 
       {/* Step content */}
@@ -1000,21 +1021,6 @@ export default function OnboardingPage() {
               Continue
             </button>
           </div>
-          <button
-            onClick={next}
-            style={{
-              visibility: step > 0 ? 'visible' : 'hidden',
-              background: 'none',
-              border: 'none',
-              fontFamily: sans,
-              fontSize: '0.8rem',
-              color: T.onSurfaceVariant,
-              cursor: 'pointer',
-              padding: '0.25rem 0.75rem',
-            }}
-          >
-            Skip for now
-          </button>
         </div>
       )}
     </div>

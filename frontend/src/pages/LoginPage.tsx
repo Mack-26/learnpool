@@ -7,39 +7,55 @@ import { useAuthStore } from '../store/authStore'
 
 // ─── Feature Slide Mocks ────────────────────────────────────────────────────
 
-function SlideAsk() {
+function SlideIntelligence() {
   return (
     <div className="w-full space-y-2.5">
-      {[
-        { text: 'What is the difference between bias and variance?', tag: 'Doubts', delay: 0 },
-        { text: 'Can you summarize today\'s lecture on gradient descent?', tag: 'Summary', delay: 0.08 },
-        { text: 'Will the normal equation be on the exam?', tag: 'Exam Prep', delay: 0.16 },
-      ].map((q, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: q.delay, duration: 0.4, ease: 'easeOut' }}
-          className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 flex items-start gap-3"
-        >
-          <div className="mt-0.5 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-            <MessageCircle className="w-3 h-3 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white/90 text-sm leading-snug">{q.text}</p>
-            <span className="inline-block mt-1.5 text-[10px] font-semibold tracking-wide uppercase bg-white/20 text-white/80 rounded-full px-2 py-0.5">
-              {q.tag}
-            </span>
-          </div>
-        </motion.div>
-      ))}
+      {/* Student question — retrieval-aware, not generic */}
+      <motion.div
+        initial={{ opacity: 0, x: -16 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 flex items-start gap-3"
+      >
+        <div className="mt-0.5 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+          <MessageCircle className="w-3 h-3 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white/90 text-sm leading-snug">Why did the professor use L2 regularization instead of dropout in Lecture 7?</p>
+          <span className="inline-block mt-1.5 text-[10px] font-semibold tracking-wide uppercase bg-white/20 text-white/80 rounded-full px-2 py-0.5">
+            Doubts
+          </span>
+        </div>
+      </motion.div>
+
+      {/* AI answer with citation — shows this isn't ChatGPT */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18, duration: 0.4 }}
+        className="bg-white/10 rounded-xl px-4 py-3 border border-white/15"
+      >
+        <div className="flex items-center gap-1.5 mb-2">
+          <Sparkles className="w-3 h-3 text-amber-300 flex-shrink-0" />
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-200/80">Answered from Lecture 7 · Page 18</span>
+        </div>
+        <p className="text-white/75 text-xs leading-relaxed mb-2.5">
+          L2 penalizes the squared magnitude of weights, keeping all features active with small values. Dropout randomly silences neurons, which…
+        </p>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] bg-white/10 text-white/50 rounded-full px-2 py-0.5">📄 Lecture 7 · 96% relevance</span>
+          <span className="text-[10px] text-white/40">31 students asked this</span>
+        </div>
+      </motion.div>
+
+      {/* Input box */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.28, duration: 0.4 }}
+        transition={{ delay: 0.32, duration: 0.4 }}
         className="bg-white/10 rounded-xl px-4 py-3 border border-white/20 border-dashed flex items-center gap-2"
       >
-        <div className="flex-1 text-sm text-white/40 italic">Ask your question…</div>
+        <div className="flex-1 text-sm text-white/40 italic">Ask about your course materials…</div>
         <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
           <Sparkles className="w-3.5 h-3.5 text-white/70" />
         </div>
@@ -50,10 +66,10 @@ function SlideAsk() {
 
 function SlideInsights() {
   const categories = [
-    { label: 'Doubts', count: 8, pct: 100 },
-    { label: 'Homework', count: 5, pct: 62 },
-    { label: 'Exam Prep', count: 4, pct: 50 },
-    { label: 'Summary', count: 2, pct: 25 },
+    { label: 'Doubts', count: 8, pct: 100, trend: '↑ +3' },
+    { label: 'Exam Prep', count: 5, pct: 62, trend: '↑ +2' },
+    { label: 'Homework', count: 4, pct: 50, trend: '—' },
+    { label: 'Summary', count: 2, pct: 25, trend: '↓ -1' },
   ]
   return (
     <div className="w-full space-y-3">
@@ -74,7 +90,10 @@ function SlideInsights() {
             >
               <div className="flex justify-between text-sm text-white/80 mb-1">
                 <span>{cat.label}</span>
-                <span className="font-semibold">{cat.count}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-semibold ${cat.trend.startsWith('↑') ? 'text-emerald-300' : cat.trend.startsWith('↓') ? 'text-red-300' : 'text-white/40'}`}>{cat.trend} vs last session</span>
+                  <span className="font-semibold">{cat.count}</span>
+                </div>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
@@ -92,92 +111,73 @@ function SlideInsights() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.35 }}
-        className="grid grid-cols-2 gap-2"
+        style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '0.75rem', padding: '0.75rem 1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}
       >
-        {[
-          { label: 'Questions asked', value: '19' },
-          { label: 'Repeating topics', value: '3' },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white/15 rounded-xl px-4 py-3 text-center">
-            <p className="text-white text-2xl font-bold">{stat.value}</p>
-            <p className="text-white/60 text-xs mt-0.5">{stat.label}</p>
-          </div>
-        ))}
+        <span style={{ fontSize: '1rem', flexShrink: 0 }}>⚠️</span>
+        <p style={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'rgba(253,230,138,0.8)', margin: 0 }}>
+          <span style={{ fontWeight: 700, color: 'rgb(253,230,138)' }}>6 students</span> asked about learning rate selection — consider addressing it now
+        </p>
       </motion.div>
     </div>
   )
 }
 
-function SlideSession() {
+function SlideArchive() {
+  const questions = [
+    {
+      q: 'What happens when the learning rate is too high?',
+      answer: 'If α is too large, the optimizer overshoots the minimum and may diverge entirely…',
+      label: '✓ Discussed',
+      labelBg: 'rgba(74,222,128,0.15)',
+      labelColor: '#4ade80',
+    },
+    {
+      q: 'Is Adam optimizer always better than vanilla SGD?',
+      answer: 'In practice, adaptive methods converge faster but may generalize slightly worse…',
+      label: '❌ Wrong Answer',
+      labelBg: 'rgba(248,113,113,0.15)',
+      labelColor: '#f87171',
+    },
+  ]
   return (
     <div className="w-full space-y-2">
-      {/* Card 1 — a classmate's question + AI answer, visible to all */}
       <motion.div
-        initial={{ opacity: 0, x: -12 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4 }}
-        className="bg-white/15 backdrop-blur-sm rounded-xl px-3.5 py-3"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">
-            🦊
-          </div>
-          <span className="text-white/50 text-xs">Clever Fox · asked just now</span>
-          <span className="ml-auto text-[10px] bg-amber-300/20 text-amber-200 rounded-full px-2 py-0.5 font-medium">Doubts</span>
-        </div>
-        <p className="text-white/85 text-xs leading-snug mb-2">
-          Why does the learning rate matter so much in gradient descent?
-        </p>
-        <div className="border-t border-white/10 pt-2 flex items-start gap-2">
-          <Sparkles className="w-3 h-3 text-amber-300 mt-0.5 flex-shrink-0" />
-          <p className="text-white/55 text-[11px] leading-relaxed line-clamp-2">
-            The learning rate α controls step size. Too large and you overshoot the minimum; too small and training takes forever…
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Card 2 — another student forking/building on that question */}
-      <motion.div
-        initial={{ opacity: 0, x: -12 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.12, duration: 0.4 }}
-        className="bg-white/10 rounded-xl px-3.5 py-3 border border-white/15"
-      >
-        <div className="flex items-center gap-1.5 mb-2">
-          {/* Fork indent line */}
-          <div className="w-0.5 h-5 bg-white/25 rounded-full ml-1 mr-1" />
-          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[9px] flex-shrink-0">
-            🐢
-          </div>
-          <span className="text-white/45 text-[11px]">Wise Turtle built on this</span>
-          <span className="ml-auto text-[10px] text-white/40 italic">forked</span>
-        </div>
-        <p className="text-white/75 text-xs leading-snug pl-4">
-          Is there a rule of thumb for picking a learning rate, or do we always need to tune it?
-        </p>
-      </motion.div>
-
-      {/* Card 3 — a third student reacting, showing peer signal */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.24, duration: 0.4 }}
-        className="flex items-center gap-3 bg-white/10 rounded-xl px-3.5 py-2.5"
+        transition={{ duration: 0.35 }}
+        className="flex items-center justify-between mb-1"
       >
-        <div className="flex -space-x-1.5">
-          {['🐺', '🦁', '🐸'].map((emoji) => (
-            <div key={emoji} className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[9px] border border-white/10">
-              {emoji}
-            </div>
-          ))}
+        <span className="text-white/60 text-xs uppercase tracking-widest font-semibold">Lecture 4 — Released</span>
+        <span className="text-[10px] bg-emerald-400/20 text-emerald-300 rounded-full px-2 py-0.5 font-semibold">● Released</span>
+      </motion.div>
+
+      {questions.map((item, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: i * 0.14, duration: 0.4 }}
+          className="bg-white/10 rounded-xl px-3.5 py-3 border border-white/10"
+        >
+          <p className="text-white/85 text-xs font-semibold leading-snug mb-1.5">{item.q}</p>
+          <p className="text-white/45 text-[11px] leading-relaxed mb-2.5 line-clamp-2">{item.answer}</p>
+          <span style={{ background: item.labelBg, color: item.labelColor }} className="text-[10px] font-semibold rounded-full px-2 py-0.5">
+            {item.label}
+          </span>
+        </motion.div>
+      ))}
+
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.32, duration: 0.35 }}
+        style={{ background: 'rgba(134,239,172,0.1)', border: '1px solid rgba(134,239,172,0.2)', borderRadius: '0.75rem', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.8rem' }}>✅</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(134,239,172,0.9)' }}>Professor-reviewed</span>
         </div>
-        <p className="text-white/55 text-[11px]">
-          <span className="text-white/80 font-medium">3 classmates</span> had the same question
-        </p>
-        <div className="ml-auto flex items-center gap-1 text-white/40 text-[11px]">
-          <span>👍</span>
-          <span>12</span>
-        </div>
+        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>Released to 31 students</span>
       </motion.div>
     </div>
   )
@@ -185,19 +185,19 @@ function SlideSession() {
 
 const SLIDES = [
   {
-    label: 'Students ask questions',
-    sublabel: 'AI answers instantly from course materials',
-    Component: SlideAsk,
+    label: 'Grounded in your course, not the internet',
+    sublabel: 'Every answer cites the exact lecture page — nothing from outside your materials',
+    Component: SlideIntelligence,
   },
   {
-    label: 'Professor sees patterns',
-    sublabel: 'Category breakdown, repeating topics, confusion clusters',
+    label: 'Know what\'s confusing your class in real time',
+    sublabel: 'Automatic categorisation, trend detection, and pattern alerts as questions come in',
     Component: SlideInsights,
   },
   {
-    label: 'Learn from each other, anonymously',
-    sublabel: 'See classmates\' questions and build on them — no names, just curiosity',
-    Component: SlideSession,
+    label: 'Professor-reviewed study archive',
+    sublabel: 'Every answer labelled and released — a resource built live, from your class',
+    Component: SlideArchive,
   },
 ]
 
@@ -255,21 +255,56 @@ export default function LoginPage() {
     width: '100%',
     background: '#d8d8e8',
     border: 'none',
-    borderBottom: '2px solid #8686AC',
-    borderRadius: '0.5rem',
+    borderRadius: '0.65rem',
     padding: '0.75rem 1rem',
     fontFamily: "'Manrope', sans-serif",
     fontSize: '0.95rem',
     color: '#0F0E47',
     outline: 'none',
     boxSizing: 'border-box',
-    transition: 'border-color 0.2s ease',
+    boxShadow: '0 1px 3px rgba(15,14,71,0.08), inset 0 1px 2px rgba(15,14,71,0.04)',
+    transition: 'box-shadow 0.2s ease',
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', overflow: 'hidden', background: '#f7f7fc' }}>
+    <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden" style={{ background: '#f7f7fc' }}>
 
-      {/* ── Left panel ── */}
+      {/* ── Mobile hero banner (< lg) ── */}
+      <div
+        className="lg:hidden"
+        style={{ background: 'linear-gradient(145deg, #0F0E47 0%, #272757 55%, #505081 100%)', padding: '1.5rem 1.5rem 1.75rem' }}
+      >
+        {/* Logo */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <span style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.4rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em' }}>
+            VibeLearning
+          </span>
+        </div>
+
+        {/* Slide visualization */}
+        <div style={{ marginBottom: '1rem' }}>
+          <AnimatePresence mode="wait">
+            <motion.div key={slide} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }}>
+              <CurrentSlide />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Slide label + dots */}
+        <AnimatePresence mode="wait">
+          <motion.p key={slide} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
+            style={{ fontFamily: "'Manrope', sans-serif", color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
+            {SLIDES[slide].label}
+          </motion.p>
+        </AnimatePresence>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {SLIDES.map((_, i) => (
+            <button key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? '20px' : '6px', height: '6px', borderRadius: '3px', background: i === slide ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.25)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Left panel (desktop only) ── */}
       <div
         className="hidden lg:flex lg:w-[58%] flex-shrink-0 relative"
         style={{
@@ -295,11 +330,11 @@ export default function LoginPage() {
           {/* Hero text */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.1 }} className="my-8">
             <h1 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: 'clamp(2rem, 3.5vw, 3rem)', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, letterSpacing: '-0.02em', margin: 0 }}>
-              AI-powered Q&amp;A<br />
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>for every classroom.</span>
+              The intelligence layer<br />
+              <span style={{ color: 'rgba(255,255,255,0.6)' }}>for modern classrooms.</span>
             </h1>
             <p style={{ fontFamily: "'Manrope', sans-serif", marginTop: '1rem', color: 'rgba(255,255,255,0.55)', fontSize: '1rem', lineHeight: 1.65, maxWidth: '28rem' }}>
-              Students ask. AI answers from your materials. Professors see exactly where the class is confused.
+              Real-time academic assistance and learning analytics powered by your course content.
             </p>
           </motion.div>
 
@@ -355,18 +390,12 @@ export default function LoginPage() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#f7f7fc' }}>
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.15 }} style={{ width: '100%', maxWidth: '420px' }}>
 
-          {/* Mobile logo */}
-          <div className="lg:hidden" style={{ marginBottom: '2rem' }}>
-            <span style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.8rem', fontWeight: 700, color: '#272757', letterSpacing: '-0.02em' }}>
-              VibeLearning
-            </span>
-          </div>
 
-          <h2 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '2rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em' }}>
-            Welcome back
+          <h2 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.6rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+            Continue learning with your class
           </h2>
-          <p style={{ fontFamily: "'Manrope', sans-serif", color: '#505081', fontSize: '0.95rem', margin: '0 0 2rem 0' }}>
-            Sign in to access your dashboard
+          <p style={{ fontFamily: "'Manrope', sans-serif", color: '#505081', fontSize: '0.875rem', margin: '0 0 2rem 0', lineHeight: 1.6 }}>
+            Build on questions, uncover insights, and stay connected to what the class is discussing.
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -382,8 +411,8 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 style={inputStyle}
-                onFocus={e => (e.currentTarget.style.borderBottomColor = '#272757')}
-                onBlur={e => (e.currentTarget.style.borderBottomColor = '#8686AC')}
+                onFocus={e => (e.currentTarget.style.boxShadow = '0 0 0 2px rgba(39,39,87,0.25), 0 1px 3px rgba(15,14,71,0.08)')}
+                onBlur={e => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(15,14,71,0.08), inset 0 1px 2px rgba(15,14,71,0.04)')}
               />
             </div>
             <div>
@@ -398,8 +427,8 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={inputStyle}
-                onFocus={e => (e.currentTarget.style.borderBottomColor = '#272757')}
-                onBlur={e => (e.currentTarget.style.borderBottomColor = '#8686AC')}
+                onFocus={e => (e.currentTarget.style.boxShadow = '0 0 0 2px rgba(39,39,87,0.25), 0 1px 3px rgba(15,14,71,0.08)')}
+                onBlur={e => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(15,14,71,0.08), inset 0 1px 2px rgba(15,14,71,0.04)')}
               />
             </div>
 
@@ -434,12 +463,41 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p style={{ fontFamily: "'Manrope', sans-serif", textAlign: 'center', fontSize: '0.875rem', color: '#505081', marginTop: '1rem' }}>
-            Don't have an account?{' '}
-            <Link to="/signup" style={{ color: '#272757', fontWeight: 700 }}>
-              Sign up
-            </Link>
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0 0.75rem' }}>
+            <div style={{ flex: 1, height: '1px', background: '#d8d8e8' }} />
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '0.75rem', color: '#8686AC' }}>or</span>
+            <div style={{ flex: 1, height: '1px', background: '#d8d8e8' }} />
+          </div>
+
+          <Link
+            to="/signup"
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'center',
+              background: 'transparent',
+              color: '#272757',
+              border: '1.5px solid rgba(39,39,87,0.35)',
+              borderRadius: '9999px',
+              padding: '0.875rem',
+              fontFamily: "'Manrope', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              letterSpacing: '0.04em',
+              boxSizing: 'border-box',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(39,39,87,0.05)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = '#272757'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(39,39,87,0.35)'
+            }}
+          >
+            Get started here →
+          </Link>
         </motion.div>
       </div>
     </div>

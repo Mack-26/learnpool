@@ -1,10 +1,11 @@
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
 from config import settings
 from database import create_pool
@@ -37,13 +38,21 @@ app.include_router(auth_router)
 app.include_router(student_router)
 app.include_router(professor_router)
 
-# Serve uploaded PDFs at /uploads/<path> — return friendly message if file not found
+# Serve uploaded PDFs — redirects to Azure Blob SAS URL in prod, local file in dev
 _uploads_dir = Path(__file__).resolve().parent / "uploads"
 _uploads_dir.mkdir(exist_ok=True)
 
 
 @app.get("/uploads/{file_path:path}")
 async def serve_upload(file_path: str):
+    if ".." in file_path or file_path.startswith("/"):
+        return HTMLResponse(content="<p>Invalid path</p>", status_code=403)
+
+    if settings.azure_storage_connection_string:
+        from services.storage_service import get_download_url
+        url = await asyncio.to_thread(get_download_url, file_path)
+        return RedirectResponse(url=url)
+
     full_path = (_uploads_dir / file_path).resolve()
     if not str(full_path).startswith(str(_uploads_dir.resolve())):
         return HTMLResponse(content="<p>Invalid path</p>", status_code=403)

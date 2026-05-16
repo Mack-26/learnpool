@@ -1,6 +1,7 @@
 """Professor API — courses owned by the professor, session management, reports, documents."""
 
 import json
+import secrets
 import tempfile
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from database import get_db
 from models import (
     AddDocumentRequest,
     CitationPageOut,
+    ClassmateOut,
     CommentOut,
     CourseOut,
     CreateCommentRequest,
@@ -24,6 +26,7 @@ from models import (
     SessionReportResponse,
     SessionSummary,
     SessionWithDocuments,
+    StudentOut,
     SubmitFeedbackRequest,
     SubmitThreadFeedbackRequest,
     ThreadFeedbackOut,
@@ -54,13 +57,13 @@ async def get_professor_courses(
     """List courses owned by the current professor."""
     rows = await db.fetch(
         """
-        SELECT c.id, c.name, c.description, u.display_name AS professor_name,
+        SELECT c.id, c.name, c.description, c.invite_code, u.display_name AS professor_name,
                COUNT(s.id) AS session_count
         FROM courses c
         JOIN users u ON c.professor_id = u.id
         LEFT JOIN sessions s ON s.course_id = c.id
         WHERE c.professor_id = $1
-        GROUP BY c.id, c.name, c.description, u.display_name
+        GROUP BY c.id, c.name, c.description, c.invite_code, u.display_name
         ORDER BY c.name
         """,
         current_user["id"],
@@ -72,6 +75,7 @@ async def get_professor_courses(
             description=r["description"],
             professor_name=r["professor_name"],
             session_count=r["session_count"],
+            invite_code=r["invite_code"],
         )
         for r in rows
     ]
@@ -812,15 +816,14 @@ async def upload_document(
             detail="Could not extract enough text from file. Try a different file or paste text instead.",
         )
 
-    # For PDFs: save file to uploads for preview; use inline for TXT/DOCX
+    # For PDFs: store in blob storage (or local disk in dev); use inline for TXT/DOCX
+    import asyncio
     import uuid
-    uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-    uploads_dir.mkdir(exist_ok=True)
+    from services.storage_service import upload_file, get_download_url
     storage_path = "inline"
     if ext == ".pdf":
         stored_name = f"{uuid.uuid4().hex}{ext}"
-        stored_path = uploads_dir / stored_name
-        stored_path.write_bytes(content_bytes)
+        await asyncio.to_thread(upload_file, stored_name, content_bytes)
         storage_path = stored_name
 
     tmp_path.unlink(missing_ok=True)
@@ -1031,6 +1034,43 @@ async def update_thread_review(
         thread_id,
     )
     return {"thread_id": thread_id}
+
+
+# ---------------------------------------------------------------------------
+# PATCH /api/professor/threads/{thread_id}/title
+# ---------------------------------------------------------------------------
+
+@router.patch("/threads/{thread_id}/title")
+async def update_thread_title(
+    thread_id: str,
+    body: dict,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Update the title of a shared thread."""
+    await _require_thread_professor_access(db, thread_id, current_user["id"])
+    title = body.get("title", "").strip()
+    await db.execute(
+        "UPDATE threads SET title = $1 WHERE id = $2",
+        title or None,
+        thread_id,
+    )
+    return {"thread_id": thread_id}
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/professor/threads/{thread_id}
+# ---------------------------------------------------------------------------
+
+@router.delete("/threads/{thread_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_thread(
+    thread_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Delete a shared thread. Professor must own the course."""
+    await _require_thread_professor_access(db, thread_id, current_user["id"])
+    await db.execute("DELETE FROM threads WHERE id = $1", thread_id)
 
 
 # ---------------------------------------------------------------------------
@@ -1275,4 +1315,84 @@ async def get_session_citation_map(
             pages=sorted(d["pages"], key=lambda p: p.citation_count, reverse=True),
         )
         for d in result
+    ]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/courses/{course_id}/invite-code
+# ---------------------------------------------------------------------------
+
+@router.get("/courses/{course_id}/invite-code")
+async def get_invite_code(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    row = await db.fetchrow(
+        "SELECT invite_code FROM courses WHERE id = $1 AND professor_id = $2",
+        course_id, current_user["id"],
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return {"invite_code": row["invite_code"]}
+
+
+# ---------------------------------------------------------------------------
+# POST /api/professor/courses/{course_id}/invite-code/regenerate
+# ---------------------------------------------------------------------------
+
+@router.post("/courses/{course_id}/invite-code/regenerate")
+async def regenerate_invite_code(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    owned = await db.fetchval(
+        "SELECT 1 FROM courses WHERE id = $1 AND professor_id = $2",
+        course_id, current_user["id"],
+    )
+    if not owned:
+        raise HTTPException(status_code=404, detail="Course not found")
+    new_code = secrets.token_hex(4)
+    await db.execute(
+        "UPDATE courses SET invite_code = $1 WHERE id = $2",
+        new_code, course_id,
+    )
+    return {"invite_code": new_code}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/courses/{course_id}/students
+# ---------------------------------------------------------------------------
+
+@router.get("/courses/{course_id}/students", response_model=list[StudentOut])
+async def get_course_students(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    owned = await db.fetchval(
+        "SELECT 1 FROM courses WHERE id = $1 AND professor_id = $2",
+        course_id, current_user["id"],
+    )
+    if not owned:
+        raise HTTPException(status_code=403, detail="Not your course")
+    rows = await db.fetch(
+        """
+        SELECT u.id, u.display_name, u.email, ce.enrolled_at
+        FROM users u
+        JOIN course_enrollments ce ON u.id = ce.student_id
+        WHERE ce.course_id = $1
+        ORDER BY u.display_name
+        """,
+        course_id,
+    )
+    return [
+        StudentOut(
+            id=str(r["id"]),
+            display_name=r["display_name"],
+            email=r["email"],
+            enrolled_at=r["enrolled_at"].isoformat(),
+        )
+        for r in rows
     ]

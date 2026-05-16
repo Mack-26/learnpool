@@ -10,11 +10,14 @@ import ChatPage from './pages/ChatPage'
 import ReportPage from './pages/ReportPage'
 import ProfessorClassListPage from './pages/ProfessorClassListPage'
 import ProfessorCourseViewPage from './pages/ProfessorCourseViewPage'
+import ProfessorCoursePeoplePage from './pages/ProfessorCoursePeoplePage'
 import ProfessorReportsPage from './pages/ProfessorReportsPage'
 import ScheduleLecturePage from './pages/ScheduleLecturePage'
 import LectureMaterialsPage from './pages/LectureMaterialsPage'
 import NotesPage from './pages/NotesPage'
 import ClassThreadsPage from './pages/ClassThreadsPage'
+import AllQuestionsPage from './pages/AllQuestionsPage'
+import ClassmatesPage from './pages/ClassmatesPage'
 
 export default function App() {
   return (
@@ -26,14 +29,17 @@ export default function App() {
       <Route path="/classes/materials" element={<ProtectedRoute requireRole="student"><LectureMaterialsPage /></ProtectedRoute>} />
       <Route path="/notes" element={<ProtectedRoute requireRole="student"><NotesPage /></ProtectedRoute>} />
       <Route path="/classes/:courseId" element={<ProtectedRoute requireRole="student"><SessionListPage /></ProtectedRoute>} />
+      <Route path="/classes/:courseId/people" element={<ProtectedRoute requireRole="student"><ClassmatesPage /></ProtectedRoute>} />
       <Route path="/sessions/:sessionId" element={<ProtectedRoute requireRole="student"><SessionDetailPage /></ProtectedRoute>} />
       <Route path="/sessions/:sessionId/chat" element={<ProtectedRoute requireRole="student"><ChatPage /></ProtectedRoute>} />
 <Route path="/sessions/:sessionId/threads" element={<ProtectedRoute requireRole="student"><ClassThreadsPage /></ProtectedRoute>} />
       {/* Shared: report works for both student and professor */}
       <Route path="/sessions/:sessionId/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
+      <Route path="/sessions/:sessionId/questions" element={<ProtectedRoute requireRole="professor"><AllQuestionsPage /></ProtectedRoute>} />
 {/* Professor routes */}
       <Route path="/instructor" element={<ProtectedRoute requireRole="professor"><ProfessorClassListPage /></ProtectedRoute>} />
       <Route path="/instructor/courses/:courseId" element={<ProtectedRoute requireRole="professor"><ProfessorCourseViewPage /></ProtectedRoute>} />
+      <Route path="/instructor/courses/:courseId/people" element={<ProtectedRoute requireRole="professor"><ProfessorCoursePeoplePage /></ProtectedRoute>} />
       <Route path="/instructor/courses/:courseId/schedule/:sessionId" element={<ProtectedRoute requireRole="professor"><ScheduleLecturePage /></ProtectedRoute>} />
       <Route path="/instructor/courses/:courseId/schedule" element={<ProtectedRoute requireRole="professor"><ScheduleLecturePage /></ProtectedRoute>} />
       <Route path="/instructor/courses/:courseId/reports" element={<ProtectedRoute requireRole="professor"><ProfessorReportsPage /></ProtectedRoute>} />

@@ -1,0 +1,13 @@
+backend/venv/
+backend/__pycache__/
+backend/.env
+backend/uploads/
+frontend/
+infrastructure/
+.github/
+db/
+*.md
+.git/
+.gitignore
+docker-compose.yml
+Makefile

@@ -6,6 +6,7 @@ from database import get_db
 from models import (
     AnswerFeedbackOut,
     CitationPageOut,
+    ClassmateOut,
     CommentOut,
     CourseOut,
     CreateCommentRequest,
@@ -13,6 +14,7 @@ from models import (
     DocumentCitationOut,
     DocumentOut,
     ForkThreadRequest,
+    JoinCourseRequest,
     PostQuestionRequest,
     PublishQuestionsRequest,
     QuestionOut,
@@ -1341,3 +1343,84 @@ async def _fetch_rich_threads(db, session_id: str, current_user_id: str, thread_
         )
         for r in thread_rows
     ]
+
+
+# ---------------------------------------------------------------------------
+# POST /api/student/courses/join  — join a course by invite code
+# ---------------------------------------------------------------------------
+
+@router.post("/courses/join", response_model=CourseOut)
+async def join_course_by_code(
+    body: JoinCourseRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    course = await db.fetchrow(
+        """
+        SELECT c.id, c.name, c.description, c.invite_code, u.display_name AS professor_name,
+               COUNT(s.id) AS session_count
+        FROM courses c
+        JOIN users u ON c.professor_id = u.id
+        LEFT JOIN sessions s ON s.course_id = c.id
+        WHERE LOWER(c.invite_code) = LOWER($1)
+        GROUP BY c.id, c.name, c.description, c.invite_code, u.display_name
+        """,
+        body.invite_code,
+    )
+    if not course:
+        raise HTTPException(status_code=404, detail="Invalid course code")
+
+    already = await db.fetchval(
+        "SELECT 1 FROM course_enrollments WHERE course_id = $1 AND student_id = $2",
+        course["id"], current_user["id"],
+    )
+    if already:
+        raise HTTPException(status_code=409, detail="Already enrolled in this course")
+
+    await db.execute(
+        "INSERT INTO course_enrollments (course_id, student_id) VALUES ($1, $2)",
+        course["id"], current_user["id"],
+    )
+    return CourseOut(
+        id=str(course["id"]),
+        name=course["name"],
+        description=course["description"],
+        professor_name=course["professor_name"],
+        session_count=course["session_count"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/student/courses/{course_id}/classmates
+# ---------------------------------------------------------------------------
+
+@router.get("/courses/{course_id}/classmates", response_model=list[ClassmateOut])
+async def get_classmates(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    enrolled = await db.fetchval(
+        "SELECT 1 FROM course_enrollments WHERE course_id = $1 AND student_id = $2",
+        course_id, current_user["id"],
+    )
+    if not enrolled:
+        raise HTTPException(status_code=403, detail="Not enrolled in this course")
+
+    rows = await db.fetch(
+        """
+        SELECT u.id, u.display_name, u.role
+        FROM users u
+        JOIN course_enrollments ce ON u.id = ce.student_id
+        WHERE ce.course_id = $1
+        UNION
+        SELECT u.id, u.display_name, u.role
+        FROM users u
+        JOIN courses c ON c.professor_id = u.id
+        WHERE c.id = $1
+        ORDER BY display_name
+        """,
+        course_id,
+    )
+    return [ClassmateOut(id=str(r["id"]), display_name=r["display_name"], role=r["role"]) for r in rows]
+
