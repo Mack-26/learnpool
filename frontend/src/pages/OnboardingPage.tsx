@@ -890,7 +890,7 @@ export default function OnboardingPage() {
       {/* Logo */}
       <div style={{ width: '100%', maxWidth: '900px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <span style={{ fontFamily: serif, fontSize: '1.4rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.02em' }}>
-          VibeLearning
+          Horizon
         </span>
         <a href="/login" style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, textDecoration: 'none' }}>
           Already a member? Sign in →

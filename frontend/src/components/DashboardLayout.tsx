@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 userSelect: 'none',
               }}
             >
-              VibeLearning
+              Horizon
             </button>
           </div>
 

@@ -277,7 +277,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div style={{ marginBottom: '1.25rem' }}>
           <span style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.4rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em' }}>
-            VibeLearning
+            Horizon
           </span>
         </div>
 
@@ -323,7 +323,7 @@ export default function LoginPage() {
           {/* Logo */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <span style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.5rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em', userSelect: 'none' }}>
-              VibeLearning
+              Horizon
             </span>
           </motion.div>
 
