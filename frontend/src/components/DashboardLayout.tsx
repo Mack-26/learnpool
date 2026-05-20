@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
 import { getCourses } from '@/api/sessions'
+import HorizonLogo from '@/components/HorizonLogo'
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(() =>
@@ -84,21 +85,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="px-5 py-6 flex items-center">
             <button
               onClick={() => navigate(isProfessor ? '/instructor' : '/classes')}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                fontFamily: "'Newsreader', 'Georgia', serif",
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: '#272757',
-                letterSpacing: '-0.02em',
-                lineHeight: 1,
-                userSelect: 'none',
-              }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
-              Horizon
+              <HorizonLogo variant="dark" size="2.5rem" />
             </button>
           </div>
 

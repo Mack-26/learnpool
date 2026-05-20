@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, Sparkles } from 'lucide-react'
 import { login } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
+import HorizonLogo from '../components/HorizonLogo'
+
 
 // ─── Feature Slide Mocks ────────────────────────────────────────────────────
 
@@ -275,33 +277,25 @@ export default function LoginPage() {
         style={{ background: 'linear-gradient(145deg, #0F0E47 0%, #272757 55%, #505081 100%)', padding: '1.5rem 1.5rem 1.75rem' }}
       >
         {/* Logo */}
-        <div style={{ marginBottom: '1.25rem' }}>
-          <span style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '2.5rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em' }}>
-            Horizon
-          </span>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <HorizonLogo size="3.5rem" />
         </div>
 
-        {/* Slide visualization */}
-        <div style={{ marginBottom: '1rem' }}>
-          <AnimatePresence mode="wait">
-            <motion.div key={slide} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }}>
-              <CurrentSlide />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Slide label + dots */}
-        <AnimatePresence mode="wait">
-          <motion.p key={slide} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-            style={{ fontFamily: "'Manrope', sans-serif", color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
-            {SLIDES[slide].label}
-          </motion.p>
-        </AnimatePresence>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {SLIDES.map((_, i) => (
-            <button key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? '20px' : '6px', height: '6px', borderRadius: '3px', background: i === slide ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.25)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }} />
-          ))}
-        </div>
+        {/* All slides stacked statically */}
+        {SLIDES.map(({ label, sublabel, Component }, i) => (
+          <div key={i}>
+            <p style={{ fontFamily: "'Manrope', sans-serif", color: '#fff', fontWeight: 700, fontSize: '0.95rem', margin: '0 0 0.25rem 0', lineHeight: 1.4 }}>
+              {label}
+            </p>
+            <p style={{ fontFamily: "'Manrope', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem', margin: '0 0 0.875rem 0', lineHeight: 1.5 }}>
+              {sublabel}
+            </p>
+            <Component />
+            {i < SLIDES.length - 1 && (
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.12)', margin: '1.5rem 0' }} />
+            )}
+          </div>
+        ))}
       </div>
 
       {/* ── Left panel (desktop only) ── */}
@@ -322,9 +316,7 @@ export default function LoginPage() {
 
           {/* Logo */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <span style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '2.5rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em', userSelect: 'none' }}>
-              Horizon
-            </span>
+            <HorizonLogo size="3.5rem" />
           </motion.div>
 
           {/* Hero text */}

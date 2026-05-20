@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signup } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
+import HorizonLogo from '../components/HorizonLogo'
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 720 : false)
@@ -785,12 +786,16 @@ function StepInstructorRelease() {
 
 // ── Progress Indicator ────────────────────────────────────────────────────────
 function ProgressBar({ step, labels, onStepClick }: { step: number; labels: string[]; onStepClick?: (i: number) => void }) {
+  const mobile = useIsMobile()
   const n = labels.length
   const halfCell = `calc(100% / ${2 * n})`
   const trackWidth = `calc(100% - 100% / ${n})`
   const filledWidth = step === 0
     ? '0%'
     : `calc(${step / (n - 1)} * (100% - 100% / ${n}))`
+
+  const dotSize = mobile ? '1.5rem' : '2rem'
+  const dotTop = mobile ? '0.75rem' : '1rem'
 
   return (
     <div style={{ width: '100%', maxWidth: `${n * 100}px`, margin: '0 auto' }}>
@@ -800,9 +805,9 @@ function ProgressBar({ step, labels, onStepClick }: { step: number; labels: stri
         position: 'relative',
       }}>
         {/* Track background */}
-        <div style={{ position: 'absolute', left: halfCell, width: trackWidth, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.surfaceHighest, borderRadius: '9999px', zIndex: 0 }} />
+        <div style={{ position: 'absolute', left: halfCell, width: trackWidth, top: dotTop, transform: 'translateY(-50%)', height: '3px', background: T.surfaceHighest, borderRadius: '9999px', zIndex: 0 }} />
         {/* Filled track */}
-        <div style={{ position: 'absolute', left: halfCell, top: '1rem', transform: 'translateY(-50%)', height: '3px', background: T.gradient, borderRadius: '9999px', zIndex: 0, width: filledWidth, transition: 'width 0.4s ease' }} />
+        <div style={{ position: 'absolute', left: halfCell, top: dotTop, transform: 'translateY(-50%)', height: '3px', background: T.gradient, borderRadius: '9999px', zIndex: 0, width: filledWidth, transition: 'width 0.4s ease' }} />
 
         {labels.map((label, i) => {
           const done = i < step
@@ -814,19 +819,21 @@ function ProgressBar({ step, labels, onStepClick }: { step: number; labels: stri
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, gap: '0.4rem', cursor: 'pointer' }}
             >
               <div style={{
-                width: '2rem', height: '2rem', borderRadius: '9999px',
+                width: dotSize, height: dotSize, borderRadius: '9999px',
                 background: done || active ? T.gradient : T.surfaceHighest,
                 color: done || active ? '#fff' : T.onSurfaceVariant,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: sans, fontSize: '0.8rem', fontWeight: 700,
+                fontFamily: sans, fontSize: mobile ? '0.65rem' : '0.8rem', fontWeight: 700,
                 boxShadow: active ? T.shadow : 'none',
                 transition: 'all 0.3s ease',
               }}>
                 {done ? '✓' : i + 1}
               </div>
-              <span style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: i <= step ? T.primary : T.onSurfaceVariant, fontWeight: i === step ? 700 : 400, transition: 'color 0.3s ease', whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
+              {!mobile && (
+                <span style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: i <= step ? T.primary : T.onSurfaceVariant, fontWeight: i === step ? 700 : 400, transition: 'color 0.3s ease', whiteSpace: 'nowrap' }}>
+                  {label}
+                </span>
+              )}
             </div>
           )
         })}
@@ -889,9 +896,7 @@ export default function OnboardingPage() {
 
       {/* Logo */}
       <div style={{ width: '100%', maxWidth: '900px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <span style={{ fontFamily: serif, fontSize: '2rem', fontWeight: 700, color: T.primary, letterSpacing: '-0.02em' }}>
-          Horizon
-        </span>
+        <HorizonLogo variant="dark" size="3rem" />
         <a href="/login" style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, textDecoration: 'none' }}>
           Already a member? Sign in →
         </a>
@@ -976,51 +981,97 @@ export default function OnboardingPage() {
           background: `linear-gradient(to bottom, transparent, ${T.surface} 28%)`,
           zIndex: 40,
         }}>
-          {/* Button row: Back absolute-left, Continue centered */}
-          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '480px' }}>
-            <button
-              onClick={back}
-              style={{
-                position: 'absolute',
-                left: 0,
-                visibility: step > 0 ? 'visible' : 'hidden',
-                background: 'none',
-                border: `1.5px solid ${T.outlineVariant}`,
-                borderRadius: '9999px',
-                padding: '0.75rem 1.5rem',
-                fontFamily: sans,
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                color: T.onSurfaceVariant,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              ← Back
-            </button>
-            <button
-              onClick={next}
-              disabled={!canContinue}
-              style={{
-                background: canContinue ? T.gradient : T.outlineVariant,
-                color: '#fff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '0.875rem 2.5rem',
-                minWidth: '10rem',
-                fontFamily: sans,
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                cursor: canContinue ? 'pointer' : 'not-allowed',
-                boxShadow: canContinue ? T.shadow : 'none',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              Continue
-            </button>
-          </div>
+          {mobile ? (
+            /* Mobile: stacked vertically, Continue on top, Back as text link below */
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '480px' }}>
+              <button
+                onClick={next}
+                disabled={!canContinue}
+                style={{
+                  width: '100%',
+                  background: canContinue ? T.gradient : T.outlineVariant,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  padding: '0.875rem 2.5rem',
+                  fontFamily: sans,
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  cursor: canContinue ? 'pointer' : 'not-allowed',
+                  boxShadow: canContinue ? T.shadow : 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                Continue
+              </button>
+              {step > 0 && (
+                <button
+                  onClick={back}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontFamily: sans,
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    color: T.onSurfaceVariant,
+                    cursor: 'pointer',
+                    padding: '0.25rem 0',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  ← Back
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Desktop: Back absolute-left, Continue centered */
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '480px' }}>
+              <button
+                onClick={back}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  visibility: step > 0 ? 'visible' : 'hidden',
+                  background: 'none',
+                  border: `1.5px solid ${T.outlineVariant}`,
+                  borderRadius: '9999px',
+                  padding: '0.75rem 1.5rem',
+                  fontFamily: sans,
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  color: T.onSurfaceVariant,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                ← Back
+              </button>
+              <button
+                onClick={next}
+                disabled={!canContinue}
+                style={{
+                  background: canContinue ? T.gradient : T.outlineVariant,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  padding: '0.875rem 2.5rem',
+                  minWidth: '10rem',
+                  fontFamily: sans,
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  cursor: canContinue ? 'pointer' : 'not-allowed',
+                  boxShadow: canContinue ? T.shadow : 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
