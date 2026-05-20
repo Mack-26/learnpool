@@ -856,6 +856,10 @@ export default function OnboardingPage() {
   const canContinue = step === 0 ? role !== null : true
   const maxStep = 5
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [step])
+
   const next = () => setStep((s) => Math.min(s + 1, maxStep))
   const back = () => setStep((s) => Math.max(s - 1, 0))
 

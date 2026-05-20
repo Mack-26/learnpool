@@ -643,9 +643,11 @@ export default function ChatPage() {
                 <Badge className="animate-pulse text-xs border-0" style={{ background: '#dcfce7', color: '#166534' }}>
                   ● Live
                 </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Questions are automatically summarized with the class and shared with the professor
-                </span>
+                {!isMobile && (
+                  <span className="text-xs text-muted-foreground">
+                    Questions are automatically summarized with the class and shared with the professor
+                  </span>
+                )}
               </>
             ) : check && (
               <span className="text-xs text-muted-foreground capitalize">
@@ -654,10 +656,10 @@ export default function ChatPage() {
             )}
           </div>
           <div className="flex items-center gap-4">
-            {isFetching && !mutation.isPending && (
+            {isFetching && !mutation.isPending && !isMobile && (
               <span className="text-xs text-muted-foreground">Refreshing…</span>
             )}
-            {check?.questions_limit !== undefined && (
+            {!isMobile && check?.questions_limit !== undefined && (
               <span className={`text-xs font-medium tabular-nums ${
                 questions.length >= check.questions_limit - 1
                   ? 'text-destructive'
@@ -669,7 +671,7 @@ export default function ChatPage() {
               </span>
             )}
             {/* Select mode toggle */}
-            {questions.length > 0 && (
+            {!isMobile && questions.length > 0 && (
               selectMode ? (
                 <button
                   onClick={handleExitSelect}
@@ -687,7 +689,7 @@ export default function ChatPage() {
               )
             )}
             {/* AI Settings button */}
-            <div data-ai-settings style={{ position: 'relative' }}>
+            {!isMobile && <div data-ai-settings style={{ position: 'relative' }}>
               <button
                 onClick={() => setAiSettingsOpen((v) => !v)}
                 title="AI settings"
@@ -758,14 +760,14 @@ export default function ChatPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </div>}
 
             <div className="flex items-center gap-2 text-sm">
               {anonymous
                 ? <EyeOff className="h-4 w-4 text-muted-foreground" />
                 : <Eye className="h-4 w-4 text-primary" />
               }
-              <span className="text-xs text-muted-foreground">Anonymous</span>
+              {!isMobile && <span className="text-xs text-muted-foreground">Anonymous</span>}
               <Switch checked={anonymous} onCheckedChange={setAnonymous} />
             </div>
           </div>
@@ -776,7 +778,7 @@ export default function ChatPage() {
           {/* Chat */}
           <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative" style={{ background: '#f7f7fc' }}>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-5 pl-10 space-y-5">
+            <div className={`flex-1 overflow-y-auto space-y-5 ${isMobile ? 'p-4' : 'p-5 pl-10'}`}>
               {questions.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-3">
                   <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -1145,7 +1147,7 @@ export default function ChatPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 right-6 max-w-sm p-4 rounded-xl bg-card border border-primary/30 elevated-shadow z-50"
+            className={`fixed ${isMobile ? 'bottom-24 right-3 left-3 max-w-none' : 'bottom-6 right-6 max-w-sm'} p-4 rounded-xl bg-card border border-primary/30 elevated-shadow z-50`}
           >
             <button
               onClick={() => setShowNudge(false)}

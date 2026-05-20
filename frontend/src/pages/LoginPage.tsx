@@ -269,34 +269,145 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden" style={{ background: '#f7f7fc' }}>
+    <div>
 
-      {/* ── Mobile hero banner (< lg) ── */}
-      <div
-        className="lg:hidden"
-        style={{ background: 'linear-gradient(145deg, #0F0E47 0%, #272757 55%, #505081 100%)', padding: '1.5rem 1.5rem 1.75rem' }}
-      >
-        {/* Logo */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <HorizonLogo size="3.5rem" />
-        </div>
-
-        {/* All slides stacked statically */}
+      {/* ── Mobile: fullscreen scroll-snap sections (< lg) ── */}
+      <div className="lg:hidden" style={{ height: '100svh', overflowY: 'scroll', scrollSnapType: 'y mandatory' }}>
         {SLIDES.map(({ label, sublabel, Component }, i) => (
-          <div key={i}>
-            <p style={{ fontFamily: "'Manrope', sans-serif", color: '#fff', fontWeight: 700, fontSize: '0.95rem', margin: '0 0 0.25rem 0', lineHeight: 1.4 }}>
-              {label}
+          <section key={i} style={{ minHeight: '100svh', scrollSnapAlign: 'start', scrollSnapStop: 'always', background: 'linear-gradient(145deg, #0F0E47 0%, #272757 55%, #505081 100%)', display: 'flex', flexDirection: 'column', padding: '2.5rem 1.5rem 2rem' }}>
+            {i === 0 && <div style={{ marginBottom: '2rem' }}><HorizonLogo size="3rem" /></div>}
+            {/* Progress bars */}
+            <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '1.5rem' }}>
+              {SLIDES.map((_, j) => (
+                <div key={j} style={{ height: '2px', flex: 1, borderRadius: '2px', background: j === i ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.2)' }} />
+              ))}
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.25rem' }}>
+              <div>
+                <p style={{ fontFamily: "'Manrope', sans-serif", color: '#fff', fontWeight: 700, fontSize: '1.1rem', margin: '0 0 0.4rem 0', lineHeight: 1.35 }}>{label}</p>
+                <p style={{ fontFamily: "'Manrope', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', margin: 0, lineHeight: 1.55 }}>{sublabel}</p>
+              </div>
+              <Component />
+            </div>
+            <p style={{ fontFamily: "'Manrope', sans-serif", color: 'rgba(255,255,255,0.35)', fontSize: '0.72rem', margin: '1.5rem 0 0', textAlign: 'center', letterSpacing: '0.04em' }}>
+              {i < SLIDES.length - 1 ? 'scroll for more ↓' : 'scroll to sign in ↓'}
             </p>
-            <p style={{ fontFamily: "'Manrope', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem', margin: '0 0 0.875rem 0', lineHeight: 1.5 }}>
-              {sublabel}
-            </p>
-            <Component />
-            {i < SLIDES.length - 1 && (
-              <div style={{ height: '1px', background: 'rgba(255,255,255,0.12)', margin: '1.5rem 0' }} />
-            )}
-          </div>
+          </section>
         ))}
+        {/* Form section */}
+        <section style={{ minHeight: '100svh', scrollSnapAlign: 'start', background: '#f7f7fc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem' }}>
+          <div style={{ width: '100%', maxWidth: '420px' }}>
+            <h2 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.6rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Continue learning with your class
+            </h2>
+            <p style={{ fontFamily: "'Manrope', sans-serif", color: '#505081', fontSize: '0.875rem', margin: '0 0 2rem 0', lineHeight: 1.6 }}>
+              Build on questions, uncover insights, and stay connected to what the class is discussing.
+            </p>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ fontFamily: "'Manrope', sans-serif", fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#505081', display: 'block', marginBottom: '0.5rem' }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="you@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.boxShadow = '0 0 0 2px rgba(39,39,87,0.25), 0 1px 3px rgba(15,14,71,0.08)')}
+                  onBlur={e => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(15,14,71,0.08), inset 0 1px 2px rgba(15,14,71,0.04)')}
+                />
+              </div>
+              <div>
+                <label style={{ fontFamily: "'Manrope', sans-serif", fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#505081', display: 'block', marginBottom: '0.5rem' }}>
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.boxShadow = '0 0 0 2px rgba(39,39,87,0.25), 0 1px 3px rgba(15,14,71,0.08)')}
+                  onBlur={e => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(15,14,71,0.08), inset 0 1px 2px rgba(15,14,71,0.04)')}
+                />
+              </div>
+
+              {error && (
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: '0.8rem', color: '#c0392b', margin: 0, background: 'rgba(186,26,26,0.06)', borderRadius: '0.5rem', padding: '0.75rem 1rem' }}>
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  marginTop: '0.25rem',
+                  width: '100%',
+                  background: isLoading ? '#8686AC' : 'linear-gradient(135deg, #272757, #505081)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  padding: '1rem',
+                  fontFamily: "'Manrope', sans-serif",
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  boxShadow: isLoading ? 'none' : '0 20px 40px -12px rgba(15,14,71,0.12)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {isLoading ? 'Signing in…' : 'Sign In'}
+              </button>
+            </form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0 0.75rem' }}>
+              <div style={{ flex: 1, height: '1px', background: '#d8d8e8' }} />
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '0.75rem', color: '#8686AC' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: '#d8d8e8' }} />
+            </div>
+
+            <Link
+              to="/signup"
+              style={{
+                display: 'block',
+                width: '100%',
+                textAlign: 'center',
+                background: 'transparent',
+                color: '#272757',
+                border: '1.5px solid rgba(39,39,87,0.35)',
+                borderRadius: '9999px',
+                padding: '0.875rem',
+                fontFamily: "'Manrope', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                letterSpacing: '0.04em',
+                boxSizing: 'border-box',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(39,39,87,0.05)'
+                ;(e.currentTarget as HTMLElement).style.borderColor = '#272757'
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent'
+                ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(39,39,87,0.35)'
+              }}
+            >
+              Get started here →
+            </Link>
+          </div>
+        </section>
       </div>
+
+      {/* ── Desktop layout (lg+) ── */}
+      <div className="hidden lg:flex min-h-screen flex-col lg:flex-row overflow-hidden" style={{ background: '#f7f7fc' }}>
 
       {/* ── Left panel (desktop only) ── */}
       <div
@@ -491,6 +602,7 @@ export default function LoginPage() {
             Get started here →
           </Link>
         </motion.div>
+      </div>
       </div>
     </div>
   )

@@ -60,17 +60,18 @@ async def signup(body: SignupRequest, db=Depends(get_db)):
             body.role,
         )
 
-        course_exists = await db.fetchval(
-            "SELECT 1 FROM courses WHERE id = $1", TUTORIAL_COURSE_ID
-        )
-        if course_exists:
-            await db.execute(
-                """INSERT INTO course_enrollments (course_id, student_id)
-                   VALUES ($1, $2)
-                   ON CONFLICT (course_id, student_id) DO NOTHING""",
-                TUTORIAL_COURSE_ID,
-                str(row["id"]),
+        if body.role == 'student':
+            course_exists = await db.fetchval(
+                "SELECT 1 FROM courses WHERE id = $1", TUTORIAL_COURSE_ID
             )
+            if course_exists:
+                await db.execute(
+                    """INSERT INTO course_enrollments (course_id, student_id)
+                       VALUES ($1, $2)
+                       ON CONFLICT (course_id, student_id) DO NOTHING""",
+                    TUTORIAL_COURSE_ID,
+                    str(row["id"]),
+                )
 
     token = create_access_token({
         "sub": str(row["id"]),

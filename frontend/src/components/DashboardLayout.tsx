@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {!isMobile && (
         <aside className="w-60 shrink-0 flex flex-col" style={{ background: '#ffffff', boxShadow: '1px 0 0 rgba(134,134,172,0.15)' }}>
           {/* Logo */}
-          <div className="px-5 py-6 flex items-center">
+          <div className="px-5 py-6 flex items-center justify-center">
             <button
               onClick={() => navigate(isProfessor ? '/instructor' : '/classes')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
