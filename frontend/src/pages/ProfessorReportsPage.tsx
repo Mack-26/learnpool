@@ -34,7 +34,7 @@ export default function ProfessorReportsPage() {
         transition={{ duration: 0.4 }}
       >
         <button
-          onClick={() => navigate(`/instructor/courses/${courseId}`)}
+          onClick={() => navigate(-1)}
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 transition-colors"
         >
           ← Back to Course
