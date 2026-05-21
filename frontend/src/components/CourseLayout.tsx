@@ -43,7 +43,7 @@ export default function CourseLayout({
   if (isMobile) {
     return (
       <DashboardLayout>
-        <button onClick={() => navigate(backPath)} className="text-sm text-muted-foreground hover:text-foreground mb-3 inline-flex items-center gap-1 transition-colors">
+        <button onClick={() => navigate(-1)} className="text-sm text-muted-foreground hover:text-foreground mb-3 inline-flex items-center gap-1 transition-colors">
           ← {backLabel}
         </button>
         {courseName && <h1 className="text-xl font-bold text-foreground mb-4">{courseName}</h1>}
@@ -65,7 +65,7 @@ export default function CourseLayout({
   return (
     <DashboardLayout>
       <button
-        onClick={() => navigate(backPath)}
+        onClick={() => navigate(-1)}
         className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 transition-colors"
       >
         ← {backLabel}

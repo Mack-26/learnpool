@@ -649,7 +649,7 @@ export default function AllQuestionsPage() {
       >
         {/* Back button */}
         <button
-          onClick={() => navigate(`/sessions/${sessionId}/report`)}
+          onClick={() => navigate(-1)}
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
