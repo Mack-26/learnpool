@@ -34,9 +34,10 @@ interface CategoryBarChartProps {
   data: CategoryData[]
   activeCategory: string | null
   onCategoryClick: (category: string | null) => void
+  fillHeight?: boolean
 }
 
-export default function CategoryBarChart({ data, activeCategory, onCategoryClick }: CategoryBarChartProps) {
+export default function CategoryBarChart({ data, activeCategory, onCategoryClick, fillHeight }: CategoryBarChartProps) {
   // Merge data with full category list (some may be 0)
   const chartData = CATEGORIES.map((cat) => {
     const found = data.find((d) => d.category === cat)
@@ -60,7 +61,7 @@ export default function CategoryBarChart({ data, activeCategory, onCategoryClick
           </button>
         </div>
       )}
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={fillHeight ? '100%' : 180}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis

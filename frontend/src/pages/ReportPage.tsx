@@ -713,14 +713,17 @@ export default function ReportPage() {
         {threads.length > 0 && sessionId && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
             {threadCategoryData.length > 0 ? (
-              <div className="rounded-xl border border-border bg-card p-4 self-start">
+              <div className="rounded-xl border border-border bg-card p-4 flex flex-col">
                 <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Category</h3>
                 <p className="text-xs text-muted-foreground mb-3">Click a bar to filter</p>
-                <CategoryBarChart
-                  data={threadCategoryData}
-                  activeCategory={activeThreadCategory}
-                  onCategoryClick={setActiveThreadCategory}
-                />
+                <div className="flex-1 min-h-0" style={{ minHeight: 180 }}>
+                  <CategoryBarChart
+                    data={threadCategoryData}
+                    activeCategory={activeThreadCategory}
+                    onCategoryClick={setActiveThreadCategory}
+                    fillHeight
+                  />
+                </div>
               </div>
             ) : (
               <div />
