@@ -5,7 +5,7 @@ import {
   AlertTriangle, ThumbsUp, ThumbsDown,
   MessageSquareText, ChevronRight, MessageSquare,
   GitFork, Pencil, Trash2, Check, X, Users,
-  WrenchIcon, RotateCcw, UserX, BookOpen,
+  WrenchIcon, RotateCcw, BookOpen,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
@@ -518,7 +518,7 @@ export default function ReportPage() {
 
   // ── To-do card computations ──
   const todoCards = useMemo(() => {
-    if (!isProfessor || !reportData) return null
+    if (!isProfessor) return null
 
     // Card 1: Fix These Answers — questions where downs > ups AND total >= 2
     const flaggedAnswers = allQs.filter((q) => {
@@ -537,10 +537,9 @@ export default function ReportPage() {
     }
     const topCategory = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]
 
-    // Card 3: Check In With — student with 0 or fewest questions (from studentActivity)
-    const silentStudent = studentActivity.length > 0
-      ? studentActivity[studentActivity.length - 1]
-      : null
+    // Card 3: Class Participation — how many enrolled students asked at least 1 question
+    const totalEnrolled = studentActivity.length
+    const activeStudents = studentActivity.filter((s) => s.question_count > 0).length
 
     // Card 4: Add Materials On — category with worst AI satisfaction (≥2 total votes)
     const catSatisfaction: Record<string, { ups: number; total: number }> = {}
@@ -561,8 +560,8 @@ export default function ReportPage() {
 
     const topCategoryForks = topCategory ? (catForks[topCategory[0]] ?? 0) : 0
 
-    return { flaggedAnswers, topCategory, topCategoryForks, silentStudent, worstCategory }
-  }, [isProfessor, reportData, allQs, studentActivity])
+    return { flaggedAnswers, topCategory, topCategoryForks, totalEnrolled, activeStudents, worstCategory }
+  }, [isProfessor, allQs, studentActivity])
 
   const totalAttention = isProfessor
     ? reportData?.groups.reduce((sum, g) => sum + g.questions.filter((q) => effectiveNeedsAttention(q)).length, 0) ?? 0
@@ -637,20 +636,22 @@ export default function ReportPage() {
             </div>
 
             {/* Card 3: Check In With */}
-            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.silentStudent?.question_count === 0 ? 'border-sky-200 bg-sky-50/30' : 'border-border'}`}>
+            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.totalEnrolled > 0 && todoCards.activeStudents < todoCards.totalEnrolled ? 'border-sky-200 bg-sky-50/30' : 'border-border'}`}>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-7 w-7 rounded-lg bg-sky-100 flex items-center justify-center">
-                  <UserX className="h-3.5 w-3.5 text-sky-600" />
+                  <Users className="h-3.5 w-3.5 text-sky-600" />
                 </div>
-                <span className="text-xs text-muted-foreground font-medium">Check In With</span>
+                <span className="text-xs text-muted-foreground font-medium">Class Participation</span>
               </div>
-              <p className="text-base font-bold text-foreground leading-tight truncate">
-                {todoCards.silentStudent?.display_name ?? '—'}
+              <p className="text-lg font-bold text-foreground leading-tight">
+                {todoCards.totalEnrolled > 0 ? `${todoCards.activeStudents} / ${todoCards.totalEnrolled}` : '—'}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {todoCards.silentStudent
-                  ? `${todoCards.silentStudent.question_count === 0 ? '0 questions this lecture' : `${todoCards.silentStudent.question_count} questions (least active)`}`
-                  : 'all students active'}
+                {todoCards.totalEnrolled === 0
+                  ? 'no enrollment data yet'
+                  : todoCards.activeStudents === todoCards.totalEnrolled
+                  ? 'all students participated'
+                  : `${todoCards.totalEnrolled - todoCards.activeStudents} didn't ask questions`}
               </p>
             </div>
 
@@ -716,7 +717,7 @@ export default function ReportPage() {
               <div className="rounded-xl border border-border bg-card p-4 flex flex-col">
                 <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Category</h3>
                 <p className="text-xs text-muted-foreground mb-3">Click a bar to filter</p>
-                <div className="flex-1 min-h-0" style={{ minHeight: 180 }}>
+                <div style={{ flex: 1, minHeight: 180, height: 0 }}>
                   <CategoryBarChart
                     data={threadCategoryData}
                     activeCategory={activeThreadCategory}

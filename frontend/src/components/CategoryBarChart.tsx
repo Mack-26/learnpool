@@ -49,7 +49,7 @@ export default function CategoryBarChart({ data, activeCategory, onCategoryClick
   }
 
   return (
-    <div className="w-full">
+    <div className={fillHeight ? 'w-full h-full flex flex-col' : 'w-full'}>
       {activeCategory && (
         <div className="flex items-center gap-2 mb-3">
           <span className="text-xs text-muted-foreground">Filtered by:</span>
@@ -61,7 +61,7 @@ export default function CategoryBarChart({ data, activeCategory, onCategoryClick
           </button>
         </div>
       )}
-      <ResponsiveContainer width="100%" height={fillHeight ? '100%' : 180}>
+      <ResponsiveContainer width="100%" height={fillHeight ? '100%' : 180} className={fillHeight ? 'flex-1' : ''}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
