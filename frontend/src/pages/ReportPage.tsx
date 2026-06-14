@@ -711,7 +711,7 @@ export default function ReportPage() {
 
         {/* ── Thread category chart + Material Coverage side by side ── */}
         {threads.length > 0 && sessionId && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 items-start">
             {threadCategoryData.length > 0 ? (
               <div className="rounded-xl border border-border bg-card p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Category</h3>
