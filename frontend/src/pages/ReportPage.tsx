@@ -713,7 +713,7 @@ export default function ReportPage() {
         {threads.length > 0 && sessionId && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
             {threadCategoryData.length > 0 ? (
-              <div className="rounded-xl border border-border bg-card p-4 h-full">
+              <div className="rounded-xl border border-border bg-card p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-1">Threads by Category</h3>
                 <p className="text-xs text-muted-foreground mb-3">Click a bar to filter</p>
                 <CategoryBarChart
