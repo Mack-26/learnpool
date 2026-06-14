@@ -15,21 +15,27 @@ from models import (
     ClassmateOut,
     CommentOut,
     CourseOut,
+    CourseOverviewResponse,
     CreateCommentRequest,
     CreateScheduleRequest,
     CreateSessionRequest,
     DocumentCitationOut,
     DocumentOut,
     ProfessorReviewRequest,
+    RecurringTopicItem,
     RichThreadOut,
     SessionDetail,
+    SessionOverviewItem,
     SessionReportResponse,
     SessionSummary,
     SessionWithDocuments,
+    StudentActivityItem,
     StudentOut,
+    StudentSummaryItem,
     SubmitFeedbackRequest,
     SubmitThreadFeedbackRequest,
     ThreadFeedbackOut,
+    TimelineBucket,
     UpdateSessionStatusRequest,
 )
 from services.document_service import process_text_document
@@ -1396,3 +1402,262 @@ async def get_course_students(
         )
         for r in rows
     ]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/sessions/{session_id}/student-activity
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions/{session_id}/student-activity", response_model=list[StudentActivityItem])
+async def get_student_activity(
+    session_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Per-student activity breakdown for a session, including enrolled students with 0 questions."""
+    # Verify professor owns this session
+    course_id = await db.fetchval(
+        """
+        SELECT s.course_id FROM sessions s
+        JOIN courses c ON c.id = s.course_id
+        WHERE s.id = $1 AND c.professor_id = $2
+        """,
+        session_id, current_user["id"],
+    )
+    if not course_id:
+        raise HTTPException(status_code=403, detail="Not your session")
+
+    rows = await db.fetch(
+        """
+        SELECT
+            u.id::text AS student_id,
+            u.display_name,
+            COUNT(DISTINCT q.id)           AS question_count,
+            COALESCE(SUM(q.fork_count), 0) AS fork_count,
+            COUNT(DISTINCT qc.id)          AS comment_count
+        FROM course_enrollments ce
+        JOIN users u ON u.id = ce.student_id
+        LEFT JOIN questions q ON q.student_id = u.id AND q.session_id = $1
+        LEFT JOIN question_comments qc ON qc.question_id = q.id AND qc.user_id = u.id
+        WHERE ce.course_id = $2
+        GROUP BY u.id, u.display_name
+        ORDER BY question_count DESC, fork_count DESC
+        """,
+        session_id, str(course_id),
+    )
+
+    # Compute composite score: questions*40 + forks*30 + comments*30
+    # Normalize against the top performer
+    raw = [
+        {
+            "student_id": r["student_id"],
+            "display_name": r["display_name"],
+            "question_count": r["question_count"],
+            "fork_count": r["fork_count"],
+            "comment_count": r["comment_count"],
+            "raw_score": r["question_count"] * 40 + r["fork_count"] * 30 + r["comment_count"] * 30,
+        }
+        for r in rows
+    ]
+    max_score = max((r["raw_score"] for r in raw), default=1) or 1
+
+    return [
+        StudentActivityItem(
+            student_id=r["student_id"],
+            display_name=r["display_name"],
+            question_count=r["question_count"],
+            fork_count=r["fork_count"],
+            comment_count=r["comment_count"],
+            score=min(100, round(r["raw_score"] / max_score * 100)),
+        )
+        for r in raw
+    ]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/sessions/{session_id}/timeline
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions/{session_id}/timeline", response_model=list[TimelineBucket])
+async def get_session_timeline(
+    session_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Questions bucketed into 5-minute windows relative to session start."""
+    owned = await db.fetchval(
+        """
+        SELECT 1 FROM sessions s
+        JOIN courses c ON c.id = s.course_id
+        WHERE s.id = $1 AND c.professor_id = $2
+        """,
+        session_id, current_user["id"],
+    )
+    if not owned:
+        raise HTTPException(status_code=403, detail="Not your session")
+
+    rows = await db.fetch(
+        """
+        SELECT
+            (FLOOR(EXTRACT(EPOCH FROM (q.asked_at - s.started_at)) / 300) * 5)::int AS bucket_start_min,
+            COUNT(*)::int AS count,
+            COUNT(*) FILTER (WHERE q.category = 'Doubts')::int    AS doubts,
+            COUNT(*) FILTER (WHERE q.category = 'Homework')::int   AS homework,
+            COUNT(*) FILTER (WHERE q.category = 'Exam Prep')::int  AS exam_prep,
+            COUNT(*) FILTER (WHERE q.category = 'Summaries')::int  AS summaries
+        FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        WHERE q.session_id = $1
+          AND q.asked_at >= s.started_at
+        GROUP BY bucket_start_min
+        ORDER BY bucket_start_min
+        """,
+        session_id,
+    )
+
+    return [
+        TimelineBucket(
+            bucket_start_min=max(0, r["bucket_start_min"]),
+            count=r["count"],
+            doubts=r["doubts"],
+            homework=r["homework"],
+            exam_prep=r["exam_prep"],
+            summaries=r["summaries"],
+        )
+        for r in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/professor/courses/{course_id}/overview
+# ---------------------------------------------------------------------------
+
+@router.get("/courses/{course_id}/overview", response_model=CourseOverviewResponse)
+async def get_course_overview(
+    course_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_professor),
+):
+    """Aggregated analytics across all past sessions for a course."""
+    owned = await db.fetchval(
+        "SELECT 1 FROM courses WHERE id = $1 AND professor_id = $2",
+        course_id, current_user["id"],
+    )
+    if not owned:
+        raise HTTPException(status_code=403, detail="Not your course")
+
+    # Per-session summary
+    session_rows = await db.fetch(
+        """
+        SELECT
+            s.id::text                                                 AS session_id,
+            s.title,
+            s.started_at,
+            COUNT(q.id)::int                                           AS question_count,
+            COUNT(DISTINCT q.student_id)::int                         AS participant_count,
+            MODE() WITHIN GROUP (ORDER BY q.category)                 AS top_category,
+            COUNT(DISTINCT CASE
+                WHEN af_agg.downs > af_agg.ups AND af_agg.total >= 2
+                THEN q.id END)::int                                    AS needs_attention_count,
+            CASE WHEN SUM(af_agg.total) > 0
+                THEN ROUND(SUM(af_agg.ups)::numeric / SUM(af_agg.total) * 100)::int
+                ELSE NULL END                                          AS satisfaction_pct
+        FROM sessions s
+        LEFT JOIN questions q ON q.session_id = s.id
+        LEFT JOIN LATERAL (
+            SELECT
+                COALESCE(SUM(CASE WHEN af.feedback = 'up'   THEN 1 ELSE 0 END), 0) AS ups,
+                COALESCE(SUM(CASE WHEN af.feedback = 'down' THEN 1 ELSE 0 END), 0) AS downs,
+                COUNT(af.id)::int AS total
+            FROM answers a
+            LEFT JOIN answer_feedback af ON af.answer_id = a.id
+            WHERE a.question_id = q.id
+        ) af_agg ON true
+        WHERE s.course_id = $1
+          AND s.status IN ('ended', 'released')
+        GROUP BY s.id, s.title, s.started_at
+        ORDER BY s.started_at
+        """,
+        course_id,
+    )
+
+    sessions = [
+        SessionOverviewItem(
+            session_id=r["session_id"],
+            title=r["title"],
+            started_at=r["started_at"].isoformat(),
+            question_count=r["question_count"],
+            participant_count=r["participant_count"],
+            top_category=r["top_category"],
+            needs_attention_count=r["needs_attention_count"],
+            satisfaction_pct=r["satisfaction_pct"],
+        )
+        for r in session_rows
+    ]
+
+    # Recurring topics — categories that appear across multiple sessions
+    topic_rows = await db.fetch(
+        """
+        SELECT
+            q.category,
+            COUNT(DISTINCT q.session_id)::int AS session_count,
+            COUNT(q.id)::int                  AS question_count
+        FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        WHERE s.course_id = $1
+          AND s.status IN ('ended', 'released')
+          AND q.category IS NOT NULL
+        GROUP BY q.category
+        ORDER BY session_count DESC, question_count DESC
+        """,
+        course_id,
+    )
+    recurring_topics = [
+        RecurringTopicItem(
+            category=r["category"],
+            session_count=r["session_count"],
+            question_count=r["question_count"],
+        )
+        for r in topic_rows
+    ]
+
+    # Total session count for context
+    total_sessions = len(sessions)
+
+    # Student summary — engagement per student across all sessions
+    student_rows = await db.fetch(
+        """
+        SELECT
+            u.id::text                            AS student_id,
+            u.display_name,
+            COUNT(q.id)::int                      AS total_questions,
+            COUNT(DISTINCT q.session_id)::int     AS sessions_active
+        FROM course_enrollments ce
+        JOIN users u ON u.id = ce.student_id
+        LEFT JOIN questions q ON q.student_id = u.id
+            AND q.session_id IN (
+                SELECT id FROM sessions
+                WHERE course_id = $1 AND status IN ('ended', 'released')
+            )
+        WHERE ce.course_id = $1
+        GROUP BY u.id, u.display_name
+        ORDER BY total_questions DESC
+        """,
+        course_id,
+    )
+    student_summary = [
+        StudentSummaryItem(
+            student_id=r["student_id"],
+            display_name=r["display_name"],
+            total_questions=r["total_questions"],
+            sessions_active=r["sessions_active"],
+            total_sessions=total_sessions,
+        )
+        for r in student_rows
+    ]
+
+    return CourseOverviewResponse(
+        sessions=sessions,
+        recurring_topics=recurring_topics,
+        student_summary=student_summary,
+    )

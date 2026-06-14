@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     context_material_token_budget: int = 8000
     max_answer_tokens: int = 800
 
-    model_config = SettingsConfigDict(env_file=_env_path, env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=_env_path, env_file_encoding="utf-8", extra="ignore")
 
 
 settings = Settings()

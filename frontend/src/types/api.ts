@@ -213,3 +213,52 @@ export interface SavedAnswerOut {
   session_title: string
   citations: CitationOut[]
 }
+
+export interface StudentActivityItem {
+  student_id: string
+  display_name: string
+  question_count: number
+  fork_count: number
+  comment_count: number
+  score: number
+}
+
+export interface TimelineBucket {
+  bucket_start_min: number
+  count: number
+  doubts: number
+  homework: number
+  exam_prep: number
+  summaries: number
+}
+
+export interface SessionOverviewItem {
+  session_id: string
+  title: string
+  started_at: string
+  question_count: number
+  participant_count: number
+  top_category: string | null
+  needs_attention_count: number
+  satisfaction_pct: number | null
+}
+
+export interface RecurringTopicItem {
+  category: string
+  session_count: number
+  question_count: number
+}
+
+export interface StudentSummaryItem {
+  student_id: string
+  display_name: string
+  total_questions: number
+  sessions_active: number
+  total_sessions: number
+}
+
+export interface CourseOverviewResponse {
+  sessions: SessionOverviewItem[]
+  recurring_topics: RecurringTopicItem[]
+  student_summary: StudentSummaryItem[]
+}

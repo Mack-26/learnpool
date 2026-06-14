@@ -321,3 +321,56 @@ class DocumentCitationOut(BaseModel):
     page_count: int | None
     total_citations: int
     pages: list[CitationPageOut]
+
+
+# ---------------------------------------------------------------------------
+# Analytics models
+# ---------------------------------------------------------------------------
+
+class StudentActivityItem(BaseModel):
+    student_id: str
+    display_name: str
+    question_count: int
+    fork_count: int
+    comment_count: int
+    score: int  # 0–100 composite
+
+
+class TimelineBucket(BaseModel):
+    bucket_start_min: int
+    count: int
+    doubts: int
+    homework: int
+    exam_prep: int
+    summaries: int
+
+
+class SessionOverviewItem(BaseModel):
+    session_id: str
+    title: str
+    started_at: str
+    question_count: int
+    participant_count: int
+    top_category: str | None
+    needs_attention_count: int
+    satisfaction_pct: int | None
+
+
+class RecurringTopicItem(BaseModel):
+    category: str
+    session_count: int
+    question_count: int
+
+
+class StudentSummaryItem(BaseModel):
+    student_id: str
+    display_name: str
+    total_questions: int
+    sessions_active: int
+    total_sessions: int
+
+
+class CourseOverviewResponse(BaseModel):
+    sessions: list[SessionOverviewItem]
+    recurring_topics: list[RecurringTopicItem]
+    student_summary: list[StudentSummaryItem]

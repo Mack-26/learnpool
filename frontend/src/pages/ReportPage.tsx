@@ -5,6 +5,7 @@ import {
   AlertTriangle, ThumbsUp, ThumbsDown,
   MessageSquareText, ChevronRight, MessageSquare,
   GitFork, Pencil, Trash2, Check, X, Users,
+  WrenchIcon, RotateCcw, UserX, BookOpen,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
@@ -15,6 +16,7 @@ import {
   getProfessorSessionReport,
   getProfessorSharedThreads, updateThreadReview, submitProfessorThreadFeedback,
   updateThreadTitle, deleteProfessorThread,
+  getStudentActivity, getSessionTimeline,
 } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
 import type {
@@ -27,6 +29,9 @@ import LabelBarChart from '@/components/LabelBarChart'
 import CommentThread from '@/components/CommentThread'
 import { renderAnswerWithCitations } from '@/components/AnswerRenderer'
 import CitationMapCard from '@/components/CitationMapCard'
+import StudentActivityTable from '@/components/StudentActivityTable'
+import QuestionTimeline from '@/components/QuestionTimeline'
+import AnswerQualityBreakdown from '@/components/AnswerQualityBreakdown'
 
 // ─── Label definitions ────────────────────────────────────────────────────────
 const DISCUSSED_LABEL = 'Discussed in class'
@@ -446,6 +451,19 @@ export default function ReportPage() {
     refetchInterval: 60_000,
   })
 
+  // ── Professor-only analytics ──
+  const { data: studentActivity = [] } = useQuery({
+    queryKey: ['student-activity', sessionId],
+    queryFn: () => getStudentActivity(sessionId!),
+    enabled: !!sessionId && isProfessor,
+  })
+
+  const { data: timeline = [] } = useQuery({
+    queryKey: ['session-timeline', sessionId],
+    queryFn: () => getSessionTimeline(sessionId!),
+    enabled: !!sessionId && isProfessor,
+  })
+
   // ── UI state ──
   const [showMineOnly, setShowMineOnly] = useState(false)
   const [activeLabel, setActiveLabel] = useState<string | null>(null)
@@ -498,6 +516,54 @@ export default function ReportPage() {
     return { totalQuestions: reportData.total_questions, uniqueStudents, totalVotes, engagementPct, totalForks }
   }, [reportData, allQs])
 
+  // ── To-do card computations ──
+  const todoCards = useMemo(() => {
+    if (!isProfessor || !reportData) return null
+
+    // Card 1: Fix These Answers — questions where downs > ups AND total >= 2
+    const flaggedAnswers = allQs.filter((q) => {
+      const up = q.feedback?.thumbs_up ?? 0
+      const down = q.feedback?.thumbs_down ?? 0
+      return down > up && (up + down) >= 2
+    })
+
+    // Card 2: Revisit Next Class — category with most questions
+    const catCounts: Record<string, number> = {}
+    const catForks: Record<string, number> = {}
+    for (const q of allQs) {
+      const cat = q.category ?? 'Doubts'
+      catCounts[cat] = (catCounts[cat] ?? 0) + 1
+      catForks[cat] = (catForks[cat] ?? 0) + (q.fork_count ?? 0)
+    }
+    const topCategory = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]
+
+    // Card 3: Check In With — student with 0 or fewest questions (from studentActivity)
+    const silentStudent = studentActivity.length > 0
+      ? studentActivity[studentActivity.length - 1]
+      : null
+
+    // Card 4: Add Materials On — category with worst AI satisfaction (≥2 total votes)
+    const catSatisfaction: Record<string, { ups: number; total: number }> = {}
+    for (const q of allQs) {
+      const cat = q.category ?? 'Doubts'
+      const up = q.feedback?.thumbs_up ?? 0
+      const down = q.feedback?.thumbs_down ?? 0
+      const total = up + down
+      if (total >= 2) {
+        if (!catSatisfaction[cat]) catSatisfaction[cat] = { ups: 0, total: 0 }
+        catSatisfaction[cat].ups += up
+        catSatisfaction[cat].total += total
+      }
+    }
+    const worstCategory = Object.entries(catSatisfaction)
+      .map(([cat, { ups, total }]) => ({ cat, rate: ups / total, total }))
+      .sort((a, b) => a.rate - b.rate)[0]
+
+    const topCategoryForks = topCategory ? (catForks[topCategory[0]] ?? 0) : 0
+
+    return { flaggedAnswers, topCategory, topCategoryForks, silentStudent, worstCategory }
+  }, [isProfessor, reportData, allQs, studentActivity])
+
   const totalAttention = isProfessor
     ? reportData?.groups.reduce((sum, g) => sum + g.questions.filter((q) => effectiveNeedsAttention(q)).length, 0) ?? 0
     : 0
@@ -533,8 +599,83 @@ export default function ReportPage() {
             : 'Threads shared by students in this session. Fork any thread to ask a follow-up.'}
         </p>
 
-        {/* ── Thread metrics row ── */}
-        {threadMetrics && (
+        {/* ── Professor to-do cards ── */}
+        {isProfessor && todoCards && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            {/* Card 1: Fix These Answers */}
+            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.flaggedAnswers.length > 0 ? 'border-red-200 bg-red-50/30' : 'border-border'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-7 w-7 rounded-lg bg-red-100 flex items-center justify-center">
+                  <WrenchIcon className="h-3.5 w-3.5 text-red-600" />
+                </div>
+                <span className="text-xs text-muted-foreground font-medium">Fix These Answers</span>
+              </div>
+              <p className={`text-lg font-bold ${todoCards.flaggedAnswers.length > 0 ? 'text-red-600' : 'text-foreground'}`}>
+                {todoCards.flaggedAnswers.length}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {todoCards.flaggedAnswers.length > 0 ? `flagged by students` : 'all answers well-rated'}
+              </p>
+            </div>
+
+            {/* Card 2: Revisit Next Class */}
+            <div className="rounded-xl border border-amber-200 bg-amber-50/30 bg-card p-3.5">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-7 w-7 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
+                </div>
+                <span className="text-xs text-muted-foreground font-medium">Revisit Next Class</span>
+              </div>
+              <p className="text-base font-bold text-foreground leading-tight">
+                {todoCards.topCategory ? todoCards.topCategory[0] : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {todoCards.topCategory
+                  ? `${todoCards.topCategory[1]} questions · ${todoCards.topCategoryForks} forks`
+                  : 'no data yet'}
+              </p>
+            </div>
+
+            {/* Card 3: Check In With */}
+            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.silentStudent?.question_count === 0 ? 'border-sky-200 bg-sky-50/30' : 'border-border'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-7 w-7 rounded-lg bg-sky-100 flex items-center justify-center">
+                  <UserX className="h-3.5 w-3.5 text-sky-600" />
+                </div>
+                <span className="text-xs text-muted-foreground font-medium">Check In With</span>
+              </div>
+              <p className="text-base font-bold text-foreground leading-tight truncate">
+                {todoCards.silentStudent?.display_name ?? '—'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {todoCards.silentStudent
+                  ? `${todoCards.silentStudent.question_count === 0 ? '0 questions this lecture' : `${todoCards.silentStudent.question_count} questions (least active)`}`
+                  : 'all students active'}
+              </p>
+            </div>
+
+            {/* Card 4: Add Materials On */}
+            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.worstCategory ? 'border-violet-200 bg-violet-50/30' : 'border-border'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-7 w-7 rounded-lg bg-violet-100 flex items-center justify-center">
+                  <BookOpen className="h-3.5 w-3.5 text-violet-600" />
+                </div>
+                <span className="text-xs text-muted-foreground font-medium">Add Materials On</span>
+              </div>
+              <p className="text-base font-bold text-foreground leading-tight">
+                {todoCards.worstCategory?.cat ?? '—'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {todoCards.worstCategory
+                  ? `${Math.round(todoCards.worstCategory.rate * 100)}% satisfaction · AI struggled`
+                  : 'AI performed well'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Student thread metrics (non-professor) ── */}
+        {!isProfessor && threadMetrics && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             {[
               { icon: MessageSquare, label: 'Threads Shared', value: threadMetrics.count, color: 'text-primary', bg: 'bg-primary/10' },
@@ -586,6 +727,15 @@ export default function ReportPage() {
             )}
             <div className="h-full"><CitationMapCard sessionId={sessionId} /></div>
           </div>
+        )}
+
+        {/* ── Professor analytics visualizations ── */}
+        {isProfessor && (
+          <>
+            <StudentActivityTable data={studentActivity} />
+            <QuestionTimeline data={timeline} />
+            <AnswerQualityBreakdown questions={allQs} />
+          </>
         )}
 
         {/* ── Professor: CTA to All Questions page ── */}
