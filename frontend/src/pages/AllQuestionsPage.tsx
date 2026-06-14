@@ -13,6 +13,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
 import CategoryBarChart from '@/components/CategoryBarChart'
 import CommentThread from '@/components/CommentThread'
+import { renderAnswerWithCitations } from '@/components/AnswerRenderer'
 import type { ReportQuestionOut, SessionReportResponse, TopicGroup } from '../types/api'
 
 // ─── Shared constants ─────────────────────────────────────────────────────────
@@ -236,7 +237,7 @@ function QuestionItem({
       {answer && (
         <div className="px-4 pb-4 pt-0 border-t border-border bg-card">
           <div className="pl-9 pt-3">
-            <p className="text-sm text-foreground whitespace-pre-wrap mb-3">{answer.content}</p>
+            <div className="text-sm text-foreground mb-3 prose prose-sm max-w-none">{renderAnswerWithCitations(answer.content, answer.citations)}</div>
             {answer.citations.length > 0 && (
               <div className="space-y-1.5">
                 <button
@@ -459,7 +460,7 @@ function ReviewCard({
       <div className="px-5 py-4 border-b border-border max-h-64 overflow-y-auto">
         {answer ? (
           <>
-            <p className="text-sm text-foreground whitespace-pre-wrap">{answer.content}</p>
+            <div className="text-sm text-foreground prose prose-sm max-w-none">{renderAnswerWithCitations(answer.content, answer.citations)}</div>
             {answer.citations.length > 0 && (
               <div className="mt-3">
                 <button
