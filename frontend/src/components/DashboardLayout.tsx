@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Bookmark, BookOpen, LogOut, Users, FileText } from 'lucide-react'
+import { Bookmark, BookOpen, LogOut, Users, FileText, User } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
@@ -29,6 +29,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuthStore()
   const isMobile = useIsMobile()
   const isProfessor = user?.role === 'professor'
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const courseIdMatch = location.pathname.match(
     isProfessor ? /\/instructor\/courses\/([^/]+)/ : /\/classes\/([^/]+)/
@@ -155,63 +156,139 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Bottom tab bar — mobile only */}
       {isMobile && (
-        <nav
-          className="fixed bottom-0 left-0 right-0 flex"
-          style={{
-            background: '#ffffff',
-            boxShadow: '0 -1px 0 rgba(134,134,172,0.18)',
-            height: '56px',
-            zIndex: 50,
-          }}
-        >
-          {navItems.map((item) => {
-            const isActive = activeItem?.path === item.path
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 relative"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: isActive ? '#272757' : '#8686AC',
-                  padding: '6px 4px 4px',
-                }}
+        <>
+          {/* Profile overlay */}
+          {profileOpen && (
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setProfileOpen(false)}
+            >
+              <div
+                className="absolute bottom-14 left-0 right-0 mx-3 rounded-2xl p-4"
+                style={{ background: '#ffffff', boxShadow: '0 -4px 24px rgba(15,14,71,0.12)' }}
+                onClick={(e) => e.stopPropagation()}
               >
-                {isActive && (
-                  <span
-                    className="absolute top-0 left-1/2"
-                    style={{
-                      transform: 'translateX(-50%)',
-                      width: '24px',
-                      height: '2px',
-                      borderRadius: '0 0 2px 2px',
-                      background: '#272757',
-                    }}
-                  />
+                {user && (
+                  <div className="flex items-center gap-3 mb-4 pb-4" style={{ borderBottom: '1px solid rgba(134,134,172,0.18)' }}>
+                    <div
+                      className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold text-white"
+                      style={{ background: 'linear-gradient(135deg, #272757, #505081)' }}
+                    >
+                      {user.display_name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{user.display_name}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                    </div>
+                  </div>
                 )}
-                <item.icon
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  style={{ color: '#ef4444' }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            </div>
+          )}
+
+          <nav
+            className="fixed bottom-0 left-0 right-0 flex"
+            style={{
+              background: '#ffffff',
+              boxShadow: '0 -1px 0 rgba(134,134,172,0.18)',
+              height: '56px',
+              zIndex: 50,
+            }}
+          >
+            {navItems.map((item) => {
+              const isActive = activeItem?.path === item.path
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => { setProfileOpen(false); navigate(item.path) }}
+                  className="flex-1 flex flex-col items-center justify-center gap-0.5 relative"
                   style={{
-                    width: '20px',
-                    height: '20px',
-                    strokeWidth: isActive ? 2.25 : 1.75,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: isActive ? 700 : 500,
-                    lineHeight: 1,
-                    fontFamily: "'Manrope', sans-serif",
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: isActive ? '#272757' : '#8686AC',
+                    padding: '6px 4px 4px',
                   }}
                 >
-                  {item.shortLabel}
-                </span>
-              </button>
-            )
-          })}
-        </nav>
+                  {isActive && (
+                    <span
+                      className="absolute top-0 left-1/2"
+                      style={{
+                        transform: 'translateX(-50%)',
+                        width: '24px',
+                        height: '2px',
+                        borderRadius: '0 0 2px 2px',
+                        background: '#272757',
+                      }}
+                    />
+                  )}
+                  <item.icon
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      strokeWidth: isActive ? 2.25 : 1.75,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: isActive ? 700 : 500,
+                      lineHeight: 1,
+                      fontFamily: "'Manrope', sans-serif",
+                    }}
+                  >
+                    {item.shortLabel}
+                  </span>
+                </button>
+              )
+            })}
+
+            {/* Account tab */}
+            <button
+              onClick={() => setProfileOpen((o) => !o)}
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 relative"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: profileOpen ? '#272757' : '#8686AC',
+                padding: '6px 4px 4px',
+              }}
+            >
+              {profileOpen && (
+                <span
+                  className="absolute top-0 left-1/2"
+                  style={{
+                    transform: 'translateX(-50%)',
+                    width: '24px',
+                    height: '2px',
+                    borderRadius: '0 0 2px 2px',
+                    background: '#272757',
+                  }}
+                />
+              )}
+              <User style={{ width: '20px', height: '20px', strokeWidth: profileOpen ? 2.25 : 1.75 }} />
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: profileOpen ? 700 : 500,
+                  lineHeight: 1,
+                  fontFamily: "'Manrope', sans-serif",
+                }}
+              >
+                Account
+              </span>
+            </button>
+          </nav>
+        </>
       )}
     </div>
   )
