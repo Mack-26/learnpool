@@ -29,7 +29,7 @@ const T = {
   shadow: '0 20px 40px -12px rgba(15,14,71,0.12)',
 }
 
-const serif = "'Newsreader', 'Georgia', serif"
+const serif = "'Instrument Serif', 'Georgia', serif"
 const sans = "'Manrope', sans-serif"
 
 type Role = 'student' | 'professor'
@@ -681,10 +681,10 @@ function StepInstructorReview() {
           Post-Class Review
         </span>
         <h1 style={{ fontFamily: serif, fontSize: 'clamp(1.75rem, 3vw, 2.75rem)', color: T.onSurface, margin: '0.5rem 0 0 0', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-          Review before your students see it.
+          While you taught, the AI answered every question.
         </h1>
         <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
-          After class, read through every AI answer. Label what you covered, flag anything wrong. Your notes become part of what students see when it's released.
+          Every answer is grounded in your materials and cited to the page. After class, scan what needs your eye — flag the rare exception, add a note where useful. Most answers won't need a change.
         </p>
       </div>
 

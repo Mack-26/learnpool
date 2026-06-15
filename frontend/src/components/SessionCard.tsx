@@ -1,5 +1,5 @@
 const sans = "'Manrope', sans-serif"
-const serif = "'Newsreader', 'Georgia', serif"
+const serif = "'Instrument Serif', 'Georgia', serif"
 
 interface SessionCardProps {
   title: string

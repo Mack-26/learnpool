@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import DefaultRedirect from './components/DefaultRedirect'
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import ClassListPage from './pages/ClassListPage'
@@ -22,6 +23,7 @@ import ClassmatesPage from './pages/ClassmatesPage'
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<OnboardingPage />} />
       {/* Student routes */}

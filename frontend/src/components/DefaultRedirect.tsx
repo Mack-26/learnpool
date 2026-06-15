@@ -6,7 +6,7 @@ export default function DefaultRedirect() {
   const token = useAuthStore((s) => s.token)
   const role = useAuthStore((s) => s.user?.role)
 
-  if (!token) return <Navigate to="/login" replace />
+  if (!token) return <Navigate to="/" replace />
   if (role === 'professor') return <Navigate to="/instructor" replace />
   return <Navigate to="/classes" replace />
 }

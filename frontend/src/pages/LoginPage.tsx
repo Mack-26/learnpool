@@ -297,7 +297,7 @@ export default function LoginPage() {
         {/* Form section */}
         <section style={{ minHeight: '100svh', scrollSnapAlign: 'start', background: '#f7f7fc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem' }}>
           <div style={{ width: '100%', maxWidth: '420px' }}>
-            <h2 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.6rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', 'Georgia', serif", fontSize: '1.6rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               Continue learning with your class
             </h2>
             <p style={{ fontFamily: "'Manrope', sans-serif", color: '#505081', fontSize: '0.875rem', margin: '0 0 2rem 0', lineHeight: 1.6 }}>
@@ -432,7 +432,7 @@ export default function LoginPage() {
 
           {/* Hero text */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.1 }} className="my-8">
-            <h1 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: 'clamp(2rem, 3.5vw, 3rem)', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, letterSpacing: '-0.02em', margin: 0 }}>
+            <h1 style={{ fontFamily: "'Instrument Serif', 'Georgia', serif", fontSize: 'clamp(2rem, 3.5vw, 3rem)', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, letterSpacing: '-0.02em', margin: 0 }}>
               The intelligence layer<br />
               <span style={{ color: 'rgba(255,255,255,0.6)' }}>for modern classrooms.</span>
             </h1>
@@ -494,7 +494,7 @@ export default function LoginPage() {
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.15 }} style={{ width: '100%', maxWidth: '420px' }}>
 
 
-          <h2 style={{ fontFamily: "'Newsreader', 'Georgia', serif", fontSize: '1.6rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+          <h2 style={{ fontFamily: "'Instrument Serif', 'Georgia', serif", fontSize: '1.6rem', fontWeight: 700, color: '#0F0E47', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
             Continue learning with your class
           </h2>
           <p style={{ fontFamily: "'Manrope', sans-serif", color: '#505081', fontSize: '0.875rem', margin: '0 0 2rem 0', lineHeight: 1.6 }}>
