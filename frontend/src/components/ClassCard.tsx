@@ -80,7 +80,7 @@ export default function ClassCard({ name, professor, status, onClick }: ClassCar
         <h3
           className="font-semibold text-white leading-snug line-clamp-2 mt-auto"
           style={{
-            fontFamily: "'Instrument Serif', 'Georgia', serif",
+            fontFamily: "'Newsreader', 'Georgia', serif",
             fontSize: '1.05rem',
             fontWeight: 600,
             letterSpacing: '-0.01em',

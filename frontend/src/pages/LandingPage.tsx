@@ -621,7 +621,7 @@ export default function LandingPage() {
         }}>
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-14">
           <Link to="/" className="flex items-center">
-            <HorizonLogo variant="dark" size="2rem" />
+            <HorizonLogo variant="light" size="2rem" />
           </Link>
           <nav className="flex items-center gap-3 sm:gap-5">
             <Link to="/login" className="text-sm transition-colors whitespace-nowrap" style={{ color: "#b6b1d9" }}
@@ -752,7 +752,7 @@ export default function LandingPage() {
       <footer className="px-6 py-8" style={{ borderTop: "1px solid rgba(182,177,217,0.07)" }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <HorizonLogo variant="dark" size="1.5rem" />
+            <HorizonLogo variant="light" size="1.5rem" />
           </Link>
           <span className="text-xs" style={{ fontFamily: "'DM Mono', monospace", color: "rgba(182,177,217,0.3)" }}>© 2026 Horizon Labs</span>
         </div>

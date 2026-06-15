@@ -29,7 +29,7 @@ const T = {
   shadow: '0 20px 40px -12px rgba(15,14,71,0.12)',
 }
 
-const serif = "'Instrument Serif', 'Georgia', serif"
+const serif = "'Newsreader', 'Georgia', serif"
 const sans = "'Manrope', sans-serif"
 
 type Role = 'student' | 'professor'
