@@ -602,6 +602,17 @@ function CyclingWord({ words, interval = 1800 }: { words: string[]; interval?: n
 export default function LandingPage() {
   const [vizActive, setVizActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const vizTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resetVizTimer = () => {
+    if (vizTimerRef.current) clearInterval(vizTimerRef.current);
+    vizTimerRef.current = setInterval(() => setVizActive(prev => !prev), 3500);
+  };
+
+  useEffect(() => {
+    resetVizTimer();
+    return () => { if (vizTimerRef.current) clearInterval(vizTimerRef.current); };
+  }, []);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 16);
@@ -686,7 +697,7 @@ export default function LandingPage() {
                 </div>
                 <div className="px-3 pb-2"><ClassroomVisual active={vizActive} /></div>
                 <div className="px-5 pb-5">
-                  <button onClick={() => setVizActive(!vizActive)}
+                  <button onClick={() => { setVizActive(prev => !prev); resetVizTimer(); }}
                     className="w-full py-2 rounded-xl font-medium transition-all duration-300 active:scale-[0.98]"
                     style={{
                       background: vizActive ? "rgba(124,131,245,0.1)" : "rgba(182,177,217,0.06)",
