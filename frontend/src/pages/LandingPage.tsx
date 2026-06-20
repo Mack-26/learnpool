@@ -561,6 +561,72 @@ function InsightSection() {
   );
 }
 
+// ── Section: What Horizon Does ────────────────────────────────────────────────
+function BenefitsSection() {
+  const { ref, on } = useReveal(0.08);
+
+  const fade = (d: number): React.CSSProperties => ({
+    opacity: on ? 1 : 0,
+    transform: on ? "translateY(0)" : "translateY(18px)",
+    transition: `opacity 0.7s ease ${d}ms, transform 0.7s ease ${d}ms`,
+  });
+
+  const studentBullets = [
+    "Get AI answers grounded in your actual course materials",
+    "See how classmates are thinking about the same problems",
+    "Know you're not the only one when something doesn't click",
+  ];
+
+  const instructorBullets = [
+    "Know where students are stuck before exams reveal it",
+    "See the questions students ask AI but never raise in class",
+    "Understand which concepts need more time before moving on",
+  ];
+
+  return (
+    <section ref={ref} className="py-20 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
+      <div className="max-w-6xl mx-auto">
+        <p style={{ ...fade(0), fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.12em", color: "rgba(182,177,217,0.42)", marginBottom: "2.5rem" }}>
+          WHAT HORIZON DOES
+        </p>
+        <div className="rounded-2xl p-10 md:p-14"
+          style={{ ...fade(80), background: "rgba(14,12,38,0.8)", border: "1px solid rgba(182,177,217,0.09)" }}>
+          <div className="grid md:grid-cols-2 gap-10 md:gap-16">
+            <div>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#7c83f5", marginBottom: "1.75rem" }}>
+                FOR STUDENTS
+              </p>
+              <div className="space-y-4">
+                {studentBullets.map((text, i) => (
+                  <div key={text} className="flex items-start gap-3"
+                    style={{ opacity: on ? 1 : 0, transition: `opacity 0.6s ease ${200 + i * 80}ms` }}>
+                    <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#7c83f5", flexShrink: 0, marginTop: "6px" }} />
+                    <span style={{ fontSize: "14px", color: "#f5f3ff", fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>{text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#f5a623", marginBottom: "1.75rem" }}>
+                FOR INSTRUCTORS
+              </p>
+              <div className="space-y-4">
+                {instructorBullets.map((text, i) => (
+                  <div key={text} className="flex items-start gap-3"
+                    style={{ opacity: on ? 1 : 0, transition: `opacity 0.6s ease ${200 + i * 80}ms` }}>
+                    <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#f5a623", flexShrink: 0, marginTop: "6px" }} />
+                    <span style={{ fontSize: "14px", color: "#f5f3ff", fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>{text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Cycling word animator ─────────────────────────────────────────────────────
 function CyclingWord({ words, interval = 1800 }: { words: string[]; interval?: number }) {
   const [index, setIndex] = useState(0);
@@ -720,6 +786,9 @@ export default function LandingPage() {
 
       {/* ── SECTION 3: AI DIDN'T REDUCE QUESTIONS ── */}
       <InsightSection />
+
+      {/* ── SECTION 4: WHAT HORIZON DOES ── */}
+      <BenefitsSection />
 
       {/* ── SOLUTION + CTA ── */}
       <section className="py-16 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
