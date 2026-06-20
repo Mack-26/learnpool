@@ -693,6 +693,19 @@ export default function LandingPage() {
                 </div>
                 <div className="px-3 pb-2"><ClassroomVisual active={vizActive} /></div>
                 <div className="px-5 pb-5">
+                  <p style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: "10px",
+                    letterSpacing: "0.05em",
+                    color: "rgba(182,177,217,0.45)",
+                    textAlign: "center",
+                    marginBottom: "0.75rem",
+                    transition: "opacity 0.4s ease",
+                  }}>
+                    {vizActive
+                      ? "3 question clusters identified · professor has full context"
+                      : "8 private AI conversations · 0 shared · professor sees nothing"}
+                  </p>
                   <button onClick={() => { setVizActive(prev => !prev); resetVizTimer(); }}
                     className="w-full py-2 rounded-xl font-medium transition-all duration-300 active:scale-[0.98]"
                     style={{
