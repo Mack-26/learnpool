@@ -435,10 +435,8 @@ function InsightSection() {
 
               <div>
                 {[
-                  { text: "AI Didn't Reduce", delay: 80, bright: true },
-                  { text: "Student Questions.", delay: 200, bright: true },
-                  { text: "It Changed Who Gets", delay: 330, bright: false },
-                  { text: "To See Them.", delay: 450, bright: false },
+                  { text: "Here's how big", delay: 80, bright: true },
+                  { text: "the gap actually is.", delay: 200, bright: false },
                 ].map(({ text, delay, bright }) => (
                   <div key={text} style={slideLeft(delay)}>
                     <span style={{
@@ -451,10 +449,6 @@ function InsightSection() {
                     }}>{text}</span>
                   </div>
                 ))}
-              </div>
-
-              <div className="space-y-3" style={fade(600)}>
-                <p style={{ fontSize: "15px", color: "rgba(182,177,217,0.52)", lineHeight: 1.78, maxWidth: "44ch" }}>Horizon makes AI-assisted learning visible and collective. giving professors insight into what their class is actually struggling with, without monitoring private conversations or adding overhead.</p>
               </div>
             </div>
 
