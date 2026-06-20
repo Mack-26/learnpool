@@ -383,21 +383,24 @@ function InsightSection() {
   const { ref, on } = useReveal(0.1);
   const [count, setCount] = useState(0);
   const [barsOn, setBarsOn] = useState(false);
+  const barsTriggered = useRef(false);
 
   useEffect(() => {
-    if (!on) return;
-    let frame = 0;
-    const totalFrames = 96;
-    const timer = setInterval(() => {
-      frame++;
-      const t = frame / totalFrames;
-      const eased = 1 - Math.pow(1 - t, 3);
-      setCount(Math.min(Math.round(eased * 90), 90));
-      if (frame >= totalFrames) clearInterval(timer);
-    }, 16);
-    const barDelay = setTimeout(() => setBarsOn(true), 500);
-    return () => { clearInterval(timer); clearTimeout(barDelay); };
-  }, [on]);
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.65)));
+      setCount(Math.round(progress * 90));
+      if (progress > 0.3 && !barsTriggered.current) {
+        barsTriggered.current = true;
+        setBarsOn(true);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const fade = (d: number): React.CSSProperties => ({
     opacity: on ? 1 : 0,
@@ -419,7 +422,7 @@ function InsightSection() {
 
           <div style={{ ...fade(0), width: "40px", height: "2px", background: "#7c83f5", opacity: 0.6, marginBottom: "2.5rem" }} />
 
-          <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-start">
+          <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-center">
 
             <div className="lg:col-span-3 flex flex-col gap-8">
 
@@ -432,9 +435,9 @@ function InsightSection() {
                     <span style={{
                       display: "block",
                       fontFamily: "'Instrument Serif', serif",
-                      fontSize: "clamp(2rem, 4.2vw, 3.4rem)",
+                      fontSize: "clamp(3rem, 6vw, 5rem)",
                       fontWeight: 400,
-                      lineHeight: 1.12,
+                      lineHeight: 1.08,
                       color: bright ? "#f5f3ff" : "rgba(245,243,255,0.38)",
                     }}>{text}</span>
                   </div>
@@ -576,9 +579,9 @@ function BenefitsSection() {
   return (
     <section ref={ref} className="py-20 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
       <div className="max-w-6xl mx-auto">
-        <p style={{ ...fade(0), fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.12em", color: "rgba(182,177,217,0.42)", marginBottom: "2.5rem" }}>
-          WHAT HORIZON DOES
-        </p>
+        <h2 style={{ ...fade(0), fontFamily: "'Instrument Serif', serif", fontSize: "clamp(2rem, 3.5vw, 2.8rem)", fontWeight: 400, color: "#f5f3ff", marginBottom: "2.5rem" }}>
+          What Horizon does
+        </h2>
         <div className="rounded-2xl p-10 md:p-14"
           style={{ ...fade(80), background: "rgba(14,12,38,0.8)", border: "1px solid rgba(182,177,217,0.09)" }}>
           <div className="grid md:grid-cols-2 gap-10 md:gap-16">
