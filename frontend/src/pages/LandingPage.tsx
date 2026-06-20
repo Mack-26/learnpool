@@ -179,16 +179,6 @@ function ClassroomVisual({ active }: { active: boolean }) {
             );
           })}
 
-        <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="10" fontFamily="'DM Mono', monospace"
-          fill="rgba(182,177,217,0.35)" letterSpacing="0.5"
-          style={{ opacity: active ? 0 : 1, transition: "opacity 0.4s ease" }}>
-          8 private AI conversations · 0 shared · professor sees nothing
-        </text>
-        <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="10" fontFamily="'DM Mono', monospace"
-          fill="rgba(182,177,217,0.4)" letterSpacing="0.5"
-          style={{ opacity: active ? 1 : 0, transition: "opacity 0.6s ease 0.6s" }}>
-          3 question clusters identified · professor has full context
-        </text>
       </svg>
     </div>
   );
@@ -599,7 +589,11 @@ function BenefitsSection() {
               <div className="space-y-4">
                 {studentBullets.map((text, i) => (
                   <div key={text} className="flex items-start gap-3"
-                    style={{ opacity: on ? 1 : 0, transition: `opacity 0.6s ease ${200 + i * 80}ms` }}>
+                    style={{
+                      opacity: on ? 1 : 0,
+                      transform: on ? "translateY(0)" : "translateY(12px)",
+                      transition: `opacity 0.6s ease ${200 + i * 80}ms, transform 0.6s ease ${200 + i * 80}ms`,
+                    }}>
                     <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#7c83f5", flexShrink: 0, marginTop: "6px" }} />
                     <span style={{ fontSize: "14px", color: "#f5f3ff", fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>{text}</span>
                   </div>
@@ -613,7 +607,11 @@ function BenefitsSection() {
               <div className="space-y-4">
                 {instructorBullets.map((text, i) => (
                   <div key={text} className="flex items-start gap-3"
-                    style={{ opacity: on ? 1 : 0, transition: `opacity 0.6s ease ${200 + i * 80}ms` }}>
+                    style={{
+                      opacity: on ? 1 : 0,
+                      transform: on ? "translateY(0)" : "translateY(12px)",
+                      transition: `opacity 0.6s ease ${200 + i * 80}ms, transform 0.6s ease ${200 + i * 80}ms`,
+                    }}>
                     <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#f5a623", flexShrink: 0, marginTop: "6px" }} />
                     <span style={{ fontSize: "14px", color: "#f5f3ff", fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>{text}</span>
                   </div>
@@ -784,7 +782,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── SECTION 3: AI DIDN'T REDUCE QUESTIONS ── */}
+      {/* ── SECTION 3: INSIGHT / SCALE OF THE GAP ── */}
       <InsightSection />
 
       {/* ── SECTION 4: WHAT HORIZON DOES ── */}
