@@ -794,19 +794,11 @@ export default function LandingPage() {
       <section className="py-16 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
         <div className="max-w-xl mx-auto text-center">
 
-          <h2 className="mb-4 leading-snug"
+          <h2 className="mb-8 leading-snug"
             style={{ fontFamily: "'Instrument Serif', serif", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 400, color: "#f5f3ff", lineHeight: 1.15 }}>
-            Horizon Restores Visibility
-            <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Into AI-Assisted Learning.</span>
+            Learning is already happening with AI.
+            <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Make sure it happens together.</span>
           </h2>
-
-          <p className="mb-5 text-[15px] leading-relaxed" style={{ color: "#b6b1d9" }}>
-            Students will keep learning with AI. Horizon makes that learning visible — to professors, and to the class.
-          </p>
-
-          <p className="mb-8" style={{ fontFamily: "'Instrument Serif', serif", fontSize: "clamp(1rem, 1.8vw, 1.2rem)", color: "#f5f3ff", lineHeight: 1.5 }}>
-            Whether you're a student or an educator —<br />see how Horizon works for your role.
-          </p>
 
           <Link to="/signup"
             className="inline-flex items-center gap-3 rounded-xl font-medium transition-all hover:opacity-90 active:scale-[0.98] mb-5"
