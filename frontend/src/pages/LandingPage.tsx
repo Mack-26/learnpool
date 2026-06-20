@@ -653,16 +653,12 @@ export default function LandingPage() {
             <div>
               <h1 className="mb-5 leading-[1.08] tracking-tight"
                 style={{ fontFamily: "'Instrument Serif', serif", fontSize: "clamp(2.4rem, 4.5vw, 3.5rem)", fontWeight: 400, color: "#f5f3ff" }}>
-                The questions didn't stop.
-                <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>They just went private.</span>
+                Students already learn with AI.
+                <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Horizon makes that learning visible.</span>
               </h1>
-              <p className="text-base leading-relaxed mb-4" style={{ color: "#b6b1d9", maxWidth: "42ch" }}>
-                Students are using AI{" "}
-                <CyclingWord words={["constantly", "privately", "invisibly"]} />
-                <br />
-                The questions are still there. The curiosity is still there. But the classroom can't see any of it.
+              <p className="text-base leading-relaxed mb-8" style={{ color: "#b6b1d9", maxWidth: "42ch" }}>
+                Students are asking ChatGPT questions anyway. Horizon turns those private conversations into shared learning, giving instructors insight into what their class actually struggles with.
               </p>
-              <p className="text-base leading-relaxed mb-8" style={{ color: "#b6b1d9", maxWidth: "42ch" }}></p>
               <Link to="/signup" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: "#ede9fe", color: "#211d45" }}>
                 Get started here <ArrowRight size={15} />
