@@ -1,73 +1,85 @@
-# LearnPool ("Horizon") Demo Video — Script & Shot List
+# Horizon — Sales Demo Video (School Administrators)
 
-**Length:** 2–3 min · **Audience:** customers (students/institutions) — investor-safe, no separate cut
-**Thesis:** AI made learning solitary. Horizon makes it social again — the whole class, and the AI, thinking out loud together.
-**Course used:** Comedy 101 (production), logged in as `aromanan@umich.edu`
+**Length:** 90–120s · **Audience:** school/university administrators (procurement decision-makers — deans, provosts, IT/academic affairs) seeing the product for the first time
+**Goal:** generate interest and a booked demo — not a feature tour
+**Core message:** Your students are already using AI to study. Right now you have zero visibility into it. Horizon gives you that visibility, grounded in your own faculty's materials.
 
----
-
-## Beat 1 — Hook (0:00–0:15)
-**Screen:** Generic AI chat UI (or LandingPage's "8 private conversations, 0 shared" panel), mocked as a lone student typing.
-**VO:**
-> "Every student in this class is asking AI the same questions right now. Alone. In private tabs nobody else will ever see."
-
-## Beat 2 — Turn (0:15–0:25)
-**Screen:** Cut to LearnPool login → Comedy 101 class card.
-**VO:**
-> "Horizon puts those questions back in the room."
-
-## Beat 3 — Ask + Answer (0:25–0:55)
-**Screen:** ChatPage, live session. Ask a real question about the course material — e.g. joke structure (setup/punchline/tag).
-**VO:**
-> "Ask anything about today's lecture. The answer comes straight from your TA's own materials — cited, page and all — not the open internet."
-**Action:** Show citation chip, click through to the cited page.
-
-## Beat 4 — Classmates verify it (0:55–1:25)
-**Screen:** Navigate to the session Report/Feed. Open **"Why does the Rule of Three beat a 4th item?"**
-**VO:**
-> "But you're not the only one who asked. Three classmates already saw this answer — and confirmed it."
-**Action:** Point at the **Answer Quality Breakdown** diverging bar (green, all agreement). Then scroll to the flagged thread:
-> "And when the AI oversimplifies — like this answer on punching down — the class catches it too."
-**Action:** Show **"Is punching down ever okay if it's self-deprecating?"** — mixed green/red bar (1 up, 2 down), and Jake's comment calling out the oversimplification. This is the money shot: **AI answers get verified by real people, not just trusted blindly.**
-
-## Beat 5 — Learn how others are learning (1:25–1:55)
-**Screen:** Same feed — scroll to **"How long should I wait before a callback?"** and its fork, **"Ideal callback distance for a 5-minute set?"**
-**VO:**
-> "See a question close to yours? Fork it. Build on what a classmate already asked, instead of starting over."
-**Action:** Click the fork badge, show the linked thread. Then pan to the Citation Map card:
-> "Every answer traces back to the exact page it came from — so 'the AI said so' is never the end of the story."
-
-## Beat 6 — Zoom out (1:55–2:20)
-**Screen:** Category chart (now visible to students too).
-**VO:**
-> "Zoom out, and you can see what the whole class is stuck on take shape — not just your own questions."
-**Action:** Click a category bar to filter and show the class's question spread across Doubts / Homework / Exam Prep / Summaries.
-
-## Beat 7 — Close (2:20–2:30)
-**Screen:** Clean class card / logo end screen.
-**VO:**
-> "AI didn't have to make studying lonely. Horizon puts the class back in class."
-
-**On-screen text:** *Horizon — learn out loud.*
+This replaces the earlier longer, student-facing cut — for a cold administrator audience, lead with the institutional risk/opportunity, not the social-learning story.
 
 ---
 
-## Shot checklist (record in this order for clean cuts)
+## Why this angle, for this audience
 
-| # | Screen | Notes |
-|---|---|---|
-| 1 | Login as `aromanan@umich.edu` → Comedy 101 class card | Keep short, 3–4 sec |
-| 2 | ChatPage: ask a live question about joke structure, get cited answer | Let the citation animate in fully |
-| 3 | Report/Feed: "Why does the Rule of Three beat a 4th item?" (3/3 agreement) | Answer Quality Breakdown bar fully green |
-| 4 | Report/Feed: "Is punching down ever okay if it's self-deprecating?" (1 up / 2 down) | Scroll slowly, let the red show + Jake's flag comment |
-| 5 | Report/Feed: "How long before a callback?" → fork → "Ideal callback distance for a 5-min set?" | Click the fork link live |
-| 6 | Citation Map card — The Big Book of Comedy and Joke Writing | Hover a page bar, now ordered p.3 → p.45 |
-| 7 | Category bar chart — click filter | |
-| 8 | End card | |
+Admins don't buy "cool features" — they buy risk reduction and oversight. Two things matter to a buyer signing off on a campus-wide tool:
+1. **Academic integrity / accuracy** — is the AI trustworthy, and is it grounded in *our* curriculum, not the open internet?
+2. **Visibility** — can faculty and administration actually see what's happening, or is this another shadow-IT black box like students privately using ChatGPT?
+
+The whole script is built around answering those two questions in under two minutes, then asking for the meeting.
+
+---
+
+## Script
+
+### 0:00–0:08 — Hook (institutional risk)
+**Screen:** Text card or generic-chat b-roll, no Horizon UI yet.
+**VO:**
+> "Your students are already asking AI for help with coursework. Right now, your faculty have no idea what they're asking — or whether the answers are even right."
+
+### 0:08–0:15 — Turn (the fix)
+**Screen:** Horizon logo reveal → class/course card.
+**VO:**
+> "Horizon puts that AI conversation inside your own courses — grounded, governed, and visible."
+
+### 0:15–0:40 — Grounded answer (trust)
+**Screen:** ChatPage — student asks a real question, gets an answer with a citation chip; click through to the cited page of the faculty's own course PDF.
+**VO:**
+> "Every answer comes from your faculty's own course materials — not the open internet. Cited, every time. No hallucinated homework help."
+
+### 0:40–1:15 — Verified, not just trusted (the payoff)
+**Screen:** Cut to the TA/report dashboard. Show Answer Quality Breakdown: a fully green thread (agreement), then a flagged thread (red/mixed) with a classmate's comment catching an oversimplified answer.
+**VO:**
+> "And every answer gets checked — by the students actually in the room. When the AI gets something wrong, your faculty see it immediately. Not at the end of the semester."
+
+### 1:15–1:30 — Institutional visibility (zoom out)
+**Screen:** Category chart / class-wide question spread.
+**VO:**
+> "One dashboard. Every course. Full visibility into how your students are actually learning with AI — today, not in a policy review next year."
+
+### 1:30–1:45(–2:00) — Close + CTA
+**Screen:** Horizon logo, clean end card.
+**VO:**
+> "Let's put your institution's AI strategy on solid ground."
+**On-screen text:**
+> **See Horizon on your campus.**
+> **Book a demo — horizonlabs.live**
+
+Total: ~105s at the VO pace above (comfortably inside 90–120s; the flagged-thread beat is the easiest place to add or trim 10–15s if the edit runs long or short).
+
+---
+
+## Shot list
+
+| # | Time | Screen | Type |
+|---|---|---|---|
+| 1 | 0:00–0:08 | Problem hook (text card / generic chat b-roll) | Motion graphic or stock b-roll |
+| 2 | 0:08–0:15 | Logo reveal → class card | Screen recording |
+| 3 | 0:15–0:40 | ChatPage: ask question → cited answer → click citation | Screen recording |
+| 4 | 0:40–0:55 | Report page: fully-agreed thread (Answer Quality Breakdown, green) | Screen recording |
+| 5 | 0:55–1:15 | Report page: flagged thread (mixed/red bar + classmate comment) | Screen recording |
+| 6 | 1:15–1:30 | Category bar chart, class-wide view | Screen recording or screenshot |
+| 7 | 1:30–end | End card: logo + "Book a demo — horizonlabs.live" | Motion graphic |
+
+## Assets to gather before animating
+
+- **Logo:** exported Horizon wordmark/icon, transparent background, both light and dark versions (`HorizonLogo.tsx` in the repo is the source of truth for the mark)
+- **Screen recording A:** ChatPage — one clean take of asking a question and the cited answer arriving (use Comedy 101 prod data; a joke-structure question works well — natural, low-jargon, easy for a non-technical admin to follow)
+- **Screen recording B:** Report page scrolled to Answer Quality Breakdown, showing one fully-green thread
+- **Screen recording C:** Report page scrolled to a flagged/mixed thread, with the classmate comment visible
+- **Screenshot or short recording:** category bar chart
+- **End card copy:** "See Horizon on your campus." / "Book a demo — horizonlabs.live" (design once, reuse as both video end card and, if useful, a static follow-up image for outbound email)
 
 ## Before recording
 
-1. Data is already live in production — Comedy 101, session "Lecture 20/05/2026," released, 6 threads seeded.
-2. Log in as `aromanan@umich.edu` on horizonlabs.live for the student-side shots.
-3. Confirm Answer Quality Breakdown renders on the Report page before recording.
-4. For a local/offline rehearsal instead, use `make db-up && make db-seed` + `db/seed_demo_threads.sql` — that's ML-themed placeholder data, not what's described above.
+1. Log in as `aromanan@umich.edu` on horizonlabs.live — Comedy 101 now has a full 30-student class's worth of data (106 threads, verified and flagged examples, category spread).
+2. Pick one un-shown, clean flagged thread and one clean fully-agreed thread ahead of time so the recording doesn't require hunting on camera.
+3. Record each shot in isolation (not as one continuous take) — you'll be handing these to an animation/editing tool as separate assets, not cutting a single screen capture.

@@ -350,20 +350,74 @@
     .beat { grid-template-columns: 2.6rem 1.2rem 1fr; }
     .beat-time { font-size: 0.62rem; padding-right: 0.4rem; }
   }
+
+  .rationale {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 3rem;
+    font-size: 0.92rem;
+    color: var(--ink-dim);
+  }
+
+  .rationale ol {
+    margin: 0.75rem 0 0;
+    padding-left: 1.2rem;
+  }
+
+  .rationale li { margin-bottom: 0.5rem; }
+  .rationale li:last-child { margin-bottom: 0; }
+  .rationale strong { color: var(--ink); }
+
+  .cta-card {
+    text-align: center;
+    margin: 0 0 3.5rem;
+    padding: 2.75rem 1.5rem;
+    border-radius: 0.75rem;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+  }
+
+  .cta-card .line {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .cta-card .link {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
 </style>
 
 <div class="page">
-  <p class="eyebrow">Horizon — Product Demo</p>
-  <h1>Demo Video Script</h1>
+  <p class="eyebrow">Horizon — Sales Demo Video</p>
+  <h1>School Administrators Cut</h1>
   <p class="thesis">
-    <strong>Thesis:</strong> AI made learning solitary. Horizon makes it social again —
-    the whole class, and the AI, thinking out loud together.
+    <strong>Core message:</strong> Your students are already using AI to study. Right now you have
+    zero visibility into it. Horizon gives you that visibility, grounded in your own faculty's materials.
   </p>
 
   <div class="meta-row">
-    <span>Runtime <b>2:00–2:30</b></span>
-    <span>Audience <b>Customers</b></span>
-    <span>Format <b>Screen recording + VO</b></span>
+    <span>Runtime <b>90–120s</b></span>
+    <span>Audience <b>Deans / provosts / academic affairs</b></span>
+    <span>Goal <b>Booked demo</b></span>
+  </div>
+
+  <div class="rationale">
+    <strong>Why this angle</strong> — admins don't buy features, they buy risk reduction and
+    oversight. Two questions decide whether they take the meeting:
+    <ol>
+      <li><strong>Academic integrity</strong> — is the AI trustworthy, grounded in <em>our</em> curriculum, not the open internet?</li>
+      <li><strong>Visibility</strong> — can faculty and administration see what's happening, or is this shadow-IT like students privately using ChatGPT?</li>
+    </ol>
+    The whole script answers both in under two minutes, then asks for the meeting. No social-learning
+    framing, no feature tour — this replaces the earlier longer, student-facing cut for a cold
+    administrator audience.
   </div>
 
   <div class="timeline">
@@ -372,9 +426,19 @@
       <div class="beat-time">0:00</div>
       <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
       <div class="beat-body">
-        <div class="beat-screen">generic AI chat, one student alone</div>
-        <p class="beat-title">1 · The hook</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"Every student in this class is asking AI the same questions right now. Alone. In private tabs nobody else will ever see."</div>
+        <div class="beat-screen">text card / generic-chat b-roll — no Horizon UI yet</div>
+        <p class="beat-title">1 · Hook — institutional risk</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Your students are already asking AI for help with coursework. Right now, your faculty have no idea what they're asking — or whether the answers are even right."</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">0:08</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">logo reveal → class card</div>
+        <p class="beat-title">2 · The fix</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Horizon puts that AI conversation inside your own courses — grounded, governed, and visible."</div>
       </div>
     </div>
 
@@ -382,103 +446,95 @@
       <div class="beat-time">0:15</div>
       <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
       <div class="beat-body">
-        <div class="beat-screen">login → class card</div>
-        <p class="beat-title">2 · The turn</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"Horizon puts those questions back in the room."</div>
+        <div class="beat-screen">ChatPage — question → cited answer</div>
+        <p class="beat-title">3 · Grounded answer (trust)</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Every answer comes from your faculty's own course materials — not the open internet. Cited, every time. No hallucinated homework help."</div>
+        <p class="action"><b>Action:</b> ask a real question, show the citation chip, click through to the cited page of the faculty's own PDF.</p>
       </div>
     </div>
 
     <div class="beat">
-      <div class="beat-time">0:25</div>
+      <div class="beat-time">0:40</div>
       <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
       <div class="beat-body">
-        <div class="beat-screen">ChatPage, live session</div>
-        <p class="beat-title">3 · Ask + answer</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"Ask anything about today's lecture. The answer comes straight from your TA's own materials — cited, page and all — not the open internet."</div>
-        <p class="action"><b>Action:</b> ask a live question about joke structure (e.g. setup/punchline/tag), show the citation chip, click through to the cited page.</p>
+        <div class="beat-screen">Report page — Answer Quality Breakdown</div>
+        <p class="beat-title">4 · Verified, not just trusted (the payoff)</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"And every answer gets checked — by the students actually in the room. When the AI gets something wrong, your faculty see it immediately. Not at the end of the semester."</div>
+        <span class="callout verify">● fully-agreed thread — green bar</span>
+        <p class="action" style="margin-top:0.5rem"><b>Action:</b> cut to a flagged/mixed thread with a classmate's comment catching an oversimplified answer.</p>
+        <span class="callout flag">▲ flagged thread — mixed/red bar + comment</span>
       </div>
     </div>
 
     <div class="beat">
-      <div class="beat-time">0:55</div>
+      <div class="beat-time">1:15</div>
       <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
       <div class="beat-body">
-        <div class="beat-screen">Report / Feed — thread view</div>
-        <p class="beat-title">4 · Classmates verify it</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"But you're not the only one who asked. Three classmates already saw the Rule of Three answer — and confirmed it."</div>
-        <span class="callout verify">● 3/3 agreement — Answer Quality Breakdown</span>
-        <p class="action">Then: <b>"And when the AI oversimplifies — like this answer on punching down — the class catches it too."</b></p>
-        <span class="callout flag">▲ 1 up · 2 down — flagged by classmates</span>
+        <div class="beat-screen">Category bar chart, class-wide view</div>
+        <p class="beat-title">5 · Institutional visibility (zoom out)</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"One dashboard. Every course. Full visibility into how your students are actually learning with AI — today, not in a policy review next year."</div>
       </div>
     </div>
 
     <div class="beat">
-      <div class="beat-time">1:25</div>
-      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
-      <div class="beat-body">
-        <div class="beat-screen">Feed — fork + citation map</div>
-        <p class="beat-title">5 · Learn how others are learning</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"See a question close to yours? Fork it. Build on what a classmate already asked, instead of starting over."</div>
-        <p class="action"><b>Action:</b> open "How long should I wait before a callback?" → click its fork → "Ideal callback distance for a 5-minute set?" Then pan to the Citation Map card.</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"Every answer traces back to the exact page it came from — so 'the AI said so' is never the end of the story."</div>
-      </div>
-    </div>
-
-    <div class="beat">
-      <div class="beat-time">1:55</div>
-      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
-      <div class="beat-body">
-        <div class="beat-screen">Category chart</div>
-        <p class="beat-title">6 · Zoom out</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"Zoom out, and you can see what the whole class is stuck on take shape — not just your own questions."</div>
-        <p class="action"><b>Action:</b> click a category bar to filter and show the class's question spread.</p>
-      </div>
-    </div>
-
-    <div class="beat">
-      <div class="beat-time">2:20</div>
+      <div class="beat-time">1:30</div>
       <div class="beat-rail"><div class="beat-dot"></div></div>
       <div class="beat-body">
         <div class="beat-screen">end card</div>
-        <p class="beat-title">7 · Close</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"AI didn't have to make studying lonely. Horizon puts the class back in class."</div>
+        <p class="beat-title">6 · Close + CTA</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Let's put your institution's AI strategy on solid ground."</div>
       </div>
     </div>
 
   </div>
 
-  <div class="end-card">
-    <div class="line">"Horizon — learn out loud."</div>
-    <div class="sub">on-screen closing text</div>
+  <div class="cta-card">
+    <div class="line">See Horizon on your campus.</div>
+    <div class="link">Book a demo — horizonlabs.live</div>
   </div>
 
-  <h2>Shot checklist</h2>
-  <p class="section-note">Record in this order for clean cuts.</p>
+  <p class="section-note">
+    Total ≈105s at the VO pace above — comfortably inside 90–120s. Beat 4 (the flagged-thread cut) is
+    the easiest place to add or trim 10–15s if the edit runs long or short.
+  </p>
+
+  <h2>Shot list</h2>
+  <p class="section-note">Hand these off as separate assets to whatever animation tool you're using — not one continuous take.</p>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>#</th><th>Screen</th><th>Notes</th></tr>
+        <tr><th>#</th><th>Time</th><th>Screen</th><th>Type</th></tr>
       </thead>
       <tbody>
-        <tr><td class="num">1</td><td>Login as aromanan@umich.edu → Comedy 101 class card</td><td class="notes">Keep short, 3–4 sec</td></tr>
-        <tr><td class="num">2</td><td>ChatPage: ask a live question about joke structure, get cited answer</td><td class="notes">Let the citation animate in fully</td></tr>
-        <tr><td class="num">3</td><td>Report/Feed: "Why does the Rule of Three beat a 4th item?" (3/3 agreement)</td><td class="notes">Answer Quality Breakdown bar fully green</td></tr>
-        <tr><td class="num">4</td><td>Report/Feed: "Is punching down ever okay if it's self-deprecating?" (1 up / 2 down)</td><td class="notes">Scroll slowly, let the red show + Jake's flag comment</td></tr>
-        <tr><td class="num">5</td><td>Report/Feed: "How long before a callback?" → fork → "Ideal callback distance for a 5-min set?"</td><td class="notes">Click the fork link live</td></tr>
-        <tr><td class="num">6</td><td>Citation Map card — The Big Book of Comedy and Joke Writing</td><td class="notes">Hover a page bar, now ordered p.3 → p.45</td></tr>
-        <tr><td class="num">7</td><td>Category bar chart — click filter</td><td class="notes">—</td></tr>
-        <tr><td class="num">8</td><td>End card</td><td class="notes">—</td></tr>
+        <tr><td class="num">1</td><td>0:00–0:08</td><td>Problem hook (text card / generic chat b-roll)</td><td class="notes">Motion graphic or stock b-roll</td></tr>
+        <tr><td class="num">2</td><td>0:08–0:15</td><td>Logo reveal → class card</td><td class="notes">Screen recording</td></tr>
+        <tr><td class="num">3</td><td>0:15–0:40</td><td>ChatPage: ask question → cited answer → click citation</td><td class="notes">Screen recording</td></tr>
+        <tr><td class="num">4</td><td>0:40–0:55</td><td>Report page: fully-agreed thread (green Answer Quality Breakdown)</td><td class="notes">Screen recording</td></tr>
+        <tr><td class="num">5</td><td>0:55–1:15</td><td>Report page: flagged thread (mixed/red bar + comment)</td><td class="notes">Screen recording</td></tr>
+        <tr><td class="num">6</td><td>1:15–1:30</td><td>Category bar chart, class-wide view</td><td class="notes">Screen recording or screenshot</td></tr>
+        <tr><td class="num">7</td><td>1:30–end</td><td>End card: logo + "Book a demo — horizonlabs.live"</td><td class="notes">Motion graphic</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <h2>Assets to gather before animating</h2>
+  <div class="prep">
+    <ol>
+      <li><strong>Logo:</strong> exported Horizon wordmark/icon, transparent background, light + dark versions (<code>HorizonLogo.tsx</code> in the repo is the source of truth)</li>
+      <li><strong>Screen recording A:</strong> ChatPage — one clean take of asking a question and the cited answer arriving (Comedy 101 prod data; a joke-structure question is natural and low-jargon for a non-technical admin)</li>
+      <li><strong>Screen recording B:</strong> Report page scrolled to Answer Quality Breakdown, one fully-green thread</li>
+      <li><strong>Screen recording C:</strong> Report page scrolled to a flagged/mixed thread, classmate comment visible</li>
+      <li><strong>Screenshot or short recording:</strong> category bar chart</li>
+      <li><strong>End card copy:</strong> "See Horizon on your campus." / "Book a demo — horizonlabs.live" — design once, reuse as the video end card and a static outbound-email image</li>
+    </ol>
   </div>
 
   <h2>Before recording</h2>
   <div class="prep">
     <ol>
-      <li>Data is already live in production — Comedy 101, session "Lecture 20/05/2026," released, 6 threads seeded</li>
-      <li>Log in as <code>aromanan@umich.edu</code> on horizonlabs.live for the student-side shots</li>
-      <li>Confirm Answer Quality Breakdown renders on the Report page before recording</li>
-      <li>For a local/offline rehearsal instead, use <code>make db-up && make db-seed</code> + <code>db/seed_demo_threads.sql</code> (ML-themed placeholder data, not what's used above)</li>
+      <li>Log in as <code>aromanan@umich.edu</code> on horizonlabs.live — Comedy 101 now has a full 30-student class's worth of data (106 threads, verified and flagged examples, category spread)</li>
+      <li>Pick one clean flagged thread and one clean fully-agreed thread ahead of time so recording doesn't require hunting on camera</li>
+      <li>Record each shot in isolation — you're handing these off as separate assets, not cutting a single screen capture</li>
     </ol>
   </div>
 </div>
