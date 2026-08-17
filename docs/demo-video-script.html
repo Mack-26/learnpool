@@ -395,7 +395,7 @@
         <div class="beat-screen">ChatPage, live session</div>
         <p class="beat-title">3 · Ask + answer</p>
         <div class="vo"><span class="vo-label">VOICEOVER</span>"Ask anything about today's lecture. The answer comes straight from your TA's own materials — cited, page and all — not the open internet."</div>
-        <p class="action"><b>Action:</b> ask the MSE / cost-function question, show the citation chip, click through to the cited page.</p>
+        <p class="action"><b>Action:</b> ask a live question about joke structure (e.g. setup/punchline/tag), show the citation chip, click through to the cited page.</p>
       </div>
     </div>
 
@@ -405,9 +405,9 @@
       <div class="beat-body">
         <div class="beat-screen">Report / Feed — thread view</div>
         <p class="beat-title">4 · Classmates verify it</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"But you're not the only one who asked. Three classmates already saw this answer — and confirmed it."</div>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"But you're not the only one who asked. Three classmates already saw the Rule of Three answer — and confirmed it."</div>
         <span class="callout verify">● 3/3 agreement — Answer Quality Breakdown</span>
-        <p class="action">Then: <b>"And when the AI gets something wrong — like this gradient descent answer — the class catches it too."</b></p>
+        <p class="action">Then: <b>"And when the AI oversimplifies — like this answer on punching down — the class catches it too."</b></p>
         <span class="callout flag">▲ 1 up · 2 down — flagged by classmates</span>
       </div>
     </div>
@@ -419,7 +419,7 @@
         <div class="beat-screen">Feed — fork + citation map</div>
         <p class="beat-title">5 · Learn how others are learning</p>
         <div class="vo"><span class="vo-label">VOICEOVER</span>"See a question close to yours? Fork it. Build on what a classmate already asked, instead of starting over."</div>
-        <p class="action"><b>Action:</b> open "How do I calculate R²?" → click its fork → "Adjusted R² — when should I use it?" Then pan to the Citation Map card.</p>
+        <p class="action"><b>Action:</b> open "How long should I wait before a callback?" → click its fork → "Ideal callback distance for a 5-minute set?" Then pan to the Citation Map card.</p>
         <div class="vo"><span class="vo-label">VOICEOVER</span>"Every answer traces back to the exact page it came from — so 'the AI said so' is never the end of the story."</div>
       </div>
     </div>
@@ -428,10 +428,10 @@
       <div class="beat-time">1:55</div>
       <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
       <div class="beat-body">
-        <div class="beat-screen">Category chart + Question Timeline</div>
+        <div class="beat-screen">Category chart</div>
         <p class="beat-title">6 · Zoom out</p>
-        <div class="vo"><span class="vo-label">VOICEOVER</span>"Zoom out, and you can see the whole class's confusion take shape in real time — what everyone's stuck on, and when."</div>
-        <p class="action"><b>Action:</b> click a category bar to filter, show the timeline spike during a hard concept.</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Zoom out, and you can see what the whole class is stuck on take shape — not just your own questions."</div>
+        <p class="action"><b>Action:</b> click a category bar to filter and show the class's question spread.</p>
       </div>
     </div>
 
@@ -460,15 +460,14 @@
         <tr><th>#</th><th>Screen</th><th>Notes</th></tr>
       </thead>
       <tbody>
-        <tr><td class="num">1</td><td>Login → class card</td><td class="notes">Keep short, 3–4 sec</td></tr>
-        <tr><td class="num">2</td><td>ChatPage: ask MSE question, get cited answer</td><td class="notes">Let the citation animate in fully</td></tr>
-        <tr><td class="num">3</td><td>Report/Feed: hero thread (3/3 agreement)</td><td class="notes">Answer Quality Breakdown bar fully green</td></tr>
-        <tr><td class="num">4</td><td>Report/Feed: flagged thread (1 up / 2 down)</td><td class="notes">Scroll slowly, let the red show</td></tr>
-        <tr><td class="num">5</td><td>Report/Feed: R² thread → fork → forked thread</td><td class="notes">Click the fork link live</td></tr>
-        <tr><td class="num">6</td><td>Citation Map card</td><td class="notes">Hover a page bar</td></tr>
+        <tr><td class="num">1</td><td>Login as aromanan@umich.edu → Comedy 101 class card</td><td class="notes">Keep short, 3–4 sec</td></tr>
+        <tr><td class="num">2</td><td>ChatPage: ask a live question about joke structure, get cited answer</td><td class="notes">Let the citation animate in fully</td></tr>
+        <tr><td class="num">3</td><td>Report/Feed: "Why does the Rule of Three beat a 4th item?" (3/3 agreement)</td><td class="notes">Answer Quality Breakdown bar fully green</td></tr>
+        <tr><td class="num">4</td><td>Report/Feed: "Is punching down ever okay if it's self-deprecating?" (1 up / 2 down)</td><td class="notes">Scroll slowly, let the red show + Jake's flag comment</td></tr>
+        <tr><td class="num">5</td><td>Report/Feed: "How long before a callback?" → fork → "Ideal callback distance for a 5-min set?"</td><td class="notes">Click the fork link live</td></tr>
+        <tr><td class="num">6</td><td>Citation Map card — The Big Book of Comedy and Joke Writing</td><td class="notes">Hover a page bar, now ordered p.3 → p.45</td></tr>
         <tr><td class="num">7</td><td>Category bar chart — click filter</td><td class="notes">—</td></tr>
-        <tr><td class="num">8</td><td>Question Timeline</td><td class="notes">—</td></tr>
-        <tr><td class="num">9</td><td>End card</td><td class="notes">—</td></tr>
+        <tr><td class="num">8</td><td>End card</td><td class="notes">—</td></tr>
       </tbody>
     </table>
   </div>
@@ -476,10 +475,10 @@
   <h2>Before recording</h2>
   <div class="prep">
     <ol>
-      <li><code>make db-up && make db-seed</code></li>
-      <li>Apply <code>db/seed_demo_threads.sql</code> — see the file header for the exact command</li>
-      <li>Log in as <code>alice@example.com</code> / <code>devpassword</code> for the student-side shots</li>
-      <li>Confirm Answer Quality Breakdown and Question Timeline render for the student role on the Report page before recording</li>
+      <li>Data is already live in production — Comedy 101, session "Lecture 20/05/2026," released, 6 threads seeded</li>
+      <li>Log in as <code>aromanan@umich.edu</code> on horizonlabs.live for the student-side shots</li>
+      <li>Confirm Answer Quality Breakdown renders on the Report page before recording</li>
+      <li>For a local/offline rehearsal instead, use <code>make db-up && make db-seed</code> + <code>db/seed_demo_threads.sql</code> (ML-themed placeholder data, not what's used above)</li>
     </ol>
   </div>
 </div>
