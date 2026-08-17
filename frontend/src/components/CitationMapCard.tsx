@@ -20,7 +20,13 @@ function DocCitationSection({ doc }: { doc: DocumentCitationOut }) {
   // Inline text docs have a single null page entry
   const isInline = doc.pages.length === 1 && doc.pages[0].page_number === null
 
-  const sortedPages = [...doc.pages].sort((a, b) => b.citation_count - a.citation_count)
+  // Ordered by page number (reading order), not by relevance/citation count —
+  // inline docs (page_number === null) sort last.
+  const sortedPages = [...doc.pages].sort((a, b) => {
+    if (a.page_number == null) return 1
+    if (b.page_number == null) return -1
+    return a.page_number - b.page_number
+  })
   const displayPages = showAll ? sortedPages : sortedPages.slice(0, MAX_SHOWN)
 
   const chartData = displayPages.map((p) => ({
