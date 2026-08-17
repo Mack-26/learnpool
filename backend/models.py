@@ -336,15 +336,6 @@ class StudentActivityItem(BaseModel):
     score: int  # 0–100 composite
 
 
-class TimelineBucket(BaseModel):
-    bucket_start_min: int
-    count: int
-    doubts: int
-    homework: int
-    exam_prep: int
-    summaries: int
-
-
 class SessionOverviewItem(BaseModel):
     session_id: str
     title: str

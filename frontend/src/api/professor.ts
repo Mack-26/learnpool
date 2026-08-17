@@ -1,4 +1,4 @@
-import type { CommentOut, CourseOut, CourseOverviewResponse, DocumentCitationOut, DocumentOut, RichThreadOut, SessionReportResponse, SessionSummary, StudentActivityItem, StudentOut, ThreadFeedbackOut, TimelineBucket } from '../types/api'
+import type { CommentOut, CourseOut, CourseOverviewResponse, DocumentCitationOut, DocumentOut, RichThreadOut, SessionReportResponse, SessionSummary, StudentActivityItem, StudentOut, ThreadFeedbackOut } from '../types/api'
 import client from './client'
 
 export async function getProfessorCourses(): Promise<CourseOut[]> {
@@ -240,11 +240,6 @@ export async function getCourseStudents(courseId: string): Promise<StudentOut[]>
 
 export async function getStudentActivity(sessionId: string): Promise<StudentActivityItem[]> {
   const res = await client.get<StudentActivityItem[]>(`/api/professor/sessions/${sessionId}/student-activity`)
-  return res.data
-}
-
-export async function getSessionTimeline(sessionId: string): Promise<TimelineBucket[]> {
-  const res = await client.get<TimelineBucket[]>(`/api/professor/sessions/${sessionId}/timeline`)
   return res.data
 }
 

@@ -223,15 +223,6 @@ export interface StudentActivityItem {
   score: number
 }
 
-export interface TimelineBucket {
-  bucket_start_min: number
-  count: number
-  doubts: number
-  homework: number
-  exam_prep: number
-  summaries: number
-}
-
 export interface SessionOverviewItem {
   session_id: string
   title: string

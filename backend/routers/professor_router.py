@@ -35,12 +35,11 @@ from models import (
     SubmitFeedbackRequest,
     SubmitThreadFeedbackRequest,
     ThreadFeedbackOut,
-    TimelineBucket,
     UpdateSessionStatusRequest,
 )
 from services.document_service import process_text_document
 from services.file_extractor import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, extract_text_from_file
-from services.report_service import build_session_report, build_session_timeline, invalidate_report_cache_for_session
+from services.report_service import build_session_report, invalidate_report_cache_for_session
 
 router = APIRouter(prefix="/api/professor", tags=["professor"])
 
@@ -1472,31 +1471,6 @@ async def get_student_activity(
         )
         for r in raw
     ]
-
-
-# ---------------------------------------------------------------------------
-# GET /api/professor/sessions/{session_id}/timeline
-# ---------------------------------------------------------------------------
-
-@router.get("/sessions/{session_id}/timeline", response_model=list[TimelineBucket])
-async def get_session_timeline(
-    session_id: str,
-    db=Depends(get_db),
-    current_user: dict = Depends(_require_professor),
-):
-    """Questions bucketed into 5-minute windows relative to session start."""
-    owned = await db.fetchval(
-        """
-        SELECT 1 FROM sessions s
-        JOIN courses c ON c.id = s.course_id
-        WHERE s.id = $1 AND c.professor_id = $2
-        """,
-        session_id, current_user["id"],
-    )
-    if not owned:
-        raise HTTPException(status_code=403, detail="Not your session")
-
-    return await build_session_timeline(db, session_id)
 
 
 # ---------------------------------------------------------------------------

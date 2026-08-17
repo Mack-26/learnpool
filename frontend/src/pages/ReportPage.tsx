@@ -11,13 +11,12 @@ import { useMemo, useState } from 'react'
 import {
   getSessionReport, getSharedThreads,
   submitThreadFeedback, forkThread,
-  getSessionTimeline as getStudentSessionTimeline,
 } from '../api/sessions'
 import {
   getProfessorSessionReport,
   getProfessorSharedThreads, updateThreadReview, submitProfessorThreadFeedback,
   updateThreadTitle, deleteProfessorThread,
-  getStudentActivity, getSessionTimeline as getProfessorSessionTimeline,
+  getStudentActivity,
 } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
 import type {
@@ -31,7 +30,6 @@ import CommentThread from '@/components/CommentThread'
 import { renderAnswerWithCitations } from '@/components/AnswerRenderer'
 import CitationMapCard from '@/components/CitationMapCard'
 import StudentActivityTable from '@/components/StudentActivityTable'
-import QuestionTimeline from '@/components/QuestionTimeline'
 import AnswerQualityBreakdown from '@/components/AnswerQualityBreakdown'
 
 // ─── Label definitions ────────────────────────────────────────────────────────
@@ -459,15 +457,6 @@ export default function ReportPage() {
     enabled: !!sessionId && isProfessor,
   })
 
-  // ── Question timeline (both roles — aggregate counts only, no student identity) ──
-  const { data: timeline = [] } = useQuery({
-    queryKey: ['session-timeline', sessionId],
-    queryFn: () => isProfessor
-      ? getProfessorSessionTimeline(sessionId!)
-      : getStudentSessionTimeline(sessionId!),
-    enabled: !!sessionId,
-  })
-
   // ── UI state ──
   const [showMineOnly, setShowMineOnly] = useState(false)
   const [activeLabel, setActiveLabel] = useState<string | null>(null)
@@ -740,8 +729,7 @@ export default function ReportPage() {
         {/* ── Professor-only: per-student participation table ── */}
         {isProfessor && <StudentActivityTable data={studentActivity} />}
 
-        {/* ── Both roles: class-wide question timeline + answer consensus ── */}
-        <QuestionTimeline data={timeline} />
+        {/* ── Both roles: class-wide answer consensus ── */}
         <AnswerQualityBreakdown questions={allQs} />
 
         {/* ── Professor: CTA to All Questions page ── */}
