@@ -11,6 +11,7 @@ from models import (
     ReportQuestionOut,
     RepeatingQuestionGroup,
     SessionReportResponse,
+    TimelineBucket,
     TopicGroup,
 )
 
@@ -228,3 +229,42 @@ async def build_session_report(
         "question_count": len(report_items),
     }
     return report
+
+
+async def build_session_timeline(db, session_id: str) -> list[TimelineBucket]:
+    """Questions bucketed into 5-minute windows relative to session start.
+
+    Purely aggregate counts — no student identity — so it's safe to expose
+    to both professors and enrolled students.
+    """
+    rows = await db.fetch(
+        """
+        WITH base AS (
+            SELECT MIN(asked_at) AS first_asked FROM questions WHERE session_id = $1
+        )
+        SELECT
+            (FLOOR(EXTRACT(EPOCH FROM (q.asked_at - b.first_asked)) / 300) * 5)::int AS bucket_start_min,
+            COUNT(*)::int AS count,
+            COUNT(*) FILTER (WHERE q.category = 'Doubts')::int    AS doubts,
+            COUNT(*) FILTER (WHERE q.category = 'Homework')::int   AS homework,
+            COUNT(*) FILTER (WHERE q.category = 'Exam Prep')::int  AS exam_prep,
+            COUNT(*) FILTER (WHERE q.category = 'Summaries')::int  AS summaries
+        FROM questions q, base b
+        WHERE q.session_id = $1
+        GROUP BY bucket_start_min
+        ORDER BY bucket_start_min
+        """,
+        session_id,
+    )
+
+    return [
+        TimelineBucket(
+            bucket_start_min=max(0, r["bucket_start_min"]),
+            count=r["count"],
+            doubts=r["doubts"],
+            homework=r["homework"],
+            exam_prep=r["exam_prep"],
+            summaries=r["summaries"],
+        )
+        for r in rows
+    ]

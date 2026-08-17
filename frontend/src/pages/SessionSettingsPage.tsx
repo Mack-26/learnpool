@@ -98,7 +98,7 @@ export default function SessionSettingsPage() {
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-foreground">How it works:</span> Your selected personality is
             sent as hidden context with every question you ask. The AI adjusts its tone accordingly —
-            the professor and other students cannot see this preference.
+            the teaching assistant and other students cannot see this preference.
           </p>
         </div>
       </motion.div>

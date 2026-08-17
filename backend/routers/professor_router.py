@@ -40,7 +40,7 @@ from models import (
 )
 from services.document_service import process_text_document
 from services.file_extractor import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, extract_text_from_file
-from services.report_service import build_session_report, invalidate_report_cache_for_session
+from services.report_service import build_session_report, build_session_timeline, invalidate_report_cache_for_session
 
 router = APIRouter(prefix="/api/professor", tags=["professor"])
 
@@ -1496,37 +1496,7 @@ async def get_session_timeline(
     if not owned:
         raise HTTPException(status_code=403, detail="Not your session")
 
-    rows = await db.fetch(
-        """
-        WITH base AS (
-            SELECT MIN(asked_at) AS first_asked FROM questions WHERE session_id = $1
-        )
-        SELECT
-            (FLOOR(EXTRACT(EPOCH FROM (q.asked_at - b.first_asked)) / 300) * 5)::int AS bucket_start_min,
-            COUNT(*)::int AS count,
-            COUNT(*) FILTER (WHERE q.category = 'Doubts')::int    AS doubts,
-            COUNT(*) FILTER (WHERE q.category = 'Homework')::int   AS homework,
-            COUNT(*) FILTER (WHERE q.category = 'Exam Prep')::int  AS exam_prep,
-            COUNT(*) FILTER (WHERE q.category = 'Summaries')::int  AS summaries
-        FROM questions q, base b
-        WHERE q.session_id = $1
-        GROUP BY bucket_start_min
-        ORDER BY bucket_start_min
-        """,
-        session_id,
-    )
-
-    return [
-        TimelineBucket(
-            bucket_start_min=max(0, r["bucket_start_min"]),
-            count=r["count"],
-            doubts=r["doubts"],
-            homework=r["homework"],
-            exam_prep=r["exam_prep"],
-            summaries=r["summaries"],
-        )
-        for r in rows
-    ]
+    return await build_session_timeline(db, session_id)
 
 
 # ---------------------------------------------------------------------------

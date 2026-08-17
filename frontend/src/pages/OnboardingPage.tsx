@@ -46,8 +46,8 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
     },
     {
       role: 'professor',
-      title: 'Instructor',
-      icon: 'I',
+      title: 'Teaching Assistant',
+      icon: 'TA',
       desc: 'Upload your materials, run live sessions, and know what\'s confusing your class.',
     },
   ]
@@ -133,7 +133,7 @@ function StepInsight() {
           Answers from your lecture notes. Cited to the page.
         </h1>
         <p style={{ fontFamily: sans, fontSize: '0.95rem', color: T.onSurfaceVariant, marginTop: '0.75rem', lineHeight: 1.65, maxWidth: mobile ? '440px' : 'none' }}>
-          Your professor activates today's chapters. Every answer cites the exact page. Nothing from the internet — only your specific class.
+          Your teaching assistant activates today's chapters. Every answer cites the exact page. Nothing from the internet — only your specific class.
         </p>
       </div>
 
@@ -706,7 +706,7 @@ function StepInstructorReview() {
             If α is too large, the optimizer overshoots the minimum and may diverge entirely…
           </p>
 
-          <p style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: T.onSurfaceVariant, margin: '0 0 0.5rem 0' }}>Professor Labels</p>
+          <p style={{ fontFamily: sans, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: T.onSurfaceVariant, margin: '0 0 0.5rem 0' }}>Teaching Assistant Labels</p>
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             {[
               { emoji: '✓', label: 'Discussed', active: true },

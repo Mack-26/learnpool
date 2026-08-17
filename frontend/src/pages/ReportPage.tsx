@@ -11,12 +11,13 @@ import { useMemo, useState } from 'react'
 import {
   getSessionReport, getSharedThreads,
   submitThreadFeedback, forkThread,
+  getSessionTimeline as getStudentSessionTimeline,
 } from '../api/sessions'
 import {
   getProfessorSessionReport,
   getProfessorSharedThreads, updateThreadReview, submitProfessorThreadFeedback,
   updateThreadTitle, deleteProfessorThread,
-  getStudentActivity, getSessionTimeline,
+  getStudentActivity, getSessionTimeline as getProfessorSessionTimeline,
 } from '../api/professor'
 import { useAuthStore } from '../store/authStore'
 import type {
@@ -441,13 +442,13 @@ export default function ReportPage() {
     refetchInterval: 30_000,
   })
 
-  // ── Questions (professor: unshared section; student: not shown) ──
+  // ── Questions (professor: unshared section + own review data; student: class-wide, anonymised) ──
   const { data: reportData } = useQuery({
     queryKey: reportQueryKey,
     queryFn: () => isProfessor
       ? getProfessorSessionReport(sessionId!)
       : getSessionReport(sessionId!),
-    enabled: !!sessionId && isProfessor,
+    enabled: !!sessionId,
     refetchInterval: 60_000,
   })
 
@@ -458,10 +459,13 @@ export default function ReportPage() {
     enabled: !!sessionId && isProfessor,
   })
 
+  // ── Question timeline (both roles — aggregate counts only, no student identity) ──
   const { data: timeline = [] } = useQuery({
     queryKey: ['session-timeline', sessionId],
-    queryFn: () => getSessionTimeline(sessionId!),
-    enabled: !!sessionId && isProfessor,
+    queryFn: () => isProfessor
+      ? getProfessorSessionTimeline(sessionId!)
+      : getStudentSessionTimeline(sessionId!),
+    enabled: !!sessionId,
   })
 
   // ── UI state ──
@@ -733,14 +737,12 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* ── Professor analytics visualizations ── */}
-        {isProfessor && (
-          <>
-            <StudentActivityTable data={studentActivity} />
-            <QuestionTimeline data={timeline} />
-            <AnswerQualityBreakdown questions={allQs} />
-          </>
-        )}
+        {/* ── Professor-only: per-student participation table ── */}
+        {isProfessor && <StudentActivityTable data={studentActivity} />}
+
+        {/* ── Both roles: class-wide question timeline + answer consensus ── */}
+        <QuestionTimeline data={timeline} />
+        <AnswerQualityBreakdown questions={allQs} />
 
         {/* ── Professor: CTA to All Questions page ── */}
         {isProfessor && (

@@ -57,7 +57,7 @@ export default function ClassmatesPage() {
             {professors.length > 0 && (
               <section>
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                  Instructor{professors.length > 1 ? 's' : ''} ({professors.length})
+                  Teaching Assistant{professors.length > 1 ? 's' : ''} ({professors.length})
                 </h3>
                 <div className="rounded-xl border border-border bg-card overflow-hidden">
                   {professors.map((person, i) => (
@@ -74,7 +74,7 @@ export default function ClassmatesPage() {
                       </div>
                       <span className="text-sm font-medium text-foreground flex-1">{person.display_name}</span>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                        Instructor
+                        Teaching Assistant
                       </span>
                     </motion.div>
                   ))}

@@ -1,0 +1,485 @@
+<title>Horizon Demo Video — Script</title>
+<style>
+  @font-face {
+    font-family: 'Instrument Serif';
+    src: local('Instrument Serif');
+    font-weight: 400;
+  }
+
+  :root {
+    --bg: #f7f6fb;
+    --surface: #ffffff;
+    --surface-raised: #f0eef9;
+    --border: #e2dff0;
+    --ink: #191730;
+    --ink-dim: #5a5678;
+    --accent: #5b52e0;
+    --accent-soft: #ece9fb;
+    --verify-green: #1a8f5e;
+    --verify-green-soft: #e2f5ec;
+    --flag-red: #c23b3b;
+    --flag-red-soft: #fbe9e9;
+    --mono-label: #8b86ab;
+    --rail: #d8d3ef;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #100e24;
+      --surface: #17152e;
+      --surface-raised: #1e1c38;
+      --border: #2c2950;
+      --ink: #f3f1fb;
+      --ink-dim: #a8a3c8;
+      --accent: #9089f5;
+      --accent-soft: #26224a;
+      --verify-green: #4fd39a;
+      --verify-green-soft: #163227;
+      --flag-red: #e8807f;
+      --flag-red-soft: #351d1f;
+      --mono-label: #857fb0;
+      --rail: #322e5c;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #100e24;
+    --surface: #17152e;
+    --surface-raised: #1e1c38;
+    --border: #2c2950;
+    --ink: #f3f1fb;
+    --ink-dim: #a8a3c8;
+    --accent: #9089f5;
+    --accent-soft: #26224a;
+    --verify-green: #4fd39a;
+    --verify-green-soft: #163227;
+    --flag-red: #e8807f;
+    --flag-red-soft: #351d1f;
+    --mono-label: #857fb0;
+    --rail: #322e5c;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 3.5rem 1.5rem 6rem;
+  }
+
+  .page {
+    max-width: 46rem;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mono-label);
+    margin: 0 0 0.9rem;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.1rem, 5vw, 2.9rem);
+    margin: 0 0 0.5rem;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .thesis {
+    font-size: 1.05rem;
+    color: var(--ink-dim);
+    max-width: 38rem;
+    margin: 0 0 2.75rem;
+  }
+
+  .thesis strong { color: var(--ink); font-weight: 600; }
+
+  .meta-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--mono-label);
+    margin-bottom: 2.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .meta-row span b { color: var(--ink); font-weight: 600; }
+
+  /* ── Timeline of beats ── */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 3.5rem;
+  }
+
+  .beat {
+    display: grid;
+    grid-template-columns: 4.4rem 1.5rem 1fr;
+    gap: 0;
+    position: relative;
+  }
+
+  .beat-time {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--mono-label);
+    padding-top: 0.3rem;
+    text-align: right;
+    padding-right: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .beat-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .beat-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .beat-line {
+    width: 2px;
+    flex: 1;
+    background: var(--rail);
+    margin-top: 0.25rem;
+  }
+
+  .beat:last-child .beat-line { display: none; }
+
+  .beat-body {
+    padding: 0 0 2.6rem 1.1rem;
+  }
+
+  .beat-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0 0 0.65rem;
+    color: var(--ink);
+  }
+
+  .beat-screen {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.35rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .vo {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin: 0 0 0.7rem;
+  }
+
+  .vo-label {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--mono-label);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .action {
+    font-size: 0.88rem;
+    color: var(--ink-dim);
+    margin: 0.5rem 0 0;
+  }
+
+  .action b { color: var(--ink); font-weight: 600; }
+
+  .callout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    margin-top: 0.6rem;
+  }
+
+  .callout.verify {
+    background: var(--verify-green-soft);
+    color: var(--verify-green);
+  }
+
+  .callout.flag {
+    background: var(--flag-red-soft);
+    color: var(--flag-red);
+  }
+
+  /* ── Shot checklist table ── */
+  h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.7rem;
+    margin: 0 0 0.3rem;
+    color: var(--ink);
+  }
+
+  .section-note {
+    color: var(--ink-dim);
+    font-size: 0.9rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    margin-bottom: 3rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    background: var(--surface);
+  }
+
+  th {
+    text-align: left;
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mono-label);
+    padding: 0.75rem 1rem;
+    background: var(--surface-raised);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  td.num {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    color: var(--mono-label);
+    width: 2rem;
+  }
+
+  td.notes { color: var(--ink-dim); }
+
+  /* ── Prep checklist ── */
+  .prep {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .prep ol {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  .prep li {
+    margin-bottom: 0.6rem;
+    font-size: 0.92rem;
+  }
+
+  .prep li:last-child { margin-bottom: 0; }
+
+  .prep code {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    background: var(--surface-raised);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.3rem;
+    font-size: 0.85em;
+  }
+
+  .end-card {
+    text-align: center;
+    margin: 3.5rem 0 2rem;
+    padding: 2.5rem 1rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .end-card .line {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.5rem;
+    color: var(--ink);
+  }
+
+  .end-card .sub {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mono-label);
+    margin-top: 0.6rem;
+  }
+
+  @media (max-width: 30rem) {
+    .beat { grid-template-columns: 2.6rem 1.2rem 1fr; }
+    .beat-time { font-size: 0.62rem; padding-right: 0.4rem; }
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">Horizon — Product Demo</p>
+  <h1>Demo Video Script</h1>
+  <p class="thesis">
+    <strong>Thesis:</strong> AI made learning solitary. Horizon makes it social again —
+    the whole class, and the AI, thinking out loud together.
+  </p>
+
+  <div class="meta-row">
+    <span>Runtime <b>2:00–2:30</b></span>
+    <span>Audience <b>Customers</b></span>
+    <span>Format <b>Screen recording + VO</b></span>
+  </div>
+
+  <div class="timeline">
+
+    <div class="beat">
+      <div class="beat-time">0:00</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">generic AI chat, one student alone</div>
+        <p class="beat-title">1 · The hook</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Every student in this class is asking AI the same questions right now. Alone. In private tabs nobody else will ever see."</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">0:15</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">login → class card</div>
+        <p class="beat-title">2 · The turn</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Horizon puts those questions back in the room."</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">0:25</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">ChatPage, live session</div>
+        <p class="beat-title">3 · Ask + answer</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Ask anything about today's lecture. The answer comes straight from your TA's own materials — cited, page and all — not the open internet."</div>
+        <p class="action"><b>Action:</b> ask the MSE / cost-function question, show the citation chip, click through to the cited page.</p>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">0:55</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">Report / Feed — thread view</div>
+        <p class="beat-title">4 · Classmates verify it</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"But you're not the only one who asked. Three classmates already saw this answer — and confirmed it."</div>
+        <span class="callout verify">● 3/3 agreement — Answer Quality Breakdown</span>
+        <p class="action">Then: <b>"And when the AI gets something wrong — like this gradient descent answer — the class catches it too."</b></p>
+        <span class="callout flag">▲ 1 up · 2 down — flagged by classmates</span>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">1:25</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">Feed — fork + citation map</div>
+        <p class="beat-title">5 · Learn how others are learning</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"See a question close to yours? Fork it. Build on what a classmate already asked, instead of starting over."</div>
+        <p class="action"><b>Action:</b> open "How do I calculate R²?" → click its fork → "Adjusted R² — when should I use it?" Then pan to the Citation Map card.</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Every answer traces back to the exact page it came from — so 'the AI said so' is never the end of the story."</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">1:55</div>
+      <div class="beat-rail"><div class="beat-dot"></div><div class="beat-line"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">Category chart + Question Timeline</div>
+        <p class="beat-title">6 · Zoom out</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"Zoom out, and you can see the whole class's confusion take shape in real time — what everyone's stuck on, and when."</div>
+        <p class="action"><b>Action:</b> click a category bar to filter, show the timeline spike during a hard concept.</p>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="beat-time">2:20</div>
+      <div class="beat-rail"><div class="beat-dot"></div></div>
+      <div class="beat-body">
+        <div class="beat-screen">end card</div>
+        <p class="beat-title">7 · Close</p>
+        <div class="vo"><span class="vo-label">VOICEOVER</span>"AI didn't have to make studying lonely. Horizon puts the class back in class."</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="end-card">
+    <div class="line">"Horizon — learn out loud."</div>
+    <div class="sub">on-screen closing text</div>
+  </div>
+
+  <h2>Shot checklist</h2>
+  <p class="section-note">Record in this order for clean cuts.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Screen</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Login → class card</td><td class="notes">Keep short, 3–4 sec</td></tr>
+        <tr><td class="num">2</td><td>ChatPage: ask MSE question, get cited answer</td><td class="notes">Let the citation animate in fully</td></tr>
+        <tr><td class="num">3</td><td>Report/Feed: hero thread (3/3 agreement)</td><td class="notes">Answer Quality Breakdown bar fully green</td></tr>
+        <tr><td class="num">4</td><td>Report/Feed: flagged thread (1 up / 2 down)</td><td class="notes">Scroll slowly, let the red show</td></tr>
+        <tr><td class="num">5</td><td>Report/Feed: R² thread → fork → forked thread</td><td class="notes">Click the fork link live</td></tr>
+        <tr><td class="num">6</td><td>Citation Map card</td><td class="notes">Hover a page bar</td></tr>
+        <tr><td class="num">7</td><td>Category bar chart — click filter</td><td class="notes">—</td></tr>
+        <tr><td class="num">8</td><td>Question Timeline</td><td class="notes">—</td></tr>
+        <tr><td class="num">9</td><td>End card</td><td class="notes">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Before recording</h2>
+  <div class="prep">
+    <ol>
+      <li><code>make db-up && make db-seed</code></li>
+      <li>Apply <code>db/seed_demo_threads.sql</code> — see the file header for the exact command</li>
+      <li>Log in as <code>alice@example.com</code> / <code>devpassword</code> for the student-side shots</li>
+      <li>Confirm Answer Quality Breakdown and Question Timeline render for the student role on the Report page before recording</li>
+    </ol>
+  </div>
+</div>

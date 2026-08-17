@@ -156,7 +156,7 @@ export default function LectureMaterialsPage() {
           <p className="text-muted-foreground">
             {isProfessor
               ? 'No lectures yet. Schedule a lecture to add materials.'
-              : 'No lectures yet. Materials will appear when your instructor adds them.'}
+              : 'No lectures yet. Materials will appear when your teaching assistant adds them.'}
           </p>
         ) : (
           <div className="space-y-6">

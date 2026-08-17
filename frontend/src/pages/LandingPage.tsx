@@ -163,7 +163,7 @@ function ClassroomVisual({ active }: { active: boolean }) {
           <rect x={PROF.x - 11} y={PROF.y - 17} width="22" height="3" rx="1.5" fill="#f5a623" />
           <line x1={PROF.x} y1={PROF.y - 17} x2={PROF.x} y2={PROF.y - 14} stroke="#f5a623" strokeWidth="2.5" />
           <rect x={PROF.x - 66} y={PROF.y - 54} width="132" height="18" rx="9" fill="rgba(245,166,35,0.12)" stroke="rgba(245,166,35,0.25)" strokeWidth="1" />
-          <text x={PROF.x} y={PROF.y - 41} textAnchor="middle" fontSize="8.5" fontFamily="'DM Mono', monospace" fill="#f5a623" letterSpacing="0.5">VISIBLE TO INSTRUCTOR</text>
+          <text x={PROF.x} y={PROF.y - 41} textAnchor="middle" fontSize="8.5" fontFamily="'DM Mono', monospace" fill="#f5a623" letterSpacing="0.5">VISIBLE TO TEACHING ASSISTANT</text>
         </g>
 
         {[{ cluster: 1, x: 186, y: 172 }, { cluster: 2, x: 20, y: 158 }, { cluster: 3, x: 392, y: 184 }]
@@ -277,7 +277,7 @@ function VisibilityGapSection() {
               style={{ ...na(640), background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)" }}>
               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80" }} />
               <span style={{ fontSize: "10.5px", fontFamily: "'DM Mono', monospace", color: "#4ade80", letterSpacing: "0.04em" }}>
-                VISIBLE TO INSTRUCTORS
+                VISIBLE TO TEACHING ASSISTANTS
               </span>
             </div>
           </div>
@@ -344,7 +344,7 @@ function VisibilityGapSection() {
               style={{ ...na(640), background: "rgba(182,177,217,0.04)", border: "1px solid rgba(182,177,217,0.1)" }}>
               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(182,177,217,0.25)" }} />
               <span style={{ fontSize: "10.5px", fontFamily: "'DM Mono', monospace", color: "rgba(182,177,217,0.4)", letterSpacing: "0.04em" }}>
-                INVISIBLE TO INSTRUCTORS
+                INVISIBLE TO TEACHING ASSISTANTS
               </span>
             </div>
           </div>
@@ -369,7 +369,7 @@ function VisibilityGapSection() {
           </h3>
 
           <p style={{ fontSize: "15px", color: "rgba(182,177,217,0.65)", lineHeight: 1.78, maxWidth: "52ch", margin: "0 auto" }}>
-            Students are still asking questions, struggling with concepts, and seeking help. Increasingly, those interactions happen inside AI systems that instructors never see.
+            Students are still asking questions, struggling with concepts, and seeking help. Increasingly, those interactions happen inside AI systems that teaching assistants never see.
           </p>
         </div>
 
@@ -523,7 +523,7 @@ function InsightSection() {
                 <div className="space-y-5">
                   {[
                     { label: "Questions being asked", pct: 100, fill: "#7c83f5", val: "—", bright: true, barDelay: 0 },
-                    { label: "Visible to instructors", pct: 10, fill: "rgba(124,131,245,0.3)", val: "10%", bright: false, barDelay: 200 },
+                    { label: "Visible to teaching assistants", pct: 10, fill: "rgba(124,131,245,0.3)", val: "10%", bright: false, barDelay: 200 },
                   ].map((row) => (
                     <div key={row.label}>
                       <div className="flex justify-between items-baseline mb-2">
@@ -605,7 +605,7 @@ function BenefitsSection() {
             </div>
             <div>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#f5a623", marginBottom: "1.75rem" }}>
-                FOR INSTRUCTORS
+                FOR TEACHING ASSISTANTS
               </p>
               <div className="space-y-4">
                 {instructorBullets.map((text, i) => (
@@ -718,7 +718,7 @@ export default function LandingPage() {
                 <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Horizon makes that learning visible.</span>
               </h1>
               <p className="text-base leading-relaxed mb-8" style={{ color: "#b6b1d9", maxWidth: "42ch" }}>
-                Students are asking ChatGPT questions anyway. Horizon turns those private conversations into shared learning, giving instructors insight into what their class actually struggles with.
+                Students are asking ChatGPT questions anyway. Horizon turns those private conversations into shared learning, giving teaching assistants insight into what their class actually struggles with.
               </p>
               <Link to="/signup" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: "#ede9fe", color: "#211d45" }}>
@@ -764,8 +764,8 @@ export default function LandingPage() {
                     transition: "opacity 0.4s ease",
                   }}>
                     {vizActive
-                      ? "3 question clusters identified · professor has full context"
-                      : "8 private AI conversations · 0 shared · professor sees nothing"}
+                      ? "3 question clusters identified · teaching assistant has full context"
+                      : "8 private AI conversations · 0 shared · teaching assistant sees nothing"}
                   </p>
                   <button onClick={() => { setVizActive(prev => !prev); resetVizTimer(); }}
                     className="w-full py-2 rounded-xl font-medium transition-all duration-300 active:scale-[0.98]"
@@ -776,7 +776,7 @@ export default function LandingPage() {
                       fontFamily: "'DM Mono', monospace", letterSpacing: "0.03em",
                       fontSize: "11px",
                     }}>
-                    {vizActive ? "← See what professors are missing" : "See what Horizon makes visible →"}
+                    {vizActive ? "← See what teaching assistants are missing" : "See what Horizon makes visible →"}
                   </button>
                 </div>
               </div>

@@ -30,7 +30,7 @@ export default function ClassListPage() {
     },
     onError: (err: unknown) => {
       const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 404) setJoinError('Invalid course code — check with your instructor.')
+      if (status === 404) setJoinError('Invalid course code — check with your teaching assistant.')
       else if (status === 409) setJoinError('You are already enrolled in this course.')
       else setJoinError('Something went wrong. Please try again.')
     },
@@ -76,7 +76,7 @@ export default function ClassListPage() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">Enter the invite code shared by your instructor.</p>
+              <p className="text-sm text-muted-foreground mb-4">Enter the invite code shared by your teaching assistant.</p>
               <form onSubmit={handleJoin} className="space-y-3">
                 <input
                   type="text"

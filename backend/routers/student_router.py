@@ -34,12 +34,13 @@ from models import (
     SubmitFeedbackRequest,
     SubmitThreadFeedbackRequest,
     ThreadFeedbackOut,
+    TimelineBucket,
     TopicGroup,
 )
 from config import settings
 from services import openai_client
 from services import rag_service
-from services.report_service import build_session_report, invalidate_report_cache_for_session
+from services.report_service import build_session_report, build_session_timeline, invalidate_report_cache_for_session
 
 router = APIRouter(prefix="/api/student", tags=["student"])
 
@@ -353,6 +354,32 @@ async def get_session_report(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
 
     return await build_session_report(db, session_id, published_only=False)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/student/sessions/{session_id}/timeline
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions/{session_id}/timeline", response_model=list[TimelineBucket])
+async def get_session_timeline_student(
+    session_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Class-wide question timeline (aggregate counts only, no student identity)."""
+    enrolled = await db.fetchval(
+        """
+        SELECT 1 FROM sessions s
+        JOIN course_enrollments ce ON s.course_id = ce.course_id AND ce.student_id = $1
+        WHERE s.id = $2
+        """,
+        current_user["id"],
+        session_id,
+    )
+    if not enrolled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enrolled in this session's course")
+
+    return await build_session_timeline(db, session_id)
 
 
 # ---------------------------------------------------------------------------

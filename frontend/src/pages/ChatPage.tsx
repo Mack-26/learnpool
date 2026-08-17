@@ -645,7 +645,7 @@ export default function ChatPage() {
                 </Badge>
                 {!isMobile && (
                   <span className="text-xs text-muted-foreground">
-                    Questions are automatically summarized with the class and shared with the professor
+                    Questions are automatically summarized with the class and shared with the teaching assistant
                   </span>
                 )}
               </>
