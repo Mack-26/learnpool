@@ -1,0 +1,278 @@
+<title>Welcome to Horizon</title>
+<style>
+  @font-face {
+    font-family: 'Instrument Serif';
+    src: local('Instrument Serif');
+    font-weight: 400;
+  }
+
+  :root {
+    --bg: #f7f6fb;
+    --surface: #ffffff;
+    --surface-raised: #f0eef9;
+    --border: #e2dff0;
+    --ink: #191730;
+    --ink-dim: #5a5678;
+    --accent: #5b52e0;
+    --accent-soft: #ece9fb;
+    --mono-label: #8b86ab;
+    --rail: #d8d3ef;
+    --amber: #b9770e;
+    --amber-soft: #fbf1de;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #100e24;
+      --surface: #17152e;
+      --surface-raised: #1e1c38;
+      --border: #2c2950;
+      --ink: #f3f1fb;
+      --ink-dim: #a8a3c8;
+      --accent: #9089f5;
+      --accent-soft: #26224a;
+      --mono-label: #857fb0;
+      --rail: #322e5c;
+      --amber: #e6b45c;
+      --amber-soft: #332b16;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #100e24;
+    --surface: #17152e;
+    --surface-raised: #1e1c38;
+    --border: #2c2950;
+    --ink: #f3f1fb;
+    --ink-dim: #a8a3c8;
+    --accent: #9089f5;
+    --accent-soft: #26224a;
+    --mono-label: #857fb0;
+    --rail: #322e5c;
+    --amber: #e6b45c;
+    --amber-soft: #332b16;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.65;
+    margin: 0;
+    padding: 3.5rem 1.5rem 6rem;
+  }
+
+  .page { max-width: 42rem; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mono-label);
+    margin: 0 0 0.9rem;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.1rem, 5vw, 2.75rem);
+    margin: 0 0 0.75rem;
+    text-wrap: balance;
+  }
+
+  .intro { font-size: 1.05rem; color: var(--ink-dim); max-width: 38rem; margin: 0 0 2.5rem; }
+  .intro strong { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.6rem;
+    margin: 2.75rem 0 0.9rem;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  p { margin: 0 0 1rem; }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0.6rem;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .login-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+  .login-row:last-child { border-bottom: none; }
+
+  .login-label {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mono-label);
+    flex-shrink: 0;
+  }
+
+  .login-value {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.92rem;
+    color: var(--ink);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all;
+  }
+
+  ol.steps { margin: 0 0 1.5rem; padding-left: 1.3rem; }
+  ol.steps li { margin-bottom: 0.6rem; }
+  ol.steps li:last-child { margin-bottom: 0; }
+
+  .feature {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .feature-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 0 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .feature-nav {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.3rem;
+    font-weight: 500;
+  }
+
+  .feature p { color: var(--ink-dim); font-size: 0.94rem; margin: 0; }
+
+  .note {
+    background: var(--amber-soft);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.1rem 1.4rem;
+    font-size: 0.9rem;
+    color: var(--ink-dim);
+    margin-top: 2rem;
+  }
+  .note strong { color: var(--amber); }
+</style>
+
+<div class="page">
+  <p class="eyebrow">Welcome to the team</p>
+  <h1>Meet Horizon</h1>
+  <p class="intro">
+    A quick first look before our next sync — <strong>15 minutes</strong>, sign in and click around.
+    No prep needed, just poke at it like a new user would.
+  </p>
+
+  <h2>What this is</h2>
+  <p>
+    Horizon (product code name <strong>LearnPool</strong>) is AI-powered classroom Q&amp;A. During a live
+    class, students ask questions and get answers <strong>grounded only in that course's own materials</strong> —
+    lecture PDFs, textbooks — never the open internet, always cited back to the source page.
+  </p>
+  <p>
+    The twist: it's not a private chatbot. Every question becomes a <strong>shared thread</strong> the rest of
+    the class can see, vote on, comment on, and build on ("fork"). Students see how their classmates are
+    learning, and whether the AI's answers actually held up — a green bar means the class agreed, a red one
+    means someone caught a mistake. Teaching assistants get a dashboard rolling all of it up across the
+    whole class.
+  </p>
+
+  <h2>Sign in</h2>
+  <div class="login-card">
+    <div class="login-row">
+      <span class="login-label">URL</span>
+      <span class="login-value">horizonlabs.live</span>
+    </div>
+    <div class="login-row">
+      <span class="login-label">Email</span>
+      <span class="login-value">ananya@example.com</span>
+    </div>
+    <div class="login-row">
+      <span class="login-label">Password</span>
+      <span class="login-value">devpassword</span>
+    </div>
+    <div class="login-row">
+      <span class="login-label">Role</span>
+      <span class="login-value">Student</span>
+    </div>
+  </div>
+  <ol class="steps">
+    <li>Go to <strong>horizonlabs.live</strong> and log in with the credentials above.</li>
+    <li>You'll land on <strong>My Classes</strong> — you're already enrolled in one: <strong>Comedy 101</strong>
+      (a joke-writing course, used as demo content — the topic doesn't matter, the mechanics do).</li>
+    <li>Click into Comedy 101 to start exploring.</li>
+  </ol>
+
+  <h2>What to look at inside Comedy 101</h2>
+
+  <div class="feature">
+    <p class="feature-name">Ask a question <span class="feature-nav">Lectures → open a session</span></p>
+    <p>Open the most recent lecture and ask something about the course material in the chat box. Watch the
+      answer stream in with a citation chip pointing to the exact page it came from — click the citation to
+      see the source text inline.</p>
+  </div>
+
+  <div class="feature">
+    <p class="feature-name">The class feed <span class="feature-nav">same session → Report</span></p>
+    <p>This is the core social layer. Scroll through classmates' questions and answers. Look for:
+      <strong>thumbs up/down</strong> on each thread, a <strong>fork</strong> badge where one student built on
+      another's question, and comment threads underneath. This view is what makes Horizon feel different
+      from a private AI chat — it's designed to be browsed, not just used.</p>
+  </div>
+
+  <div class="feature">
+    <p class="feature-name">Answer Quality Breakdown <span class="feature-nav">Report → scroll down</span></p>
+    <p>A diverging green/red bar per question showing classmate consensus — green means the class confirmed
+      the answer, red means someone flagged it as wrong or oversimplified, with their comment attached.
+      This is the single most important visualization in the product — it's the trust mechanism.</p>
+  </div>
+
+  <div class="feature">
+    <p class="feature-name">Material Coverage <span class="feature-nav">Report → citation map card</span></p>
+    <p>A per-page bar chart of which pages of the course PDF get cited most, ordered by page number. Shows
+      which parts of the material the class is actually engaging with.</p>
+  </div>
+
+  <div class="feature">
+    <p class="feature-name">Category chart <span class="feature-nav">Report → top of page</span></p>
+    <p>Click a bar to filter the whole feed to just that category (Doubts / Homework / Exam Prep /
+      Summaries) — a quick way to see what kind of help the class is asking for.</p>
+  </div>
+
+  <div class="feature">
+    <p class="feature-name">Classmates <span class="feature-nav">course page → People</span></p>
+    <p>The class roster — who's enrolled, who's the teaching assistant. Simple, but it's part of making the
+      class feel like a real room instead of a solo tool.</p>
+  </div>
+
+  <div class="note">
+    <strong>Heads up —</strong> this is a shared demo account seeded with realistic (but fake) student
+    activity — about 30 classmates, 100+ questions, votes, comments, and a couple of forks — so everything
+    should feel populated rather than empty. Don't worry about breaking anything; ask away, vote on things,
+    leave a comment. It's all disposable test data.
+  </div>
+</div>
