@@ -17,7 +17,7 @@ function errorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
-const inputClass = 'w-full px-3.5 py-3 rounded-xl border border-border bg-background text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/30'
+const inputClass = 'w-full h-11 px-3.5 rounded-lg border border-input bg-background text-[15px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none focus:ring-2 focus:ring-ring/30'
 
 /** Landing-page CTA target: create an account and the first study group in one step. */
 export default function StartPage() {
@@ -53,18 +53,18 @@ export default function StartPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10" style={{ background: '#1b1a3f' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-background">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="w-full max-w-md">
-        <div className="flex justify-center mb-6"><Link to="/"><HorizonLogo variant="light" size="2.5rem" /></Link></div>
+        <div className="flex justify-center mb-6"><Link to="/"><HorizonLogo variant="dark" size="2.5rem" /></Link></div>
 
-        <div className="rounded-3xl bg-white p-6 sm:p-8" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+        <div className="rounded-2xl bg-card border border-border card-shadow p-6 sm:p-8">
           <div className="flex items-center gap-3 mb-5">
-            <span className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #272757, #505081)' }}>
+            <span className="h-12 w-12 rounded-xl flex items-center justify-center text-primary bg-accent border border-[var(--ai-border)] shrink-0">
               <UsersRound className="h-5 w-5" />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Create a study group</h1>
-              <p className="text-xs text-muted-foreground">You'll get a link to invite classmates right after.</p>
+              <h1 className="text-xl font-semibold text-foreground tracking-[-0.02em]">Create a study group</h1>
+              <p className="text-xs text-[var(--ink-2)]">You'll get a link to invite classmates right after.</p>
             </div>
           </div>
 
@@ -81,7 +81,7 @@ export default function StartPage() {
             />
             {!signedInStudent && (
               <>
-                <div className="pt-1 pb-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">Your account</div>
+                <div className="pt-1 pb-0.5 mono text-[10px] uppercase tracking-[.09em] text-[var(--ink-3)]">Your account</div>
                 <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" aria-label="Your name" autoComplete="name" maxLength={80} className={inputClass} />
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" aria-label="Email" autoComplete="email" inputMode="email" className={inputClass} />
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (8+ characters)" aria-label="Password" autoComplete="new-password" className={inputClass} />
