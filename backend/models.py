@@ -411,3 +411,33 @@ class JoinGroupResponse(BaseModel):
 class GroupQuestionOut(QuestionOut):
     asker_name: str  # "Anonymous" when the question was asked anonymously
     is_mine: bool
+
+
+class HomeContinueItem(BaseModel):
+    course_id: str
+    name: str
+    course_type: str  # 'institutional' | 'study_group'
+    group_id: str | None  # set for study groups, for deep-linking
+    last_activity: datetime | None
+
+
+class HomeActivityItem(BaseModel):
+    question_id: str
+    content: str
+    asked_at: datetime
+    course_name: str
+    course_type: str
+    group_id: str | None
+    asker_name: str
+
+
+class HomeGroupItem(BaseModel):
+    id: str
+    name: str
+    member_count: int
+
+
+class HomeResponse(BaseModel):
+    continue_studying: list[HomeContinueItem]
+    recent_activity: list[HomeActivityItem]
+    groups: list[HomeGroupItem]

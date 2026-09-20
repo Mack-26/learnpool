@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "documents"
     max_questions_per_session: int = 10
+    # Study-group conversations are perpetual, so their quota is per member per
+    # rolling 24h rather than a lifetime cap per session.
+    max_questions_per_group_member_per_day: int = 50
     context_material_token_budget: int = 8000
     max_answer_tokens: int = 800
 
