@@ -13,6 +13,7 @@ from models import (
     CreateThreadRequest,
     DocumentCitationOut,
     DocumentOut,
+    ForkRequest,
     ForkThreadRequest,
     HomeActivityItem,
     HomeContinueItem,
@@ -20,6 +21,7 @@ from models import (
     HomeResponse,
     JoinCourseRequest,
     PostQuestionRequest,
+    PrivateChatOut,
     PublishQuestionsRequest,
     QuestionOut,
     AnswerOut,
@@ -1494,7 +1496,7 @@ async def get_home(
         JOIN course_enrollments ce ON ce.course_id = c.id AND ce.student_id = $1
         JOIN users u ON u.id = q.student_id
         LEFT JOIN study_groups sg ON sg.course_id = c.id
-        WHERE c.course_type = 'study_group' OR q.student_id = $1
+        WHERE (c.course_type = 'study_group' AND q.visibility = 'group') OR q.student_id = $1
         ORDER BY q.asked_at DESC
         LIMIT 10
         """,
@@ -1546,3 +1548,133 @@ async def get_home(
             for r in group_rows
         ],
     )
+
+
+# ---------------------------------------------------------------------------
+# My Chats — private explorations (forks) the student owns
+# ---------------------------------------------------------------------------
+
+_PRIVATE_CHAT_SELECT = """
+    SELECT q.id AS question_id, q.content, q.asked_at, q.visibility, q.forked_from,
+           pq.content AS forked_from_content,
+           fd.filename AS focus_document_name,
+           c.name AS group_name, sg.id AS group_id,
+           a.id AS answer_id, a.content AS answer_content, a.model_used, a.generation_latency_ms
+    FROM questions q
+    JOIN sessions s ON s.id = q.session_id
+    JOIN courses c ON c.id = s.course_id
+    LEFT JOIN study_groups sg ON sg.course_id = c.id
+    LEFT JOIN questions pq ON pq.id = q.forked_from
+    LEFT JOIN documents fd ON fd.id = q.focus_document_id
+    LEFT JOIN answers a ON a.question_id = q.id
+"""
+
+
+async def _private_chat_out(db, r) -> PrivateChatOut:
+    answer = None
+    if r["answer_id"]:
+        cit_rows = await db.fetch(
+            """
+            SELECT ac.chunk_id, dc.content, dc.page_number, ac.relevance_score, ac.citation_order,
+                   d.filename, d.id AS document_id
+            FROM answer_citations ac
+            JOIN document_chunks dc ON dc.id = ac.chunk_id
+            JOIN documents d ON d.id = dc.document_id
+            WHERE ac.answer_id = $1 ORDER BY ac.citation_order
+            """,
+            r["answer_id"],
+        )
+        answer = AnswerOut(
+            answer_id=str(r["answer_id"]),
+            content=r["answer_content"],
+            model_used=r["model_used"],
+            generation_latency_ms=r["generation_latency_ms"],
+            citations=[
+                CitationOut(
+                    chunk_id=str(c["chunk_id"]), content=c["content"], page_number=c["page_number"],
+                    relevance_score=c["relevance_score"], citation_order=c["citation_order"],
+                    filename=c["filename"], document_id=str(c["document_id"]),
+                )
+                for c in cit_rows
+            ],
+        )
+    return PrivateChatOut(
+        question_id=str(r["question_id"]),
+        content=r["content"],
+        asked_at=r["asked_at"],
+        answer=answer,
+        group_id=str(r["group_id"]) if r["group_id"] else None,
+        group_name=r["group_name"],
+        forked_from=str(r["forked_from"]) if r["forked_from"] else None,
+        forked_from_content=r["forked_from_content"],
+        focus_document_name=r["focus_document_name"],
+        shared=r["visibility"] == "group",
+    )
+
+
+@router.get("/chats", response_model=list[PrivateChatOut])
+async def list_my_chats(
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Private forks I own, newest first. Ones I've shared back stay listed (shared=true)."""
+    rows = await db.fetch(
+        _PRIVATE_CHAT_SELECT + """
+        WHERE q.student_id = $1 AND c.course_type = 'study_group' AND q.forked_from IS NOT NULL
+        ORDER BY q.asked_at DESC
+        LIMIT 100
+        """,
+        current_user["id"],
+    )
+    return [await _private_chat_out(db, r) for r in rows]
+
+
+@router.post("/chats/{question_id}/continue", response_model=PrivateChatOut, status_code=status.HTTP_201_CREATED)
+async def continue_private_chat(
+    question_id: str,
+    body: ForkRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Ask a further private question building on one of my private forks."""
+    parent = await db.fetchrow(
+        "SELECT session_id, content, focus_document_id FROM questions WHERE id = $1 AND student_id = $2 AND visibility = 'private'",
+        question_id, current_user["id"],
+    )
+    if not parent:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
+    session_id = str(parent["session_id"])
+    await _assert_question_quota(db, session_id, str(current_user["id"]))
+
+    result = await rag_service.handle_question(
+        session_id=session_id,
+        student_id=str(current_user["id"]),
+        content=body.content,
+        db=db,
+        visibility="private",
+        focus_document_id=str(parent["focus_document_id"]) if parent["focus_document_id"] else None,
+    )
+    await db.execute("UPDATE questions SET forked_from = $1 WHERE id = $2", question_id, result.question_id)
+    row = await db.fetchrow(_PRIVATE_CHAT_SELECT + " WHERE q.id = $1", result.question_id)
+    return await _private_chat_out(db, row)
+
+
+@router.post("/chats/{question_id}/share", response_model=PrivateChatOut)
+async def share_private_chat_back(
+    question_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Flip one of my private forks to group visibility so the whole group sees it."""
+    updated = await db.fetchval(
+        """
+        UPDATE questions SET visibility = 'group'
+        WHERE id = $1 AND student_id = $2 AND visibility = 'private'
+        RETURNING id
+        """,
+        question_id, current_user["id"],
+    )
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
+    row = await db.fetchrow(_PRIVATE_CHAT_SELECT + " WHERE q.id = $1", question_id)
+    return await _private_chat_out(db, row)

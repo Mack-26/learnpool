@@ -19,10 +19,13 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 
 from auth import get_current_user
 from database import get_db
+from routers.student_router import _assert_question_quota
 from models import (
     AnswerOut,
+    AskGroupQuestionRequest,
     CitationOut,
     CreateGroupRequest,
+    ForkRequest,
     DocumentOut,
     GroupDetailOut,
     GroupMemberOut,
@@ -30,6 +33,7 @@ from models import (
     GroupQuestionOut,
     JoinGroupResponse,
 )
+from services import rag_service
 from services.document_service import process_text_document
 from services.file_extractor import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, extract_text_from_file
 from services.storage_service import upload_file
@@ -227,6 +231,15 @@ async def get_group_detail(
         group["course_id"], row["owner_id"],
     )
 
+    stats = await db.fetchrow(
+        """
+        SELECT COUNT(*) FILTER (WHERE visibility = 'group') AS question_count,
+               COUNT(DISTINCT student_id) FILTER (WHERE asked_at > now() - interval '24 hours') AS active_today
+        FROM questions WHERE session_id = $1
+        """,
+        group["conversation_id"],
+    )
+
     return GroupDetailOut(
         id=str(row["group_id"]),
         name=row["name"],
@@ -237,6 +250,8 @@ async def get_group_detail(
             GroupMemberOut(id=str(m["id"]), display_name=m["display_name"], is_owner=m["is_owner"])
             for m in member_rows
         ],
+        question_count=int(stats["question_count"]),
+        active_today=int(stats["active_today"]),
     )
 
 
@@ -258,14 +273,16 @@ async def list_group_questions(
     rows = await db.fetch(
         """
         SELECT q.id AS question_id, q.content AS question_content, q.asked_at,
-               q.student_id, q.anonymous, u.display_name,
+               q.student_id, q.anonymous, u.display_name, q.forked_from,
+               q.focus_document_id, fd.filename AS focus_document_name,
                a.id AS answer_id, a.content AS answer_content,
                a.model_used, a.generation_latency_ms,
                (SELECT COUNT(*) FROM question_comments qc WHERE qc.question_id = q.id) AS comment_count
         FROM questions q
         JOIN users u ON u.id = q.student_id
         LEFT JOIN answers a ON a.question_id = q.id
-        WHERE q.session_id = $1
+        LEFT JOIN documents fd ON fd.id = q.focus_document_id
+        WHERE q.session_id = $1 AND q.visibility = 'group'
         ORDER BY q.asked_at ASC
         """,
         group["conversation_id"],
@@ -319,8 +336,100 @@ async def list_group_questions(
             asker_name="Anonymous" if (r["anonymous"] and not is_mine) else r["display_name"],
             is_mine=is_mine,
             comment_count=int(r["comment_count"]),
+            forked_from=str(r["forked_from"]) if r["forked_from"] else None,
+            focus_document_id=str(r["focus_document_id"]) if r["focus_document_id"] else None,
+            focus_document_name=r["focus_document_name"],
         ))
     return results
+
+
+# ---------------------------------------------------------------------------
+# POST /api/student/groups/{group_id}/questions
+# ---------------------------------------------------------------------------
+
+@router.post("/{group_id}/questions", response_model=GroupQuestionOut, status_code=status.HTTP_201_CREATED)
+async def ask_group_question(
+    group_id: str,
+    body: AskGroupQuestionRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    group = await _resolve_group(db, group_id)
+    await _assert_member(db, group["course_id"], current_user["id"])
+
+    focus_name = None
+    if body.focus_document_id:
+        focus_name = await db.fetchval(
+            "SELECT filename FROM documents WHERE id = $1 AND course_id = $2",
+            body.focus_document_id, group["course_id"],
+        )
+        if not focus_name:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="That material isn't in this group")
+
+    await _assert_question_quota(db, group["conversation_id"], str(current_user["id"]))
+
+    result = await rag_service.handle_question(
+        session_id=group["conversation_id"],
+        student_id=str(current_user["id"]),
+        content=body.content,
+        db=db,
+        anonymous=body.anonymous,
+        focus_document_id=body.focus_document_id,
+    )
+    return GroupQuestionOut(
+        **result.model_dump(),
+        asker_name=current_user["display_name"],
+        is_mine=True,
+        comment_count=0,
+        focus_document_id=body.focus_document_id,
+        focus_document_name=focus_name,
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/student/groups/{group_id}/questions/{question_id}/fork
+# A private exploration: same conversation (so RAG uses the group's
+# materials) but hidden from the feed. Lives in My Chats until shared back.
+# ---------------------------------------------------------------------------
+
+@router.post("/{group_id}/questions/{question_id}/fork", response_model=GroupQuestionOut, status_code=status.HTTP_201_CREATED)
+async def fork_group_question_privately(
+    group_id: str,
+    question_id: str,
+    body: ForkRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    group = await _resolve_group(db, group_id)
+    await _assert_member(db, group["course_id"], current_user["id"])
+
+    parent = await db.fetchrow(
+        "SELECT content, focus_document_id FROM questions WHERE id = $1 AND session_id = $2 AND visibility = 'group'",
+        question_id, group["conversation_id"],
+    )
+    if not parent:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+
+    await _assert_question_quota(db, group["conversation_id"], str(current_user["id"]))
+    await db.execute("UPDATE questions SET fork_count = COALESCE(fork_count, 0) + 1 WHERE id = $1", question_id)
+
+    parent_context = f'[Forked from: "{parent["content"][:100]}"]\n\n'
+    result = await rag_service.handle_question(
+        session_id=group["conversation_id"],
+        student_id=str(current_user["id"]),
+        content=parent_context + body.content,
+        db=db,
+        visibility="private",
+        focus_document_id=str(parent["focus_document_id"]) if parent["focus_document_id"] else None,
+    )
+    await db.execute("UPDATE questions SET forked_from = $1 WHERE id = $2", question_id, result.question_id)
+    return GroupQuestionOut(
+        **result.model_dump(),
+        asker_name=current_user["display_name"],
+        is_mine=True,
+        comment_count=0,
+        forked_from=question_id,
+    )
 
 
 # ---------------------------------------------------------------------------

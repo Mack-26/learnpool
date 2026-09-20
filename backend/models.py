@@ -401,6 +401,8 @@ class GroupDetailOut(BaseModel):
     join_code: str
     conversation_id: str
     members: list[GroupMemberOut]
+    question_count: int = 0
+    active_today: int = 0  # distinct members who asked in the last 24h
 
 
 class JoinGroupResponse(BaseModel):
@@ -412,6 +414,33 @@ class GroupQuestionOut(QuestionOut):
     asker_name: str  # "Anonymous" when the question was asked anonymously
     is_mine: bool
     comment_count: int = 0
+    forked_from: str | None = None
+    focus_document_id: str | None = None
+    focus_document_name: str | None = None
+
+
+class AskGroupQuestionRequest(BaseModel):
+    content: str = Field(..., min_length=5, max_length=2000)
+    anonymous: bool = False
+    focus_document_id: str | None = None
+
+
+class ForkRequest(BaseModel):
+    content: str = Field(..., min_length=5, max_length=2000)
+
+
+class PrivateChatOut(BaseModel):
+    """A private exploration (fork) the student owns — lives in My Chats."""
+    question_id: str
+    content: str
+    asked_at: datetime
+    answer: AnswerOut | None
+    group_id: str | None
+    group_name: str
+    forked_from: str | None
+    forked_from_content: str | None
+    focus_document_name: str | None
+    shared: bool  # True once shared back to the group
 
 
 class HomeContinueItem(BaseModel):
