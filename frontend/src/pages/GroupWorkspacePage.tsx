@@ -717,8 +717,7 @@ function Conversation({
               aria-label={`Message ${group.name}`}
               rows={1}
               maxLength={2000}
-              className="flex-1 min-w-0 resize-none bg-transparent px-2 py-2.5 text-[14.5px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none max-h-40"
-              style={{ minHeight: 44 }}
+              className="flex-1 min-w-0 resize-none bg-transparent px-2 py-3 md:py-2 leading-5 text-[14.5px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none min-h-11 md:min-h-9 max-h-40"
             />
             {!replyTo && (
               <button
