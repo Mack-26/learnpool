@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { useCollapsed } from '@/hooks/useCollapsed'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Bookmark, Check, Copy, CornerDownRight, Eye, EyeOff, FileText, GitFork, MessageCircle, Plus, Send, Share2, Users, X,
+  Bookmark, Check, Copy, CornerDownRight, Eye, EyeOff, FileText, GitFork, MessageCircle, Plus, Send, Share2, Users, X, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import {
   askGroupQuestion, forkGroupQuestionPrivately, getGroupDetail, getGroupDocuments, getGroupQuestions, getMyGroups, inviteLinkFor, uploadGroupDocument,
@@ -116,11 +117,13 @@ function Sources({ citations }: { citations: CitationOut[] }) {
 
 // ─── Left: groups list ────────────────────────────────────────────────────────
 
-function GroupsSidebar({ activeGroupId }: { activeGroupId?: string }) {
+function GroupsSidebar({ activeGroupId, collapsible = false }: { activeGroupId?: string; collapsible?: boolean }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
+  const [collapsedPref, toggleCollapsed] = useCollapsed('groups')
+  const collapsed = collapsible && collapsedPref
   const { data: groups = [] } = useQuery({ queryKey: ['my-groups'], queryFn: getMyGroups })
 
   const goTo = (id: string) => {
@@ -129,10 +132,45 @@ function GroupsSidebar({ activeGroupId }: { activeGroupId?: string }) {
     navigate(`/groups/${id}`)
   }
 
+  if (collapsed) {
+    return (
+      <aside className="w-[56px] shrink-0 h-full flex flex-col items-center bg-background border-r border-border py-4 gap-2 transition-[width] duration-200">
+        <button type="button" onClick={toggleCollapsed} aria-label="Expand groups" aria-expanded={false} title="Expand groups"
+          className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-[var(--hover-row)] hover:text-foreground transition-colors">
+          <PanelLeftOpen className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+        <div className="flex-1 overflow-y-auto flex flex-col items-center gap-1.5 pt-1">
+          {groups.map((g) => {
+            const active = g.id === activeGroupId
+            return (
+              <button key={g.id} type="button" onClick={() => navigate(`/groups/${g.id}`)} aria-current={active ? 'page' : undefined} aria-label={g.name} title={g.name}
+                className={`h-9 w-9 rounded-lg text-[12px] font-semibold flex items-center justify-center transition-colors ${active ? 'bg-accent text-primary' : 'bg-card border border-border text-muted-foreground hover:bg-[var(--hover-row)]'}`}>
+                {g.name.charAt(0).toUpperCase()}
+              </button>
+            )
+          })}
+        </div>
+        <button type="button" onClick={() => setCreateOpen(true)} aria-label="Create a study group" title="Create a study group"
+          className="h-9 w-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90">
+          <Plus className="h-4 w-4" />
+        </button>
+        <CreateGroupModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={(g) => { setCreateOpen(false); goTo(g.id) }} />
+      </aside>
+    )
+  }
+
   return (
-    <aside className="w-full md:w-[268px] shrink-0 h-full flex flex-col bg-background md:border-r border-border">
+    <aside className="w-full md:w-[268px] shrink-0 h-full flex flex-col bg-background md:border-r border-border transition-[width] duration-200">
       <div className="px-4 pt-5 pb-3">
-        <h2 className={`${EYEBROW} px-1 mb-3`}>My groups</h2>
+        <div className="flex items-center justify-between px-1 mb-3">
+          <h2 className={EYEBROW}>My groups</h2>
+          {collapsible && (
+            <button type="button" onClick={toggleCollapsed} aria-label="Collapse groups" aria-expanded={true} title="Collapse groups"
+              className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-[var(--hover-row)] hover:text-foreground transition-colors">
+              <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button className="flex-1 gap-1 h-9" onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5" /> Create</Button>
           <Button variant="outline" className="flex-1 h-9" onClick={() => setJoinOpen(true)}>Join</Button>
@@ -725,7 +763,7 @@ export default function GroupWorkspacePage() {
   return (
     <DashboardLayout fullBleed>
       <div className="h-full flex bg-card" style={{ minHeight: 0 }}>
-        <div className="hidden md:flex h-full"><GroupsSidebar activeGroupId={groupId} /></div>
+        <div className="hidden md:flex h-full"><GroupsSidebar activeGroupId={groupId} collapsible /></div>
         {/* Keyed on the group so composer state (attached material etc.) resets when switching groups. */}
         <WorkspaceBody key={groupId ?? 'none'} groupId={groupId} />
       </div>

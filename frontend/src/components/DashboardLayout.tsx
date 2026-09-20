@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { BookOpen, Home, LogOut, MessageSquare, Users, FileText, User, UsersRound } from 'lucide-react'
+import { BookOpen, Home, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Users, FileText, User, UsersRound } from 'lucide-react'
+import { useCollapsed } from '@/hooks/useCollapsed'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
@@ -38,6 +39,7 @@ export default function DashboardLayout({ children, fullBleed = false }: Dashboa
   const location = useLocation()
   const { user, logout } = useAuthStore()
   const isMobile = useIsMobile()
+  const [collapsed, toggleCollapsed] = useCollapsed('nav')
   const isProfessor = user?.role === 'professor'
   const [profileOpen, setProfileOpen] = useState(false)
 
@@ -89,24 +91,38 @@ export default function DashboardLayout({ children, fullBleed = false }: Dashboa
     <div className={`min-h-screen bg-card ${isMobile ? 'flex flex-col' : 'flex'}`}>
       {/* Sidebar — desktop only */}
       {!isMobile && (
-        <aside className="w-[232px] shrink-0 flex flex-col gap-5 bg-background border-r border-border px-3.5 py-5 sticky top-0 h-screen">
-          {/* Logo */}
-          <div className="px-1.5">
+        <aside
+          className={`${collapsed ? 'w-[60px] px-2' : 'w-[232px] px-3.5'} shrink-0 flex flex-col gap-5 bg-background border-r border-border py-5 sticky top-0 h-screen transition-[width,padding] duration-200`}
+        >
+          {/* Logo + collapse toggle */}
+          <div className={`flex items-center ${collapsed ? 'flex-col gap-3' : 'justify-between px-1.5'}`}>
             <button
               type="button"
               onClick={() => navigate(isProfessor ? '/instructor' : '/home')}
               className="flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Horizon home"
             >
-              <HorizonLogo variant="dark" size="1.75rem" />
+              <HorizonLogo variant="dark" size={collapsed ? '1.4rem' : '1.75rem'} />
+            </button>
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-expanded={!collapsed}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-(--hover-row) hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {collapsed ? <PanelLeftOpen className="h-4 w-4" strokeWidth={1.75} /> : <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />}
             </button>
           </div>
 
           {/* Nav */}
           <div>
-            <div className="mono px-2.5 text-[9.5px] tracking-[.09em] text-(--ink-3)">
-              {isProfessor ? 'TEACHING' : 'MY SPACE'}
-            </div>
+            {!collapsed && (
+              <div className="mono px-2.5 text-[9.5px] tracking-[.09em] text-(--ink-3)">
+                {isProfessor ? 'TEACHING' : 'MY SPACE'}
+              </div>
+            )}
             <nav className="mt-2.5 flex flex-col gap-0.5" aria-label="Primary">
               {navItems.map((item) => {
                 const isActive = activeItem?.path === item.path
@@ -116,16 +132,20 @@ export default function DashboardLayout({ children, fullBleed = false }: Dashboa
                     type="button"
                     onClick={() => navigate(item.path)}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`w-full flex items-center gap-2.5 h-[34px] px-2.5 rounded-lg text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    aria-label={collapsed ? item.label : undefined}
+                    title={collapsed ? item.label : undefined}
+                    className={`w-full flex items-center gap-2.5 h-[34px] rounded-lg text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${collapsed ? 'justify-center px-0' : 'px-2.5'} ${
                       isActive
                         ? 'bg-accent text-primary font-medium'
                         : 'text-muted-foreground hover:bg-(--hover-row) hover:text-foreground'
                     }`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" strokeWidth={isActive ? 2 : 1.75} />
-                    <span className="min-w-0 truncate" title={item.label}>
-                      {item.label}
-                    </span>
+                    {!collapsed && (
+                      <span className="min-w-0 truncate" title={item.label}>
+                        {item.label}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -135,23 +155,33 @@ export default function DashboardLayout({ children, fullBleed = false }: Dashboa
           {/* User card + sign out */}
           <div className="mt-auto flex flex-col gap-1.5">
             {user && (
-              <div className="flex items-center gap-2.5 p-2.5 rounded-[9px] bg-card border border-border">
-                <span className="h-[26px] w-[26px] rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center shrink-0">
-                  {initials(user.display_name)}
-                </span>
-                <span className="min-w-0 text-[12.5px] leading-[1.3] text-foreground">
-                  <span className="block truncate">{user.display_name}</span>
-                  <span className="block text-[11px] text-(--ink-2) capitalize">{user.role}</span>
-                </span>
-              </div>
+              collapsed ? (
+                <div className="flex justify-center" title={`${user.display_name} · ${user.role}`}>
+                  <span className="h-[30px] w-[30px] rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                    {initials(user.display_name)}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 p-2.5 rounded-[9px] bg-card border border-border">
+                  <span className="h-[26px] w-[26px] rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center shrink-0">
+                    {initials(user.display_name)}
+                  </span>
+                  <span className="min-w-0 text-[12.5px] leading-[1.3] text-foreground">
+                    <span className="block truncate">{user.display_name}</span>
+                    <span className="block text-[11px] text-(--ink-2) capitalize">{user.role}</span>
+                  </span>
+                </div>
+              )
             )}
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 h-[34px] px-2.5 rounded-lg text-[13px] text-muted-foreground hover:bg-(--hover-row) hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Sign out"
+              title={collapsed ? 'Sign out' : undefined}
+              className={`w-full flex items-center gap-2.5 h-[34px] rounded-lg text-[13px] text-muted-foreground hover:bg-(--hover-row) hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${collapsed ? 'justify-center px-0' : 'px-2.5'}`}
             >
               <LogOut className="h-4 w-4" strokeWidth={1.75} />
-              Sign out
+              {!collapsed && 'Sign out'}
             </button>
           </div>
         </aside>
