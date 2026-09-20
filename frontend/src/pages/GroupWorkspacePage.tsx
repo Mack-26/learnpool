@@ -262,7 +262,7 @@ function InvitePanel({ group }: { group: GroupDetailOut }) {
       <p className="text-[11px] text-[var(--ink-2)] mt-2 break-all">
         <span className="mono">{link.replace(/^https?:\/\//, '')}</span>
       </p>
-      <p className="text-[11px] text-[var(--ink-2)] mt-1">Anyone with the link joins instantly — no account needed beforehand.</p>
+      <p className="text-[11px] text-[var(--ink-2)] mt-1">Classmates open the link, create a Horizon account, and land straight in this group.</p>
     </div>
   )
 }
