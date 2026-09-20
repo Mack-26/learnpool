@@ -102,7 +102,7 @@ export default function DashboardLayout({ children, fullBleed = false }: Dashboa
               className="flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Horizon home"
             >
-              <HorizonLogo variant="dark" size={collapsed ? '1.4rem' : '1.75rem'} />
+              {collapsed ? <HorizonLogo mark size="1.75rem" /> : <HorizonLogo variant="dark" size="1.75rem" />}
             </button>
             <button
               type="button"
