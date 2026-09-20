@@ -445,6 +445,7 @@ async def submit_feedback(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE a.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         answer_id,
@@ -580,6 +581,7 @@ async def get_question_comments(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE q.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         question_id,
@@ -628,6 +630,7 @@ async def post_question_comment(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE q.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         question_id,
@@ -677,6 +680,7 @@ async def fork_question(
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         LEFT JOIN answers a ON a.question_id = q.id
         WHERE q.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         question_id,
@@ -736,6 +740,7 @@ async def save_answer(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE a.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         answer_id,
@@ -1666,13 +1671,29 @@ async def share_private_chat_back(
     current_user: dict = Depends(_require_student),
 ):
     """Flip one of my private forks to group visibility so the whole group sees it."""
+    # forked_from becomes visible to the whole group once shared, so it must not
+    # point at a still-private ancestor — walk up to the nearest group-visible one.
+    public_ancestor = await db.fetchval(
+        """
+        WITH RECURSIVE up AS (
+            SELECT q.id, q.forked_from, q.visibility, q.student_id, 0 AS depth
+            FROM questions q WHERE q.id = $1 AND q.student_id = $2 AND q.visibility = 'private'
+            UNION ALL
+            SELECT p.id, p.forked_from, p.visibility, p.student_id, up.depth + 1
+            FROM questions p JOIN up ON p.id = up.forked_from
+            WHERE up.depth < 50
+        )
+        SELECT id FROM up WHERE depth > 0 AND visibility = 'group' ORDER BY depth LIMIT 1
+        """,
+        question_id, current_user["id"],
+    )
     updated = await db.fetchval(
         """
-        UPDATE questions SET visibility = 'group'
+        UPDATE questions SET visibility = 'group', forked_from = $3
         WHERE id = $1 AND student_id = $2 AND visibility = 'private'
         RETURNING id
         """,
-        question_id, current_user["id"],
+        question_id, current_user["id"], public_ancestor,
     )
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
