@@ -50,14 +50,20 @@ export default function ClassListPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center justify-between mb-1">
-          <h1 className="text-2xl font-bold text-foreground">My Classes</h1>
-          <Button size="sm" onClick={() => { setJoinOpen(true); setJoinError(null) }} className="gap-1.5">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[25px] font-semibold tracking-[-0.024em] text-foreground">My Classes</h1>
+            <p className="mt-1.5 text-[13px] text-[var(--ink-2)]">Open a class to see its lectures</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => { setJoinOpen(true); setJoinError(null) }}
+            className="min-h-11 shrink-0 gap-1.5 rounded-lg"
+          >
             <Plus className="h-4 w-4" />
             Join a Course
           </Button>
         </div>
-        <p className="text-muted-foreground mb-6">Select a class to view its lectures</p>
 
         {/* Join Course modal */}
         {joinOpen && (
@@ -72,7 +78,12 @@ export default function ClassListPage() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-semibold text-foreground">Join a Course</h3>
-                <button onClick={() => { setJoinOpen(false); setCode(''); setJoinError(null) }} className="text-muted-foreground hover:text-foreground transition-colors rounded-lg p-1 hover:bg-muted">
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => { setJoinOpen(false); setCode(''); setJoinError(null) }}
+                  className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -84,13 +95,13 @@ export default function ClassListPage() {
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   placeholder="e.g. A3F8B2C1"
                   maxLength={20}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="mono w-full min-h-11 rounded-lg border border-border bg-background px-3 text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30"
                   autoFocus
                 />
                 {joinError && (
                   <p className="text-xs text-destructive">{joinError}</p>
                 )}
-                <Button type="submit" className="w-full" disabled={!code.trim() || joinMutation.isPending}>
+                <Button type="submit" className="w-full min-h-11" disabled={!code.trim() || joinMutation.isPending}>
                   {joinMutation.isPending ? 'Joining…' : 'Join Course'}
                 </Button>
               </form>
@@ -98,13 +109,14 @@ export default function ClassListPage() {
           </div>
         )}
 
-        {isLoading && <p className="text-muted-foreground">Loading classes…</p>}
-        {error && <p className="text-destructive text-sm">Failed to load classes.</p>}
+        {isLoading && <p className="text-sm text-muted-foreground">Loading classes…</p>}
+        {error && <p className="text-sm text-destructive">Failed to load classes.</p>}
         {courses && courses.length === 0 && (
-          <p className="text-muted-foreground">You are not enrolled in any classes yet. Use the "Join a Course" button to get started.</p>
+          <p className="text-sm text-muted-foreground">You are not enrolled in any classes yet. Use "Join a Course" to get started.</p>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* TODO(backend): last-seen — "2 new" per class needs a per-user last-seen timestamp. */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {courses?.map((course, i) => (
             <motion.div
               key={course.id}
@@ -115,8 +127,7 @@ export default function ClassListPage() {
               <ClassCard
                 name={course.name}
                 professor={course.professor_name}
-                status="past"
-                students={course.session_count}
+                sessionCount={course.session_count}
                 onClick={() => navigate(`/classes/${course.id}`)}
               />
             </motion.div>
