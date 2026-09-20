@@ -71,47 +71,47 @@ function sourceName(c: CitationOut) {
   return c.filename || 'Source'
 }
 
-/** Sources under an answer: the first passage open by default, the rest as one-click chips (app UX rule 4). */
+/** Sources under an answer: one row of compact chips; click a chip to read its passage, click again to close. */
 function Sources({ citations }: { citations: CitationOut[] }) {
   const sorted = [...citations].sort((a, b) => a.citation_order - b.citation_order)
-  const [openOrder, setOpenOrder] = useState<number | null>(sorted[0]?.citation_order ?? null)
+  const [openOrder, setOpenOrder] = useState<number | null>(null)
   if (sorted.length === 0) return null
   const open = sorted.find((c) => c.citation_order === openOrder) ?? null
-  const rest = sorted.filter((c) => c !== open)
-  const excerpt = open ? (open.content.length > 240 ? open.content.slice(0, 240) + '…' : open.content) : ''
+  const excerpt = open ? (open.content.length > 280 ? open.content.slice(0, 280) + '…' : open.content) : ''
 
   return (
-    <>
-      {open && (
-        <div className="mt-3.5 rounded-lg border border-[var(--ai-border)] bg-card px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold text-accent-foreground truncate">
-              [{open.citation_order}] · {sourceName(open)}{open.page_number != null ? ` · Page ${open.page_number}` : ''}
-            </span>
-            <span className="text-xs text-[var(--ink-2)] shrink-0">{pct(open)}% match</span>
-          </div>
-          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">“{excerpt}”</p>
-        </div>
-      )}
-      {rest.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {rest.map((c) => (
+    <div className="mt-2">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {sorted.map((c) => {
+          const active = c === open
+          return (
             <button
               key={c.chunk_id}
               type="button"
-              onClick={() => setOpenOrder(c.citation_order)}
-              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[var(--ai-border)] bg-card text-xs text-[var(--ai-text)] hover:bg-accent transition-colors"
+              onClick={() => setOpenOrder(active ? null : c.citation_order)}
+              aria-expanded={active}
+              className={`inline-flex items-center gap-1 h-6 px-2 rounded-md border text-[11.5px] transition-colors ${active ? 'bg-accent border-[var(--ai-meta)] text-accent-foreground' : 'bg-card border-[var(--ai-border)] text-[var(--ai-text)] hover:bg-accent'}`}
+              title={`${sourceName(c)}${c.page_number != null ? ` · p. ${c.page_number}` : ''} · ${pct(c)}% match`}
             >
               <span className="font-semibold text-[var(--ai-meta)]">[{c.citation_order}]</span>
-              <span className="truncate max-w-[180px]">{sourceName(c)}</span>
-              <span className="text-[var(--ink-2)]">
-                {c.page_number != null ? `· p. ${c.page_number} ` : ''}· {pct(c)}% match
-              </span>
+              <span className="truncate max-w-[140px]">{sourceName(c)}</span>
+              {c.page_number != null && <span className="text-[var(--ink-2)]">p.{c.page_number}</span>}
             </button>
-          ))}
+          )
+        })}
+      </div>
+      {open && (
+        <div className="mt-2 rounded-md border border-[var(--ai-border)] bg-card px-3 py-2">
+          <div className="flex items-center justify-between gap-3 text-[11.5px]">
+            <span className="font-semibold text-accent-foreground truncate">
+              {sourceName(open)}{open.page_number != null ? ` · Page ${open.page_number}` : ''}
+            </span>
+            <span className="text-[var(--ink-2)] shrink-0">{pct(open)}% match</span>
+          </div>
+          <p className="mt-1 text-[12.5px] leading-[1.5] text-muted-foreground">“{excerpt}”</p>
         </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -341,43 +341,33 @@ function RightPanel({ group, onDiscuss }: { group: GroupDetailOut; onDiscuss: (d
 
 // ─── Center: conversation ─────────────────────────────────────────────────────
 
-function Replies({ questionId, initialCount }: { questionId: string; initialCount: number }) {
+/** The human thread under a question: compact lines plus a one-line composer. Rendered only when open. */
+function Replies({ questionId, autoFocus }: { questionId: string; autoFocus: boolean }) {
   const queryClient = useQueryClient()
-  const [open, setOpen] = useState(initialCount > 0)
   const [draft, setDraft] = useState('')
   const queryKey = ['comments', questionId]
-  const { data: comments = [] } = useQuery({ queryKey, queryFn: () => getQuestionComments(questionId), enabled: open })
+  const { data: comments = [] } = useQuery({ queryKey, queryFn: () => getQuestionComments(questionId) })
 
   const post = useMutation({
     mutationFn: (text: string) => postQuestionComment(questionId, text),
     onSuccess: () => { setDraft(''); queryClient.invalidateQueries({ queryKey }); queryClient.invalidateQueries({ queryKey: ['group-questions'] }) },
   })
 
-  const count = open ? comments.length : initialCount
-
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="flex items-center gap-1.5 text-xs text-[var(--ink-2)] hover:text-foreground transition-colors min-h-[36px] px-1">
-        <MessageCircle className="h-3.5 w-3.5" /> {count > 0 ? `${count} repl${count === 1 ? 'y' : 'ies'}` : 'Reply'}
-      </button>
-    )
-  }
-
   return (
-    <div className="space-y-2">
+    <div className="mt-1.5 border-l-2 border-border pl-3 space-y-1.5">
       {comments.map((c) => (
-        <div key={c.comment_id} className="rounded-xl border border-border bg-card px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <Avatar label={c.display_name} size={24} />
-            <span className="text-[13px] font-semibold text-foreground">{c.display_name}</span>
-            <span className="text-xs text-[var(--ink-2)]">{timeOf(c.created_at)}</span>
-          </div>
-          <p className="mt-2 text-[14px] text-foreground/85 leading-relaxed whitespace-pre-wrap">{c.content}</p>
+        <div key={c.comment_id} className="flex items-start gap-2">
+          <Avatar label={c.display_name} size={20} />
+          <p className="min-w-0 text-[13.5px] leading-[1.45] text-foreground/90 whitespace-pre-wrap">
+            <span className="font-semibold text-foreground">{c.display_name}</span>
+            <span className="text-[11px] text-[var(--ink-2)] ml-1.5 mr-2">{timeOf(c.created_at)}</span>
+            {c.content}
+          </p>
         </div>
       ))}
       <form
         onSubmit={(e) => { e.preventDefault(); if (draft.trim() && !post.isPending) post.mutate(draft.trim()) }}
-        className="flex items-center gap-2"
+        className="flex items-center gap-1.5"
       >
         <input
           value={draft}
@@ -385,15 +375,18 @@ function Replies({ questionId, initialCount }: { questionId: string; initialCoun
           placeholder="Reply to the group…"
           aria-label="Reply"
           maxLength={1000}
-          className="flex-1 min-w-0 h-10 text-[13px] px-3.5 rounded-lg border border-input bg-card focus:outline-none focus:ring-2 focus:ring-ring/30"
+          autoFocus={autoFocus}
+          className="flex-1 min-w-0 h-8 text-[13px] px-3 rounded-md border border-input bg-card focus:outline-none focus:ring-2 focus:ring-ring/30"
         />
-        <button type="submit" disabled={!draft.trim() || post.isPending} aria-label="Send reply" className={`${GHOST_BTN} h-10 w-10 text-primary`}>
+        <button type="submit" disabled={!draft.trim() || post.isPending} aria-label="Send reply" className={`${GHOST_BTN} h-8 w-8 rounded-md text-primary`}>
           <Send className="h-3.5 w-3.5" />
         </button>
       </form>
     </div>
   )
 }
+
+const ACTION = 'inline-flex items-center gap-1 h-7 px-1.5 -ml-1.5 rounded-md text-[12px] text-[var(--ink-2)] hover:text-foreground hover:bg-[var(--hover-row)] transition-colors'
 
 function MessageRow({
   q, savedIds, onToggleSave, onFollowUp, onFork,
@@ -408,64 +401,72 @@ function MessageRow({
   const text = q.content.replace(FORK_PREFIX, '')
   const saved = q.answer ? savedIds.has(q.answer.answer_id) : false
   const citations = q.answer?.citations ?? []
-  const first = citations.length > 0 ? [...citations].sort((a, b) => a.citation_order - b.citation_order)[0] : null
+  const [repliesOpen, setRepliesOpen] = useState(q.comment_count > 0)
+  const [replyFocus, setReplyFocus] = useState(false)
 
   return (
-    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="space-y-2.5">
-      {/* the question */}
-      <article className="rounded-xl border border-border bg-card px-4 py-4 md:px-5">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <Avatar label={q.asker_name} tone={q.is_mine ? 'me' : 'muted'} />
-          <span className="text-[14px] font-semibold text-foreground">{q.is_mine ? 'You' : q.asker_name}</span>
-          <span className="text-[12.5px] text-[var(--ink-2)]">{timeOf(q.asked_at)}</span>
-          {isFollowUp && <span className="text-[12px] text-[var(--ink-2)] flex items-center gap-1"><CornerDownRight className="h-3 w-3" /> follow-up</span>}
-          {q.focus_document_name && (
-            <span className={`${CHIP} ml-auto max-w-full`} title={q.focus_document_name}>
-              <FileText className="h-3 w-3 shrink-0" /> <span className="truncate">{q.focus_document_name}</span>
-            </span>
-          )}
+    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+      {/* the question — a plain chat line */}
+      <div className="flex items-start gap-2.5 px-1">
+        <Avatar label={q.asker_name} tone={q.is_mine ? 'me' : 'muted'} size={26} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2 flex-wrap leading-none">
+            <span className="text-[13.5px] font-semibold text-foreground">{q.is_mine ? 'You' : q.asker_name}</span>
+            <span className="text-[11.5px] text-[var(--ink-2)]">{timeOf(q.asked_at)}</span>
+            {isFollowUp && <span className="text-[11.5px] text-[var(--ink-2)] inline-flex items-center gap-1"><CornerDownRight className="h-3 w-3" /> follow-up</span>}
+            {q.focus_document_name && (
+              <span className={`${CHIP} h-5 py-0 text-[11px] max-w-[220px]`} title={q.focus_document_name}>
+                <FileText className="h-3 w-3 shrink-0" /> <span className="truncate">{q.focus_document_name}</span>
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-[15px] leading-[1.5] text-foreground whitespace-pre-wrap">{text}</p>
         </div>
-        <p className="mt-3 text-[16px] md:text-[17px] leading-[1.5] tracking-[-0.012em] text-foreground whitespace-pre-wrap">{text}</p>
-      </article>
+      </div>
 
-      {/* Horizon, on the AI surface */}
-      <article className="rounded-xl border border-[var(--ai-border)] bg-[var(--ai-surface)] px-4 py-4 md:px-5">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <HorizonMark />
-          <span className="text-[14px] font-semibold text-accent-foreground">Horizon</span>
-          {q.answer && (
-            <span className="text-[12.5px] text-[var(--ai-meta)] truncate">
-              {first ? `Answered from ${sourceName(first)} · ${citations.length} passage${citations.length === 1 ? '' : 's'}` : 'No passages cited'}
-            </span>
+      {/* Horizon, on the AI surface, indented under the question */}
+      <div className="mt-1.5 ml-[34px]">
+        <article className="rounded-lg border border-[var(--ai-border)] bg-[var(--ai-surface)] px-3 py-2.5">
+          <div className="flex items-center gap-2 flex-wrap leading-none">
+            <HorizonMark size={18} />
+            <span className="text-[12.5px] font-semibold text-accent-foreground">Horizon</span>
+            {q.answer && (
+              <span className="text-[11.5px] text-[var(--ai-meta)] truncate">
+                {citations.length > 0 ? `${citations.length} source${citations.length === 1 ? '' : 's'}` : 'No sources'}
+              </span>
+            )}
+          </div>
+          {q.answer ? (
+            <>
+              <div className="mt-1.5 text-[14px] leading-[1.55] text-[var(--ai-text)]">{renderAnswerWithCitations(q.answer.content, q.answer.citations)}</div>
+              <Sources citations={citations} />
+            </>
+          ) : (
+            <p className="mt-1.5 text-[13px] text-[var(--ai-meta)]">Reading the materials…</p>
           )}
-        </div>
-        {q.answer ? (
-          <>
-            <div className="mt-3 text-[15px] leading-[1.66] text-[var(--ai-text)]">{renderAnswerWithCitations(q.answer.content, q.answer.citations)}</div>
-            <Sources citations={citations} />
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              <button onClick={() => onFollowUp(q)} className={`${GHOST_BTN} h-8 px-2.5 text-xs border-[var(--ai-border)] text-[var(--ai-text)]`}>
-                <CornerDownRight className="h-3 w-3" /> Ask a follow-up
-              </button>
-              <button onClick={() => onFork(q)} className={`${GHOST_BTN} h-8 px-2.5 text-xs border-[var(--ai-border)] text-[var(--ai-text)]`} title="Explore this privately in My Chats">
-                <GitFork className="h-3 w-3" /> Fork to my space
-              </button>
-              <button
-                onClick={() => onToggleSave(q.answer!.answer_id)}
-                aria-pressed={saved}
-                className={`${GHOST_BTN} h-8 px-2.5 text-xs border-[var(--ai-border)] ${saved ? 'text-primary' : 'text-[var(--ai-text)]'}`}
-              >
-                <Bookmark className={`h-3 w-3 ${saved ? 'fill-current' : ''}`} /> {saved ? 'Saved' : 'Save'}
-              </button>
-            </div>
-          </>
-        ) : (
-          <p className="mt-3 text-sm text-[var(--ai-meta)]">Reading the materials…</p>
+        </article>
+
+        {q.answer && (
+          <div className="mt-0.5 flex items-center gap-2.5 flex-wrap">
+            <button
+              onClick={() => { setRepliesOpen(true); setReplyFocus(true) }}
+              className={`${ACTION} ${repliesOpen ? 'text-foreground' : ''}`}
+            >
+              <MessageCircle className="h-3.5 w-3.5" /> {q.comment_count > 0 ? `${q.comment_count} repl${q.comment_count === 1 ? 'y' : 'ies'}` : 'Reply'}
+            </button>
+            <button onClick={() => onFollowUp(q)} className={ACTION}>
+              <CornerDownRight className="h-3.5 w-3.5" /> Follow-up
+            </button>
+            <button onClick={() => onFork(q)} className={ACTION} title="Explore this privately in My Chats">
+              <GitFork className="h-3.5 w-3.5" /> Fork
+            </button>
+            <button onClick={() => onToggleSave(q.answer!.answer_id)} aria-pressed={saved} className={`${ACTION} ${saved ? 'text-primary hover:text-primary' : ''}`}>
+              <Bookmark className={`h-3.5 w-3.5 ${saved ? 'fill-current' : ''}`} /> {saved ? 'Saved' : 'Save'}
+            </button>
+          </div>
         )}
-      </article>
 
-      <div className="pl-4 md:pl-10">
-        <Replies questionId={q.question_id} initialCount={q.comment_count} />
+        {repliesOpen && <Replies questionId={q.question_id} autoFocus={replyFocus} />}
       </div>
     </motion.div>
   )
@@ -628,7 +629,7 @@ function Conversation({
 
   return (
     <div className="flex-1 min-w-0 h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 space-y-4">
         {questions.length === 0 && !showPending && (
           <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
             <p className="text-[15px] font-semibold text-foreground mb-1 tracking-[-0.01em]">This group is quiet so far.</p>
@@ -647,14 +648,17 @@ function Conversation({
         ))}
         <AnimatePresence>
           {showPending && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2.5">
-              <article className="rounded-xl border border-border bg-card px-4 py-4 md:px-5">
-                <div className="flex items-center gap-2.5"><Avatar label="You" tone="me" /><span className="text-[14px] font-semibold text-foreground">You</span></div>
-                <p className="mt-3 text-[16px] md:text-[17px] leading-[1.5] tracking-[-0.012em] text-foreground whitespace-pre-wrap">{pending}</p>
-              </article>
-              <article className="rounded-xl border border-[var(--ai-border)] bg-[var(--ai-surface)] px-4 py-4 md:px-5">
-                <div className="flex items-center gap-2.5"><HorizonMark /><span className="text-[14px] font-semibold text-accent-foreground">Horizon</span></div>
-                <p className="mt-3 text-sm text-[var(--ai-meta)]">Reading the materials…</p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-start gap-2.5 px-1">
+                <Avatar label="You" tone="me" size={26} />
+                <div className="min-w-0 flex-1">
+                  <span className="text-[13.5px] font-semibold text-foreground leading-none">You</span>
+                  <p className="mt-1 text-[15px] leading-[1.5] text-foreground whitespace-pre-wrap">{pending}</p>
+                </div>
+              </div>
+              <article className="mt-1.5 ml-[34px] rounded-lg border border-[var(--ai-border)] bg-[var(--ai-surface)] px-3 py-2.5">
+                <div className="flex items-center gap-2 leading-none"><HorizonMark size={18} /><span className="text-[12.5px] font-semibold text-accent-foreground">Horizon</span></div>
+                <p className="mt-1.5 text-[13px] text-[var(--ai-meta)]">Reading the materials…</p>
               </article>
             </motion.div>
           )}
