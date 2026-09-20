@@ -10,8 +10,15 @@ import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/badge'
 
 function toStatusBadge(status: string) {
-  if (status === 'active') return <Badge className="text-xs border-0" style={{ background: '#dcfce7', color: '#166534' }}>● Live</Badge>
-  if (status === 'upcoming') return <Badge variant="secondary" className="text-xs">Upcoming</Badge>
+  if (status === 'active') {
+    return (
+      <Badge variant="outline" className="text-xs bg-card border-border text-foreground font-medium inline-flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--status-good)' }} />
+        Live
+      </Badge>
+    )
+  }
+  if (status === 'upcoming') return <Badge variant="outline" className="text-xs bg-card border-border text-muted-foreground font-medium">Upcoming</Badge>
   return null
 }
 
@@ -79,22 +86,16 @@ export default function LectureMaterialsPage() {
             <div ref={dropdownRef} style={{ position: 'relative', maxWidth: 'min(320px, 100%)' }}>
               <button
                 onClick={() => setDropdownOpen((v) => !v)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '0.6rem 0.9rem', borderRadius: '0.6rem',
-                  border: `1.5px solid ${dropdownOpen ? '#272757' : 'rgba(39,39,87,0.18)'}`,
-                  background: '#fff', cursor: 'pointer', transition: 'border-color 0.15s',
-                  boxShadow: dropdownOpen ? '0 0 0 3px rgba(39,39,87,0.08)' : 'none',
-                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border bg-card transition-colors ${
+                  dropdownOpen ? 'border-primary ring-2 ring-ring/15' : 'border-input hover:border-primary/50'
+                }`}
               >
-                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1a1a2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span className="text-sm font-medium text-foreground truncate">
                   {courses.find((c) => c.id === effectiveCourseId)?.name ?? 'Select a course'}
                 </span>
                 <ChevronDown
-                  style={{
-                    width: '1rem', height: '1rem', color: '#8686AC', flexShrink: 0, marginLeft: '0.5rem',
-                    transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s',
-                  }}
+                  className="h-4 w-4 shrink-0 ml-2 text-muted-foreground transition-transform duration-200"
+                  style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 />
               </button>
 
@@ -105,13 +106,8 @@ export default function LectureMaterialsPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.98 }}
                     transition={{ duration: 0.13 }}
-                    style={{
-                      position: 'absolute', top: 'calc(100% + 0.4rem)', left: 0, right: 0, zIndex: 50,
-                      background: '#fff', borderRadius: '0.75rem',
-                      boxShadow: '0 8px 32px rgba(39,39,87,0.16), 0 1px 4px rgba(39,39,87,0.08)',
-                      border: '1px solid rgba(39,39,87,0.1)', padding: '0.35rem',
-                      maxHeight: '240px', overflowY: 'auto',
-                    }}
+                    className="absolute left-0 right-0 z-50 bg-card rounded-xl border border-border p-1.5 max-h-60 overflow-y-auto"
+                    style={{ top: 'calc(100% + 0.4rem)', boxShadow: 'var(--shadow-elevated)' }}
                   >
                     {courses.map((c) => {
                       const active = c.id === effectiveCourseId
@@ -119,24 +115,19 @@ export default function LectureMaterialsPage() {
                         <button
                           key={c.id}
                           onClick={() => { setSelectedCourseId(c.id); setDropdownOpen(false) }}
-                          style={{
-                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '0.55rem 0.75rem', borderRadius: '0.5rem', border: 'none',
-                            background: active ? 'rgba(39,39,87,0.07)' : 'transparent',
-                            cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s',
-                          }}
-                          onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(39,39,87,0.04)' }}
-                          onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border-0 text-left transition-colors ${
+                            active ? 'bg-accent' : 'bg-transparent hover:bg-[var(--hover-row)]'
+                          }`}
                         >
-                          <div style={{ minWidth: 0 }}>
-                            <p style={{ fontSize: '0.875rem', fontWeight: active ? 600 : 500, color: active ? '#272757' : '#374151', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div className="min-w-0">
+                            <p className={`text-sm m-0 truncate ${active ? 'font-semibold text-primary' : 'font-medium text-foreground'}`}>
                               {c.name}
                             </p>
                             {c.professor_name && !isProfessor && (
-                              <p style={{ fontSize: '0.72rem', color: '#8686AC', margin: '0.1rem 0 0' }}>{c.professor_name}</p>
+                              <p className="text-xs text-muted-foreground m-0 mt-0.5">{c.professor_name}</p>
                             )}
                           </div>
-                          {active && <Check style={{ width: '0.85rem', height: '0.85rem', color: '#272757', flexShrink: 0 }} />}
+                          {active && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
                         </button>
                       )
                     })}
@@ -166,7 +157,7 @@ export default function LectureMaterialsPage() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.35 }}
-                className="rounded-xl border-2 border-border bg-card overflow-hidden"
+                className="rounded-xl border border-border bg-card overflow-hidden"
               >
                 <div className="p-4 border-b border-border flex items-center justify-between">
                   <div>
@@ -185,19 +176,13 @@ export default function LectureMaterialsPage() {
                     {!isProfessor && session.documents.length > 0 && (session.status === 'active' || session.status === 'released' || session.status === 'ended') && (
                       <button
                         onClick={() => navigate(`/sessions/${session.id}/chat`)}
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.3rem 0.7rem', borderRadius: '99px',
-                          background: session.status === 'active' ? '#272757' : 'rgba(39,39,87,0.09)',
-                          color: session.status === 'active' ? '#fff' : '#272757',
-                          border: session.status === 'active' ? 'none' : '1.5px solid rgba(39,39,87,0.2)',
-                          fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
-                          whiteSpace: 'nowrap', transition: 'opacity 0.15s',
-                        }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.8'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-opacity hover:opacity-80 border ${
+                          session.status === 'active'
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-card text-primary border-border'
+                        }`}
                       >
-                        <MessageCircle style={{ width: '0.75rem', height: '0.75rem', flexShrink: 0 }} />
+                        <MessageCircle className="h-3 w-3 shrink-0" />
                         Ask AI
                       </button>
                     )}
@@ -213,7 +198,7 @@ export default function LectureMaterialsPage() {
                           key={doc.id}
                           type="button"
                           onClick={() => handleOpenDoc(doc)}
-                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:border-primary/40 hover:bg-accent/50 transition-colors text-left"
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-[var(--chip)] hover:border-primary/40 hover:bg-accent transition-colors text-left"
                         >
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-sm font-medium truncate max-w-[120px] sm:max-w-[200px]">

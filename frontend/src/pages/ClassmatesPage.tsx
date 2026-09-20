@@ -68,12 +68,11 @@ export default function ClassmatesPage() {
                       transition={{ delay: i * 0.04 }}
                       className={`flex items-center gap-3 px-4 py-3 ${i < professors.length - 1 ? 'border-b border-border' : ''}`}
                     >
-                      <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold"
-                        style={{ background: 'linear-gradient(135deg, #272757 0%, #505081 100%)', color: '#fff' }}>
+                      <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold bg-primary text-primary-foreground">
                         {person.display_name.charAt(0).toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-foreground flex-1">{person.display_name}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-accent text-primary border border-[var(--ai-border)] font-medium">
                         Teaching Assistant
                       </span>
                     </motion.div>
