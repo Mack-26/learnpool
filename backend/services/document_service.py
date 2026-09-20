@@ -3,6 +3,8 @@
 import asyncio
 import re
 
+import numpy as np
+
 from services import openai_client
 
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -63,20 +65,22 @@ async def process_text_document(
             openai_client.get_embedding,
             chunk_text.replace("\n", " ").strip(),
         )
-        embedding_str = "[" + ",".join(map(str, embedding)) + "]"
+        # The pool registers the pgvector codec (database.py), which expects an
+        # ndarray/list — a bracketed string fails to encode.
+        embedding_vec = np.array(embedding, dtype=np.float32)
         token_count = len(chunk_text.split())  # rough estimate
 
         await db.execute(
             """
             INSERT INTO document_chunks (document_id, chunk_index, page_number, content, token_count, embedding, embedding_model)
-            VALUES ($1, $2, $3, $4, $5, $6::vector, $7)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             """,
             document_id,
             i,
             page_num,
             chunk_text,
             token_count,
-            embedding_str,
+            embedding_vec,
             EMBEDDING_MODEL,
         )
 
