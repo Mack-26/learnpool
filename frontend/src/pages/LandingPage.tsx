@@ -1,190 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import HorizonLogo from "../components/HorizonLogo";
 
-// ── Classroom visualization ────────────────────────────────────────────────────
-const W = 580;
-const H = 320;
-
-const STUDENTS = [
-  { id: "A", initials: "KL", x: 62,  y: 66,  cluster: 2 },
-  { id: "B", initials: "MR", x: 188, y: 38,  cluster: 1 },
-  { id: "C", initials: "JT", x: 326, y: 52,  cluster: 1 },
-  { id: "D", initials: "AP", x: 468, y: 44,  cluster: 3 },
-  { id: "E", initials: "SW", x: 96,  y: 234, cluster: 2 },
-  { id: "F", initials: "DN", x: 234, y: 252, cluster: 1 },
-  { id: "G", initials: "RB", x: 374, y: 238, cluster: 3 },
-  { id: "H", initials: "YC", x: 502, y: 222, cluster: 3 },
-];
-
-const PROF = { x: 290, y: 142 };
-
-function bezierPath(x1: number, y1: number, x2: number, y2: number, curvature = 0.18): string {
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const cx = mx - dy * curvature;
-  const cy = my + dx * curvature;
-  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
-}
-
-const CLUSTER_COLORS: Record<number, string> = { 1: "#7c83f5", 2: "#f5a623", 3: "#4ade80" };
-const CLUSTER_META: Record<number, { label: string; count: string }> = {
-  1: { label: "Lecture 6 — derivatives", count: "3 students" },
-  2: { label: "Problem set 4",           count: "2 students" },
-  3: { label: "Exam strategy",           count: "3 students" },
-};
-
-const CONNECTIONS = [
-  { from: "B", to: "C", cluster: 1 }, { from: "C", to: "F", cluster: 1 },
-  { from: "B", to: "F", cluster: 1 }, { from: "A", to: "E", cluster: 2 },
-  { from: "D", to: "G", cluster: 3 }, { from: "G", to: "H", cluster: 3 },
-  { from: "D", to: "H", cluster: 3 },
-];
-
-const PRIVATE_TARGETS = [
-  { id: "A", tx: -30, ty: 10 }, { id: "B", tx: 120, ty: -30 },
-  { id: "C", tx: 290, ty: -30 }, { id: "D", tx: 530, ty: -20 },
-  { id: "E", tx: -30, ty: 270 }, { id: "F", tx: 160, ty: 340 },
-  { id: "G", tx: 400, ty: 340 }, { id: "H", tx: 580, ty: 290 },
-];
-
-function getNode(id: string) { return STUDENTS.find((s) => s.id === id)!; }
-
-function ClassroomVisual({ active }: { active: boolean }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setTimeout(() => setMounted(true), 50); }, []);
-
-  return (
-    <div className="relative w-full select-none" style={{ aspectRatio: `${W} / ${H}` }}>
-      <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
-        <defs>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#0a0820" floodOpacity="0.5" />
-          </filter>
-          {Object.entries(CLUSTER_COLORS).map(([k, color]) => (
-            <radialGradient key={k} id={`grad${k}`} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-              <stop offset="100%" stopColor={color} stopOpacity="0.04" />
-            </radialGradient>
-          ))}
-          {Object.entries(CLUSTER_COLORS).map(([k, color]) => (
-            <marker key={k} id={`arrow${k}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L6,3 z" fill={color} opacity="0.6" />
-            </marker>
-          ))}
-        </defs>
-
-        {PRIVATE_TARGETS.map(({ id, tx, ty }) => {
-          const s = getNode(id);
-          return (
-            <path key={`ghost-${id}`} d={bezierPath(s.x, s.y, tx, ty, 0.12)} fill="none"
-              stroke="rgba(182,177,217,0.18)" strokeWidth="1" strokeDasharray="3 5"
-              style={{ opacity: active ? 0 : (mounted ? 1 : 0), transition: "opacity 0.5s ease" }} />
-          );
-        })}
-        {PRIVATE_TARGETS.map(({ id, tx, ty }) => (
-          <g key={`cloud-${id}`} style={{ opacity: active ? 0 : (mounted ? 0.35 : 0), transition: "opacity 0.4s ease" }}>
-            <circle cx={tx < 0 ? tx + 18 : tx > W ? tx - 18 : tx} cy={ty < 0 ? ty + 18 : ty > H ? ty - 18 : ty}
-              r="10" fill="rgba(42,38,80,0.8)" stroke="rgba(182,177,217,0.2)" strokeWidth="1" />
-            <text x={tx < 0 ? tx + 18 : tx > W ? tx - 18 : tx}
-              y={(ty < 0 ? ty + 18 : ty > H ? ty - 18 : ty) + 4}
-              textAnchor="middle" fontSize="9" fontFamily="Inter, sans-serif" fill="rgba(182,177,217,0.5)">AI</text>
-          </g>
-        ))}
-
-        {[{ cluster: 1, cx: 249, cy: 114 }, { cluster: 2, cx: 79, cy: 150 }, { cluster: 3, cx: 448, cy: 168 }]
-          .map(({ cluster, cx, cy }) => (
-            <ellipse key={`halo-${cluster}`} cx={cx} cy={cy} rx={95} ry={115}
-              fill={`url(#grad${cluster})`}
-              style={{ opacity: active ? 1 : 0, transition: "opacity 0.8s ease 0.3s" }} />
-          ))}
-
-        {CONNECTIONS.map(({ from, to, cluster }, i) => {
-          const a = getNode(from); const b = getNode(to);
-          return (
-            <path key={`conn-${from}-${to}`} d={bezierPath(a.x, a.y, b.x, b.y)} fill="none"
-              stroke={CLUSTER_COLORS[cluster]} strokeWidth="1.5" strokeLinecap="round"
-              style={{ opacity: active ? 0.5 : 0, transition: `opacity 0.5s ease ${200 + i * 60}ms` }} />
-          );
-        })}
-
-        {[{ to: "C", cluster: 1 }, { to: "E", cluster: 2 }, { to: "G", cluster: 3 }].map(({ to, cluster }) => {
-          const node = getNode(to);
-          return (
-            <path key={`prof-${to}`} d={bezierPath(PROF.x, PROF.y, node.x, node.y, -0.15)} fill="none"
-              stroke={CLUSTER_COLORS[cluster]} strokeWidth="1" strokeDasharray="5 4" strokeLinecap="round"
-              markerEnd={`url(#arrow${cluster})`}
-              style={{ opacity: active ? 0.35 : 0, transition: "opacity 0.6s ease 0.6s" }} />
-          );
-        })}
-
-        {STUDENTS.map((s, i) => {
-          const color = CLUSTER_COLORS[s.cluster];
-          const personFill = active ? color : "rgba(182,177,217,0.35)";
-          const transFill = `fill 0.5s ease ${i * 40}ms`;
-          return (
-            <g key={s.id}>
-              <circle cx={s.x} cy={s.y} r={28} fill="none" stroke={color} strokeWidth="1"
-                style={{ opacity: active ? 0.2 : 0, transition: `opacity 0.5s ease ${i * 50}ms` }} />
-              <circle cx={s.x} cy={s.y} r={20}
-                fill={active ? `${color}1a` : "rgba(30,27,70,0.75)"}
-                stroke={active ? color : "rgba(120,114,168,0.4)"}
-                strokeWidth={active ? "1.5" : "1"}
-                filter={active ? "url(#glow)" : undefined}
-                style={{ transition: `all 0.5s ease ${i * 40}ms` }} />
-              <circle cx={s.x} cy={s.y - 7} r={5.5} fill={personFill}
-                style={{ transition: transFill }} />
-              <path d={`M ${s.x - 10} ${s.y + 15} Q ${s.x - 11} ${s.y + 1} ${s.x} ${s.y + 1} Q ${s.x + 11} ${s.y + 1} ${s.x + 10} ${s.y + 15}`}
-                fill={personFill} style={{ transition: transFill }} />
-              <g style={{ opacity: active ? 0 : (mounted ? 0.7 : 0), transition: "opacity 0.35s ease" }}>
-                <rect x={s.x + 13} y={s.y - 31} width="16" height="16" rx="8"
-                  fill="rgba(30,27,70,0.9)" stroke="rgba(120,114,168,0.35)" strokeWidth="1" />
-                <text x={s.x + 21} y={s.y - 20} textAnchor="middle" fontSize="8" fill="rgba(182,177,217,0.55)">🔒</text>
-              </g>
-              <circle cx={s.x + 14} cy={s.y - 14} r="5" fill={color}
-                style={{ opacity: active ? 1 : 0, transition: `opacity 0.4s ease ${0.3 + i * 0.04}s`, filter: active ? "url(#glow)" : undefined }} />
-            </g>
-          );
-        })}
-
-        <g style={{ opacity: active ? 1 : 0, transition: "opacity 0.7s ease 0.4s" }}>
-          <circle cx={PROF.x} cy={PROF.y} r={32} fill="none" stroke="#f5a623" strokeWidth="0.75" strokeDasharray="6 4" opacity="0.3" />
-          <circle cx={PROF.x} cy={PROF.y} r={24} fill="rgba(245,166,35,0.1)" stroke="#f5a623" strokeWidth="1.5" />
-          <circle cx={PROF.x} cy={PROF.y - 7} r={6} fill="#f5a623" opacity={0.9} />
-          <path d={`M ${PROF.x - 11} ${PROF.y + 16} Q ${PROF.x - 12} ${PROF.y + 1} ${PROF.x} ${PROF.y + 1} Q ${PROF.x + 12} ${PROF.y + 1} ${PROF.x + 11} ${PROF.y + 16}`}
-            fill="#f5a623" opacity={0.9} />
-          <rect x={PROF.x - 11} y={PROF.y - 17} width="22" height="3" rx="1.5" fill="#f5a623" />
-          <line x1={PROF.x} y1={PROF.y - 17} x2={PROF.x} y2={PROF.y - 14} stroke="#f5a623" strokeWidth="2.5" />
-          <rect x={PROF.x - 66} y={PROF.y - 54} width="132" height="18" rx="9" fill="rgba(245,166,35,0.12)" stroke="rgba(245,166,35,0.25)" strokeWidth="1" />
-          <text x={PROF.x} y={PROF.y - 41} textAnchor="middle" fontSize="8.5" fontFamily="'DM Mono', monospace" fill="#f5a623" letterSpacing="0.5">VISIBLE TO TEACHING ASSISTANT</text>
-        </g>
-
-        {[{ cluster: 1, x: 186, y: 172 }, { cluster: 2, x: 20, y: 158 }, { cluster: 3, x: 392, y: 184 }]
-          .map(({ cluster, x, y }) => {
-            const color = CLUSTER_COLORS[cluster]; const meta = CLUSTER_META[cluster]; const w = 142, h = 34;
-            return (
-              <g key={`card-${cluster}`} style={{ opacity: active ? 1 : 0, transition: `opacity 0.5s ease ${0.55 + cluster * 0.08}s` }}>
-                <rect x={x} y={y} width={w} height={h} rx="7" fill="rgba(20,18,52,0.88)" stroke={`${color}40`} strokeWidth="1" filter="url(#shadow)" />
-                <rect x={x} y={y} width="3" height={h} rx="1.5" fill={color} opacity="0.8" />
-                <text x={x + 11} y={y + 13} fontSize="9" fontFamily="'DM Mono', monospace" fill={color} letterSpacing="0.2">{meta.count}</text>
-                <text x={x + 11} y={y + 26} fontSize="8.5" fontFamily="Inter, sans-serif" fill="rgba(182,177,217,0.7)">{meta.label}</text>
-              </g>
-            );
-          })}
-
-      </svg>
-    </div>
-  );
-}
-
-// ── Shared reveal hook ────────────────────────────────────────────────────────
 function useReveal(threshold = 0.08) {
   const ref = useRef<HTMLDivElement>(null);
   const [on, setOn] = useState(false);
@@ -199,362 +17,6 @@ function useReveal(threshold = 0.08) {
 }
 
 // ── Section 2: The Learning Visibility Gap (defined, available for future use) ──
-function VisibilityGapSection() {
-  const { ref, on } = useReveal(0.06);
-
-  const f = (d: number): React.CSSProperties => ({
-    opacity: on ? 1 : 0,
-    transform: on ? "translateY(0)" : "translateY(18px)",
-    transition: `opacity 0.7s ease ${d}ms, transform 0.7s ease ${d}ms`,
-  });
-
-  const na = (d: number): React.CSSProperties => ({
-    opacity: on ? 1 : 0,
-    transition: `opacity 0.5s ease ${d}ms`,
-  });
-
-  return (
-    <section ref={ref} className="py-20 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
-      <div className="max-w-6xl mx-auto">
-
-        <p style={{ ...f(0), fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.12em", color: "rgba(182,177,217,0.42)", marginBottom: "2rem" }}>
-          WHAT'S ACTUALLY HAPPENING
-        </p>
-
-        <h2 style={{ ...f(80), fontFamily: "'Instrument Serif', serif", fontSize: "clamp(3rem, 6vw, 5rem)", fontWeight: 400, color: "#f5f3ff", lineHeight: 1.04, letterSpacing: "-0.01em", marginBottom: "2.75rem" }}>
-          The Learning<br />
-          <span style={{ color: "rgba(245,243,255,0.28)" }}>Visibility Gap</span>
-        </h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_64px_1fr] rounded-2xl overflow-hidden mb-14"
-          style={{ ...f(180), border: "1px solid rgba(182,177,217,0.09)" }}>
-
-          <div className="p-8 lg:p-10" style={{ background: "rgba(124,131,245,0.04)" }}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#7c83f5", marginBottom: "1.75rem" }}>
-              BEFORE AI
-            </p>
-
-            <svg viewBox="0 0 200 90" className="w-full mb-5" style={{ maxHeight: "68px" }} aria-hidden>
-              <defs>
-                <filter id="lglow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="2.5" result="b" />
-                  <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
-              </defs>
-              {[
-                { d: "M 20 18 Q 100 18 178 45", delay: 380 },
-                { d: "M 20 45 L 178 45",         delay: 460 },
-                { d: "M 20 72 Q 100 72 178 45",  delay: 540 },
-              ].map((path, i) => (
-                <path key={i} d={path.d} fill="none" stroke="#7c83f5" strokeWidth="1.5" strokeLinecap="round"
-                  pathLength={1} strokeDasharray={1}
-                  strokeDashoffset={on ? 0 : 1}
-                  style={{ transition: `stroke-dashoffset 0.95s cubic-bezier(0.4,0,0.2,1) ${path.delay}ms` }}
-                />
-              ))}
-              {[18, 45, 72].map((y, i) => (
-                <g key={y} style={na(120 + i * 75)}>
-                  <circle cx={20} cy={y} r={8} fill="rgba(124,131,245,0.14)" stroke="#7c83f5" strokeWidth="1.5" />
-                  <circle cx={20} cy={y} r={3.5} fill="#7c83f5" opacity={0.8} />
-                </g>
-              ))}
-              <g style={na(760)}>
-                <circle cx={178} cy={45} r={17} fill="rgba(245,166,35,0.1)" stroke="#f5a623" strokeWidth="1.5" filter="url(#lglow)" />
-                <circle cx={178} cy={45} r={25} fill="none" stroke="#f5a623" strokeWidth="0.5" strokeDasharray="2 3" opacity={0.3} />
-              </g>
-            </svg>
-
-            <div className="space-y-3 mb-6">
-              {["Class Questions", "Discussion Forums", "Office Hours"].map((item, i) => (
-                <div key={item} className="flex items-center gap-3" style={na(320 + i * 80)}>
-                  <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#7c83f5", flexShrink: 0 }} />
-                  <span style={{ fontSize: "14px", color: "#f5f3ff", fontFamily: "'Inter', sans-serif" }}>{item}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ ...na(640), background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)" }}>
-              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80" }} />
-              <span style={{ fontSize: "10.5px", fontFamily: "'DM Mono', monospace", color: "#4ade80", letterSpacing: "0.04em" }}>
-                VISIBLE TO TEACHING ASSISTANTS
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center py-5 lg:py-0"
-            style={{ background: "rgba(8,6,24,0.4)", borderTop: "1px solid rgba(182,177,217,0.06)", borderBottom: "1px solid rgba(182,177,217,0.06)" }}>
-            <div style={na(480)}>
-              <svg viewBox="0 0 28 60" width="28" height="60" className="hidden lg:block" aria-hidden>
-                <line x1="14" y1="6" x2="14" y2="44" stroke="rgba(182,177,217,0.2)" strokeWidth="1" strokeDasharray="3 4" />
-                <polyline points="8,38 14,50 20,38" fill="none" stroke="rgba(182,177,217,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <svg viewBox="0 0 60 28" width="60" height="28" className="lg:hidden" aria-hidden>
-                <line x1="6" y1="14" x2="44" y2="14" stroke="rgba(182,177,217,0.2)" strokeWidth="1" strokeDasharray="3 4" />
-                <polyline points="38,8 50,14 38,20" fill="none" stroke="rgba(182,177,217,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="p-8 lg:p-10" style={{ background: "rgba(8,6,24,0.45)" }}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "rgba(182,177,217,0.4)", marginBottom: "1.75rem" }}>
-              TODAY
-            </p>
-
-            <svg viewBox="0 0 200 90" className="w-full mb-5" style={{ maxHeight: "68px" }} aria-hidden>
-              <defs>
-                <linearGradient id="linefade" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="rgba(182,177,217,0.28)" />
-                  <stop offset="70%" stopColor="rgba(182,177,217,0.06)" />
-                  <stop offset="100%" stopColor="rgba(182,177,217,0)" />
-                </linearGradient>
-              </defs>
-              {[18, 45, 72].map((y, i) => (
-                <g key={y}>
-                  <line x1={28} y1={y} x2={192} y2={y}
-                    stroke="url(#linefade)" strokeWidth="1" strokeDasharray="4 6"
-                    style={na(260 + i * 90)} />
-                  <circle cx={20} cy={y} r={8}
-                    fill="rgba(20,17,48,0.85)" stroke="rgba(182,177,217,0.18)" strokeWidth="1" strokeDasharray="2 2"
-                    style={na(120 + i * 75)} />
-                  <text x={20} y={y + 4} textAnchor="middle" fontSize="8.5" fill="rgba(182,177,217,0.35)">⊗</text>
-                </g>
-              ))}
-              <circle cx={178} cy={45} r={17}
-                fill="none" stroke="rgba(182,177,217,0.07)" strokeWidth="1" strokeDasharray="3 3"
-                style={na(760)} />
-              <text x={178} y={49} textAnchor="middle" fontSize="9" fontFamily="'DM Mono', monospace" fill="rgba(182,177,217,0.15)"
-                style={na(820)}>?</text>
-            </svg>
-
-            <div className="space-y-3 mb-4">
-              {["ChatGPT", "Claude", "NotebookLM"].map((item, i) => (
-                <div key={item} className="flex items-center gap-3" style={na(320 + i * 80)}>
-                  <div style={{ width: "7px", height: "7px", borderRadius: "50%", border: "1.5px solid rgba(182,177,217,0.22)", flexShrink: 0 }} />
-                  <span style={{ fontSize: "14px", color: "rgba(182,177,217,0.5)", fontFamily: "'Inter', sans-serif" }}>{item}</span>
-                </div>
-              ))}
-            </div>
-
-            <p style={{ ...na(560), fontSize: "10.5px", fontFamily: "'DM Mono', monospace", color: "rgba(182,177,217,0.3)", letterSpacing: "0.04em", marginBottom: "0.75rem" }}>
-              PRIVATE AI CONVERSATIONS
-            </p>
-
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ ...na(640), background: "rgba(182,177,217,0.04)", border: "1px solid rgba(182,177,217,0.1)" }}>
-              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(182,177,217,0.25)" }} />
-              <span style={{ fontSize: "10.5px", fontFamily: "'DM Mono', monospace", color: "rgba(182,177,217,0.4)", letterSpacing: "0.04em" }}>
-                INVISIBLE TO TEACHING ASSISTANTS
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ ...f(700), textAlign: "center" }}>
-          <div className="flex items-center gap-6 mb-8">
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, rgba(182,177,217,0.12))" }} />
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", letterSpacing: "0.1em", color: "rgba(182,177,217,0.3)", whiteSpace: "nowrap" }}>KEY INSIGHT</p>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, rgba(182,177,217,0.12), transparent)" }} />
-          </div>
-
-          <h3 style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontSize: "clamp(1.9rem, 3.8vw, 3rem)",
-            fontWeight: 400, color: "#f5f3ff", lineHeight: 1.18,
-            marginBottom: "1.5rem",
-          }}>
-            The questions didn't disappear.
-            <br />
-            <span style={{ color: "rgba(245,243,255,0.42)" }}>The visibility did.</span>
-          </h3>
-
-          <p style={{ fontSize: "15px", color: "rgba(182,177,217,0.65)", lineHeight: 1.78, maxWidth: "52ch", margin: "0 auto" }}>
-            Students are still asking questions, struggling with concepts, and seeking help. Increasingly, those interactions happen inside AI systems that teaching assistants never see.
-          </p>
-        </div>
-
-      </div>
-    </section>
-  );
-}
-
-// ── Section 3: AI Didn't Reduce Questions ─────────────────────────────────────
-function InsightSection() {
-  const { ref, on } = useReveal(0.1);
-  const [count, setCount] = useState(0);
-  const [barsOn, setBarsOn] = useState(false);
-  const barsTriggered = useRef(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.65)));
-      setCount(Math.round(progress * 90));
-      if (progress > 0.3 && !barsTriggered.current) {
-        barsTriggered.current = true;
-        setBarsOn(true);
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const fade = (d: number): React.CSSProperties => ({
-    opacity: on ? 1 : 0,
-    transform: on ? "translateY(0)" : "translateY(18px)",
-    transition: `opacity 0.7s ease ${d}ms, transform 0.7s ease ${d}ms`,
-  });
-
-  const slideLeft = (d: number): React.CSSProperties => ({
-    opacity: on ? 1 : 0,
-    transform: on ? "translateX(0)" : "translateX(-24px)",
-    transition: `opacity 0.75s ease ${d}ms, transform 0.75s ease ${d}ms`,
-  });
-
-  return (
-    <section ref={ref} className="py-20 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
-      <div className="max-w-6xl mx-auto">
-        <div className="rounded-2xl p-10 md:p-14"
-          style={{ background: "rgba(14,12,38,0.8)", border: "1px solid rgba(182,177,217,0.09)" }}>
-
-          <div style={{ ...fade(0), width: "40px", height: "2px", background: "#7c83f5", opacity: 0.6, marginBottom: "2.5rem" }} />
-
-          <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-center">
-
-            <div className="lg:col-span-3 flex flex-col gap-8">
-
-              <div>
-                {[
-                  { text: "Here's how big", delay: 80, bright: true },
-                  { text: "the gap actually is.", delay: 200, bright: false },
-                ].map(({ text, delay, bright }) => (
-                  <div key={text} style={slideLeft(delay)}>
-                    <span style={{
-                      display: "block",
-                      fontFamily: "'Instrument Serif', serif",
-                      fontSize: "clamp(3rem, 6vw, 5rem)",
-                      fontWeight: 400,
-                      lineHeight: 1.08,
-                      color: bright ? "#f5f3ff" : "rgba(245,243,255,0.38)",
-                    }}>{text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 flex flex-col gap-7" style={{ paddingLeft: "1.5rem" }}>
-
-              <div style={fade(160)}>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "2rem" }}>
-                  <div>
-                    <span style={{
-                      fontFamily: "'Instrument Serif', serif",
-                      fontSize: "clamp(5.5rem, 10vw, 8rem)",
-                      fontWeight: 400,
-                      color: "#7c83f5",
-                      lineHeight: 1,
-                      display: "block",
-                      fontVariantNumeric: "tabular-nums",
-                    }}>
-                      {count}%
-                    </span>
-                    <p style={{
-                      fontFamily: "'DM Mono', monospace", fontSize: "9.5px",
-                      letterSpacing: "0.07em", color: "rgba(182,177,217,0.42)",
-                      marginTop: "8px", lineHeight: 1.6,
-                    }}>
-                      OF STUDENTS USE<br />GENERATIVE AI
-                    </p>
-                  </div>
-
-                  <div style={{ paddingBottom: "2px" }}>
-                    <span style={{
-                      fontFamily: "'Instrument Serif', serif",
-                      fontSize: "clamp(2.2rem, 4vw, 3rem)",
-                      fontWeight: 400,
-                      color: "#f5a623",
-                      lineHeight: 1,
-                      display: "block",
-                    }}>25%</span>
-                    <p style={{
-                      fontFamily: "'DM Mono', monospace", fontSize: "9.5px",
-                      letterSpacing: "0.07em", color: "rgba(182,177,217,0.42)",
-                      marginTop: "6px", lineHeight: 1.6,
-                    }}>
-                      REPORT AI SUBSTITUTING<br />FOR OFFICE HOURS &amp;<br />REQUIRED READINGS
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href="https://arxiv.org/abs/2406.00833"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    marginTop: "1rem",
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: "9px",
-                    color: "rgba(124,131,245,0.55)",
-                    letterSpacing: "0.05em",
-                    textDecoration: "none",
-                    borderBottom: "1px solid rgba(124,131,245,0.2)",
-                    paddingBottom: "1px",
-                    transition: "color 0.2s ease, border-color 0.2s ease",
-                  }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLAnchorElement).style.color = "rgba(124,131,245,0.9)";
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(124,131,245,0.5)";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLAnchorElement).style.color = "rgba(124,131,245,0.55)";
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(124,131,245,0.2)";
-                  }}
-                >
-                  Harvard Study, 2024 ↗
-                </a>
-              </div>
-
-              <div style={{ borderTop: "1px solid rgba(182,177,217,0.09)", paddingTop: "1.5rem", ...fade(400) }}>
-                <div className="space-y-5">
-                  {[
-                    { label: "Questions being asked", pct: 100, fill: "#7c83f5", val: "—", bright: true, barDelay: 0 },
-                    { label: "Visible to teaching assistants", pct: 10, fill: "rgba(124,131,245,0.3)", val: "10%", bright: false, barDelay: 200 },
-                  ].map((row) => (
-                    <div key={row.label}>
-                      <div className="flex justify-between items-baseline mb-2">
-                        <span style={{ fontSize: "12px", fontFamily: "'Inter', sans-serif", color: row.bright ? "rgba(182,177,217,0.65)" : "rgba(182,177,217,0.38)" }}>
-                          {row.label}
-                        </span>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "12px", color: row.bright ? "#7c83f5" : "rgba(182,177,217,0.38)" }}>
-                          {row.val}
-                        </span>
-                      </div>
-                      <div style={{ height: "5px", borderRadius: "2px", background: "rgba(255,255,255,0.055)", overflow: "hidden" }}>
-                        <div style={{
-                          height: "100%", borderRadius: "2px",
-                          background: row.fill,
-                          width: barsOn ? `${row.pct}%` : "0%",
-                          transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${row.barDelay}ms`,
-                        }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Section: What Horizon Does ────────────────────────────────────────────────
 function BenefitsSection() {
   const { ref, on } = useReveal(0.08);
 
@@ -565,9 +27,9 @@ function BenefitsSection() {
   });
 
   const studentBullets = [
-    "Get AI answers grounded in your actual course materials",
-    "See how classmates are thinking about the same problems",
-    "Know you're not the only one when something doesn't click",
+    "Answers grounded in your class materials, with the source cited",
+    "One shared conversation — see what classmates are asking and how they think about it",
+    "Fork any answer into a private chat to go deeper, then share what you find back",
   ];
 
   const instructorBullets = [
@@ -580,14 +42,14 @@ function BenefitsSection() {
     <section ref={ref} className="py-20 px-6" style={{ borderTop: "1px solid rgba(182,177,217,0.08)" }}>
       <div className="max-w-6xl mx-auto">
         <h2 style={{ ...fade(0), fontFamily: "'Instrument Serif', serif", fontSize: "clamp(2rem, 3.5vw, 2.8rem)", fontWeight: 400, color: "#f5f3ff", marginBottom: "2.5rem" }}>
-          What Horizon does
+          Built for study groups. <span style={{ color: "rgba(245,243,255,0.45)" }}>Works for whole classes too.</span>
         </h2>
         <div className="rounded-2xl p-10 md:p-14"
           style={{ ...fade(80), background: "rgba(14,12,38,0.8)", border: "1px solid rgba(182,177,217,0.09)" }}>
           <div className="grid md:grid-cols-2 gap-10 md:gap-16">
             <div>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#7c83f5", marginBottom: "1.75rem" }}>
-                FOR STUDENTS
+                FOR STUDY GROUPS
               </p>
               <div className="space-y-4">
                 {studentBullets.map((text, i) => (
@@ -605,7 +67,7 @@ function BenefitsSection() {
             </div>
             <div>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#f5a623", marginBottom: "1.75rem" }}>
-                FOR TEACHING ASSISTANTS
+                FOR INSTRUCTORS &amp; TAs
               </p>
               <div className="space-y-4">
                 {instructorBullets.map((text, i) => (
@@ -628,52 +90,80 @@ function BenefitsSection() {
   );
 }
 
-// ── Cycling word animator ─────────────────────────────────────────────────────
-function CyclingWord({ words, interval = 1800 }: { words: string[]; interval?: number }) {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
+// ── Hero: a still of a real group conversation ────────────────────────────────
+const mono: React.CSSProperties = { fontFamily: "'DM Mono', monospace" };
 
-  useEffect(() => {
-    const cycle = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setIndex(i => (i + 1) % words.length);
-        setVisible(true);
-      }, 350);
-    }, interval);
-    return () => clearInterval(cycle);
-  }, [words, interval]);
-
+function Avatar({ label, bg }: { label: string; bg: string }) {
   return (
-    <span style={{
-      display: "inline-block",
-      color: "#f5f3ff",
-      fontStyle: "italic",
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(-6px)",
-      transition: "opacity 0.35s ease, transform 0.35s ease",
-      minWidth: "7ch",
-    }}>
-      {words[index]}
-    </span>
+    <span className="rounded-full flex items-center justify-center shrink-0 font-semibold text-white" style={{ width: 26, height: 26, fontSize: 11, background: bg }} aria-hidden>{label}</span>
   );
 }
 
-// ── Main page ──────────────────────────────────────────────────────────────────
+function Name({ children, sub }: { children: React.ReactNode; sub?: string }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <span className="text-[13px] font-medium" style={{ color: "#f5f3ff" }}>{children}</span>
+      {sub && <span style={{ ...mono, fontSize: 10, color: "rgba(182,177,217,0.45)" }}>{sub}</span>}
+    </div>
+  );
+}
+
+function ConversationPreview() {
+  return (
+    <div className="rounded-2xl overflow-hidden"
+      style={{ border: "1px solid rgba(182,177,217,0.1)", background: "rgba(20,17,56,0.8)", backdropFilter: "blur(12px)" }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(182,177,217,0.07)" }}>
+        <div className="flex items-center gap-1.5">
+          {[0,1,2].map(i => <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />)}
+        </div>
+        <span className="text-xs" style={{ ...mono, color: "rgba(182,177,217,0.35)" }}>EECS 551 · 12 members · 3 active now</span>
+      </div>
+      <div className="px-5 py-4 space-y-4 text-[13px] leading-relaxed" style={{ color: "#d9d6ef" }}>
+        <div className="flex items-start gap-2.5">
+          <Avatar label="A" bg="#8686AC" />
+          <div className="min-w-0">
+            <Name sub="4:21 PM">Alice</Name>
+            <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 mt-1 mb-1" style={{ ...mono, fontSize: 10, color: "#c4c7fa", background: "rgba(124,131,245,0.14)" }}>
+              <FileText size={10} /> Lecture 7 slides
+            </span>
+            <p>Why does truncating the SVD give the best low-rank approximation?</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-2.5">
+          <Avatar label="H" bg="linear-gradient(135deg, #f59e0b, #ef6c00)" />
+          <div className="min-w-0">
+            <Name sub="BOT">Horizon</Name>
+            <p>Because the singular values are ordered by how much variance each direction captures. Keeping the top <em>k</em> minimizes the Frobenius-norm error — that's the Eckart–Young theorem
+              <sup style={{ ...mono, fontSize: 9, color: "#c4c7fa", marginLeft: 3 }}>[1]</sup>.</p>
+            <p className="mt-1" style={{ ...mono, fontSize: 10, color: "rgba(182,177,217,0.45)" }}>Sources (1) · Save · Fork · Follow up</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-2.5 pl-8">
+          <Avatar label="B" bg="#8686AC" />
+          <div className="min-w-0">
+            <Name sub="4:23 PM">Bob</Name>
+            <p>This matches what she said in lecture — the "keep the directions with the most spread" intuition.</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-2.5 pl-8">
+          <Avatar label="S" bg="#8686AC" />
+          <div className="min-w-0">
+            <Name sub="4:24 PM">Sara</Name>
+            <p>So is that also why PCA uses it? Forking this to dig in.</p>
+          </div>
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <div className="rounded-xl px-3 py-2 text-xs" style={{ background: "rgba(182,177,217,0.06)", border: "1px solid rgba(182,177,217,0.12)", color: "rgba(182,177,217,0.5)" }}>
+          Message EECS 551…
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
-  const [vizActive, setVizActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const vizTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const resetVizTimer = () => {
-    if (vizTimerRef.current) clearInterval(vizTimerRef.current);
-    vizTimerRef.current = setInterval(() => setVizActive(prev => !prev), 3500);
-  };
-
-  useEffect(() => {
-    resetVizTimer();
-    return () => { if (vizTimerRef.current) clearInterval(vizTimerRef.current); };
-  }, []);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 16);
@@ -699,8 +189,8 @@ export default function LandingPage() {
             <Link to="/login" className="text-sm transition-colors whitespace-nowrap" style={{ color: "#b6b1d9" }}
               onMouseEnter={e => (e.currentTarget.style.color = "#f5f3ff")}
               onMouseLeave={e => (e.currentTarget.style.color = "#b6b1d9")}>Sign in</Link>
-            <Link to="/signup" className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-90 whitespace-nowrap"
-              style={{ background: "#ede9fe", color: "#211d45", fontWeight: 500 }}>Get started</Link>
+            <Link to="/start" className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-90 whitespace-nowrap"
+              style={{ background: "#ede9fe", color: "#211d45", fontWeight: 500 }}>Create a group</Link>
           </nav>
         </div>
       </header>
@@ -714,79 +204,44 @@ export default function LandingPage() {
             <div>
               <h1 className="mb-5 leading-[1.08] tracking-tight"
                 style={{ fontFamily: "'Instrument Serif', serif", fontSize: "clamp(2.4rem, 4.5vw, 3.5rem)", fontWeight: 400, color: "#f5f3ff" }}>
-                Students already learn with AI.
-                <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Horizon makes that learning visible.</span>
+                Study together.
+                <br />Ask anything.
+                <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Know it's right.</span>
               </h1>
-              <p className="text-base leading-relaxed mb-8" style={{ color: "#b6b1d9", maxWidth: "42ch" }}>
-                Students are asking ChatGPT questions anyway. Horizon turns those private conversations into shared learning, giving teaching assistants insight into what their class actually struggles with.
+              <p className="text-base leading-relaxed mb-8" style={{ color: "#b6b1d9", maxWidth: "44ch" }}>
+                Make a study group for your class, drop in the lecture notes and homework, and invite your friends. Horizon answers from what your professor actually taught — with citations — and your group is right there to discuss it.
               </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{ background: "#ede9fe", color: "#211d45" }}>
-                Get started here <ArrowRight size={15} />
-              </Link>
+              <div className="flex flex-wrap items-center gap-4">
+                <Link to="/start" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+                  style={{ background: "#ede9fe", color: "#211d45" }}>
+                  Create a study group <ArrowRight size={15} />
+                </Link>
+                <span className="text-sm" style={{ color: "rgba(182,177,217,0.6)" }}>Free · takes 30 seconds · no professor needed</span>
+              </div>
             </div>
 
             <div>
-              <div className="rounded-2xl overflow-hidden"
-                style={{ border: "1px solid rgba(182,177,217,0.1)", background: "rgba(20,17,56,0.8)", backdropFilter: "blur(12px)" }}>
-                <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(182,177,217,0.07)" }}>
-                  <div className="flex items-center gap-1.5">
-                    {[0,1,2].map(i => <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />)}
-                  </div>
-                  <span className="text-xs" style={{ fontFamily: "'DM Mono', monospace", color: "rgba(182,177,217,0.35)" }}>
-                    ECON 201 · 8 students active
-                  </span>
-                </div>
-                <div className="flex items-center justify-between px-5 pt-4 pb-1">
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.06em", whiteSpace: "nowrap", color: vizActive ? "#ede9fe" : "rgba(182,177,217,0.45)", transition: "color 0.4s ease" }}>
-                    {vizActive ? "● WITH HORIZON" : "○ WITHOUT HORIZON"}
-                  </span>
-                  <div className="hidden sm:flex items-center gap-3" style={{ opacity: vizActive ? 1 : 0, transition: "opacity 0.5s ease 0.5s" }}>
-                    {Object.entries(CLUSTER_COLORS).map(([k, color]) => (
-                      <div key={k} className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
-                        <span style={{ fontSize: "9px", color: "rgba(182,177,217,0.5)", fontFamily: "'DM Mono', monospace" }}>
-                          {CLUSTER_META[+k].label.split("—")[0].trim()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="px-3 pb-2"><ClassroomVisual active={vizActive} /></div>
-                <div className="px-5 pb-5">
-                  <p style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: "10px",
-                    letterSpacing: "0.05em",
-                    color: "rgba(182,177,217,0.45)",
-                    textAlign: "center",
-                    marginBottom: "0.75rem",
-                    transition: "opacity 0.4s ease",
-                  }}>
-                    {vizActive
-                      ? "3 question clusters identified · teaching assistant has full context"
-                      : "8 private AI conversations · 0 shared · teaching assistant sees nothing"}
-                  </p>
-                  <button onClick={() => { setVizActive(prev => !prev); resetVizTimer(); }}
-                    className="w-full py-2 rounded-xl font-medium transition-all duration-300 active:scale-[0.98]"
-                    style={{
-                      background: vizActive ? "rgba(124,131,245,0.1)" : "rgba(182,177,217,0.06)",
-                      border: `1px solid ${vizActive ? "rgba(124,131,245,0.28)" : "rgba(182,177,217,0.12)"}`,
-                      color: vizActive ? "#c4c7fa" : "#b6b1d9",
-                      fontFamily: "'DM Mono', monospace", letterSpacing: "0.03em",
-                      fontSize: "11px",
-                    }}>
-                    {vizActive ? "← See what teaching assistants are missing" : "See what Horizon makes visible →"}
-                  </button>
-                </div>
-              </div>
+              <ConversationPreview />
             </div>
+          </div>
+
+          {/* How it works */}
+          <div className="grid sm:grid-cols-3 gap-4 mt-16">
+            {[
+              { n: "01", title: "Create a group", body: "Name it after your class. You get a link to share." },
+              { n: "02", title: "Add your materials", body: "Slides, notes, homework — anyone in the group can upload." },
+              { n: "03", title: "Ask, together", body: "Horizon answers from those materials. Your group discusses, follows up, and forks." },
+            ].map(step => (
+              <div key={step.n} className="rounded-2xl p-5"
+                style={{ background: "rgba(14,12,38,0.6)", border: "1px solid rgba(182,177,217,0.09)" }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.1em", color: "#7c83f5", marginBottom: "0.6rem" }}>{step.n}</p>
+                <p className="text-[15px] font-medium mb-1" style={{ color: "#f5f3ff" }}>{step.title}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "#b6b1d9" }}>{step.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* ── SECTION 3: INSIGHT / SCALE OF THE GAP ── */}
-      <InsightSection />
 
       {/* ── SECTION 4: WHAT HORIZON DOES ── */}
       <BenefitsSection />
@@ -797,11 +252,11 @@ export default function LandingPage() {
 
           <h2 className="mb-8 leading-snug"
             style={{ fontFamily: "'Instrument Serif', serif", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 400, color: "#f5f3ff", lineHeight: 1.15 }}>
-            Learning is already happening with AI.
-            <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Make sure it happens together.</span>
+            You're going to ask AI anyway.
+            <br /><span style={{ color: "rgba(245,243,255,0.45)" }}>Ask it with your class, from your class.</span>
           </h2>
 
-          <Link to="/signup"
+          <Link to="/start"
             className="inline-flex items-center gap-3 rounded-xl font-medium transition-all hover:opacity-90 active:scale-[0.98] mb-5"
             style={{
               background: "#ede9fe",
@@ -810,10 +265,16 @@ export default function LandingPage() {
               fontSize: "1.05rem",
               boxShadow: "0 8px 32px rgba(124,131,245,0.2)",
             }}>
-            Get started here
+            Create a study group
             <ArrowRight size={18} />
           </Link>
 
+          <p className="block text-sm mb-2" style={{ color: "rgba(182,177,217,0.4)" }}>
+            Teaching a course?{" "}
+            <Link to="/signup" className="underline underline-offset-2 transition-colors" style={{ color: "rgba(182,177,217,0.6)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#f5f3ff")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(182,177,217,0.6)")}>Set up Horizon for your class</Link>
+          </p>
           <p className="block text-sm" style={{ color: "rgba(182,177,217,0.4)" }}>
             Already have an account?{" "}
             <Link to="/login" className="underline underline-offset-2 transition-colors" style={{ color: "rgba(182,177,217,0.6)" }}
