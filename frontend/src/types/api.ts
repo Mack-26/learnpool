@@ -341,3 +341,11 @@ export interface HomeResponse {
   recent_activity: HomeActivityItem[]
   groups: HomeGroupItem[]
 }
+
+export interface InvitePreviewOut {
+  join_code: string
+  name: string
+  subject: string | null
+  member_count: number
+  owner_first_name: string
+}

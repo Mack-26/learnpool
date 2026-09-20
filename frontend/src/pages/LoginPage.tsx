@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import HorizonLogo from '../components/HorizonLogo'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  // Only allow same-origin paths so the param can't bounce users off-site.
+  const rawNext = searchParams.get('next')
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
   const setAuth = useAuthStore((s) => s.setAuth)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,7 +27,7 @@ export default function LoginPage() {
         display_name: data.display_name,
         role: data.role,
       })
-      navigate(data.role === 'professor' ? '/instructor' : '/classes')
+      navigate(next && data.role === 'student' ? next : data.role === 'professor' ? '/instructor' : '/home')
     } catch (err: unknown) {
       const res = err && typeof err === 'object' && 'response' in err
         ? (err as { response?: { status?: number; data?: { detail?: string | unknown } } }).response

@@ -410,6 +410,15 @@ class JoinGroupResponse(BaseModel):
     already_member: bool
 
 
+class InvitePreviewOut(BaseModel):
+    """What an invite link shows before the visitor signs in — deliberately minimal."""
+    join_code: str
+    name: str
+    subject: str | None
+    member_count: int
+    owner_first_name: str
+
+
 class GroupQuestionOut(QuestionOut):
     asker_name: str  # "Anonymous" when the question was asked anonymously
     is_mine: bool

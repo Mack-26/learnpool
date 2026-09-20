@@ -4,6 +4,7 @@ import type {
   GroupOut,
   GroupQuestionOut,
   HomeResponse,
+  InvitePreviewOut,
   JoinGroupResponse,
   PrivateChatOut,
 } from '../types/api'
@@ -85,4 +86,13 @@ export async function continuePrivateChat(questionId: string, content: string): 
 export async function sharePrivateChat(questionId: string): Promise<PrivateChatOut> {
   const res = await client.post<PrivateChatOut>(`/api/student/chats/${questionId}/share`)
   return res.data
+}
+
+export async function getInvitePreview(joinCode: string): Promise<InvitePreviewOut> {
+  const res = await client.get<InvitePreviewOut>(`/api/invites/${encodeURIComponent(joinCode)}`)
+  return res.data
+}
+
+export function inviteLinkFor(joinCode: string): string {
+  return `${window.location.origin}/join/${joinCode}`
 }

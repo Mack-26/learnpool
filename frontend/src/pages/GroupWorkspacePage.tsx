@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Bookmark, Check, Copy, CornerDownRight, Eye, EyeOff, FileText, GitFork, MessageCircle, Paperclip, Plus, Send, Upload, Users, X,
+  Bookmark, Check, Copy, CornerDownRight, Eye, EyeOff, FileText, GitFork, MessageCircle, Paperclip, Plus, Send, Share2, Upload, Users, X,
 } from 'lucide-react'
 import {
-  askGroupQuestion, forkGroupQuestionPrivately, getGroupDetail, getGroupDocuments, getGroupQuestions, getMyGroups, uploadGroupDocument,
+  askGroupQuestion, forkGroupQuestionPrivately, getGroupDetail, getGroupDocuments, getGroupQuestions, getMyGroups, inviteLinkFor, uploadGroupDocument,
 } from '../api/groups'
 import { forkQuestion, getQuestionComments, getSavedAnswers, postQuestionComment, saveAnswer, unsaveAnswer } from '../api/sessions'
 import { renderAnswerWithCitations } from '../components/AnswerRenderer'
@@ -91,22 +91,66 @@ function GroupsSidebar({ activeGroupId }: { activeGroupId?: string }) {
 
 // ─── Right: invite + members + materials ──────────────────────────────────────
 
-function InviteCode({ code }: { code: string }) {
+function InvitePanel({ group }: { group: GroupDetailOut }) {
   const [copied, setCopied] = useState(false)
+  const link = inviteLinkFor(group.join_code)
+  const message = `Join my ${group.name} study group on Horizon — we ask questions and get answers from our own class materials: ${link}`
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(code)
+      await navigator.clipboard.writeText(link)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     } catch {
-      // clipboard unavailable — the code is still visible to copy by hand
+      // clipboard unavailable — the link is still visible to copy by hand
     }
   }
+
+  // Phones: the OS share sheet (WhatsApp, Messages, etc.). Desktop: copy link.
+  const share = async () => {
+    if (canNativeShare) {
+      try {
+        await navigator.share({ title: `Join ${group.name} on Horizon`, text: message, url: link })
+        return
+      } catch {
+        // user dismissed the sheet, or share failed — fall through to copy
+      }
+    }
+    await copy()
+  }
+
   return (
-    <button onClick={copy} aria-label={`Copy invite code ${code}`} className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono tracking-wider hover:border-primary/40 transition-colors">
-      <span>{code}</span>
-      {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
-    </button>
+    <div>
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Invite classmates</h3>
+      <Button size="sm" className="w-full gap-1.5" onClick={share} aria-label={canNativeShare ? 'Share invite link' : 'Copy invite link'}>
+        {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+        {copied ? 'Link copied' : canNativeShare ? 'Share invite link' : 'Copy invite link'}
+      </Button>
+      <div className="mt-2 flex items-center gap-1.5">
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(message)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 text-center text-xs font-medium text-foreground rounded-lg border border-border py-1.5 hover:bg-muted/60"
+        >
+          WhatsApp
+        </a>
+        <a
+          href={`mailto:?subject=${encodeURIComponent(`Join ${group.name} on Horizon`)}&body=${encodeURIComponent(message)}`}
+          className="flex-1 text-center text-xs font-medium text-foreground rounded-lg border border-border py-1.5 hover:bg-muted/60"
+        >
+          Email
+        </a>
+        <button onClick={copy} aria-label="Copy invite link" className="rounded-lg border border-border p-1.5 hover:bg-muted/60 text-muted-foreground">
+          {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+      <p className="text-[11px] text-muted-foreground mt-2 break-all">
+        <span className="font-mono">{link.replace(/^https?:\/\//, '')}</span>
+      </p>
+      <p className="text-[11px] text-muted-foreground mt-1">Anyone with the link joins instantly — no account needed beforehand.</p>
+    </div>
   )
 }
 
@@ -155,11 +199,7 @@ function MaterialsPanel({ groupId, onDiscuss }: { groupId: string; onDiscuss: (d
 function RightPanel({ group, onDiscuss }: { group: GroupDetailOut; onDiscuss: (doc: DocumentOut) => void }) {
   return (
     <aside className="w-64 shrink-0 h-full overflow-y-auto bg-white p-4 space-y-6" style={{ boxShadow: '-1px 0 0 rgba(134,134,172,0.15)' }}>
-      <div>
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Invite classmates</h3>
-        <InviteCode code={group.join_code} />
-        <p className="text-[11px] text-muted-foreground mt-1.5">Anyone with this code can join instantly.</p>
-      </div>
+      <InvitePanel group={group} />
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Members ({group.members.length})</h3>
         <div className="space-y-0.5">

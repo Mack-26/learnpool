@@ -31,6 +31,7 @@ from models import (
     GroupMemberOut,
     GroupOut,
     GroupQuestionOut,
+    InvitePreviewOut,
     JoinGroupResponse,
 )
 from services import rag_service
@@ -39,6 +40,7 @@ from services.file_extractor import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, extract_t
 from services.storage_service import upload_file
 
 router = APIRouter(prefix="/api/student/groups", tags=["groups"])
+public_router = APIRouter(prefix="/api/invites", tags=["groups"])
 
 
 def _require_student(current_user: dict = Depends(get_current_user)) -> dict:
@@ -554,4 +556,32 @@ async def upload_group_document(
         url="" if row["storage_path"] == "inline" else f"/uploads/{row['storage_path']}",
         page_count=row["page_count"],
         content=row["content"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/invites/{join_code}  (no auth — powers the /join/<code> landing page)
+# ---------------------------------------------------------------------------
+
+@public_router.get("/{join_code}", response_model=InvitePreviewOut)
+async def preview_invite(join_code: str, db=Depends(get_db)):
+    row = await db.fetchrow(
+        """
+        SELECT c.invite_code, c.name, c.description, u.display_name AS owner_name,
+               (SELECT COUNT(*) FROM course_enrollments ce WHERE ce.course_id = c.id) AS member_count
+        FROM courses c
+        JOIN study_groups sg ON sg.course_id = c.id
+        JOIN users u ON u.id = sg.owner_id
+        WHERE LOWER(c.invite_code) = LOWER($1) AND c.course_type = 'study_group'
+        """,
+        join_code,
+    )
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid invite link")
+    return InvitePreviewOut(
+        join_code=row["invite_code"],
+        name=row["name"],
+        subject=row["description"],
+        member_count=int(row["member_count"]),
+        owner_first_name=(row["owner_name"] or "").split(" ")[0],
     )

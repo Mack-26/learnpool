@@ -22,6 +22,7 @@ import ClassmatesPage from './pages/ClassmatesPage'
 import GroupWorkspacePage from './pages/GroupWorkspacePage'
 import HomePage from './pages/HomePage'
 import MyChatsPage from './pages/MyChatsPage'
+import JoinPage from './pages/JoinPage'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<OnboardingPage />} />
+      <Route path="/join/:code" element={<JoinPage />} />
       {/* Student routes */}
       <Route path="/home" element={<ProtectedRoute requireRole="student"><HomePage /></ProtectedRoute>} />
       <Route path="/groups" element={<ProtectedRoute requireRole="student"><GroupWorkspacePage /></ProtectedRoute>} />

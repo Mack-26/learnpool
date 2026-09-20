@@ -54,19 +54,25 @@ export default function JoinGroupModal({ open, onClose, onJoined }: Props) {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">Paste the code a classmate shared with you.</p>
+        <p className="text-sm text-muted-foreground mb-4">Paste the invite link or code a classmate shared with you.</p>
         <form
-          onSubmit={(e) => { e.preventDefault(); if (code.trim()) { setError(null); mutation.mutate(code.trim()) } }}
+          onSubmit={(e) => {
+            e.preventDefault()
+            // Accept a pasted invite link as well as a bare code.
+            const raw = code.trim().replace(/\/+$/, '')
+            const value = raw.includes('/') ? raw.slice(raw.lastIndexOf('/') + 1) : raw
+            if (value) { setError(null); mutation.mutate(value) }
+          }}
           className="space-y-3"
         >
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="e.g. a3f8b2c1"
+            placeholder="horizonlabs.live/join/a3f8b2c1"
             aria-label="Group join code"
-            maxLength={20}
-            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30"
+            maxLength={200}
+            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/30"
             autoFocus
           />
           {error && <p className="text-xs text-destructive">{error}</p>}
