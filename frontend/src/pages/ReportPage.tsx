@@ -46,17 +46,19 @@ const LABELS = [
   { emoji: '🔄', label: 'Needs Follow-up',      color: 'orange' },
 ] as const
 
+// Active label chips: one tinted surface (accent) + primary text. Colour is never the only signal —
+// every chip carries its emoji + label. Critical labels use the reserved status colour on the text only.
 const LABEL_COLOR_MAP: Record<string, string> = {
-  blue:   'bg-amber-50 text-amber-700 border-amber-200',
-  green:  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  red:    'bg-red-50 text-red-600 border-red-200',
-  yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  purple: 'bg-violet-50 text-violet-700 border-violet-200',
-  gray:   'bg-slate-50 text-slate-500 border-slate-200',
-  orange: 'bg-orange-50 text-orange-600 border-orange-200',
+  blue:   'bg-accent text-primary border-[var(--ai-border)]',
+  green:  'bg-accent text-primary border-[var(--ai-border)]',
+  red:    'bg-card text-[var(--status-critical)] border-[var(--status-critical)]',
+  yellow: 'bg-card text-[var(--status-warning-text)] border-[var(--status-warning)]',
+  purple: 'bg-accent text-primary border-[var(--ai-border)]',
+  gray:   'bg-secondary text-foreground border-border',
+  orange: 'bg-accent text-primary border-[var(--ai-border)]',
 }
 
-const LABEL_INACTIVE = 'bg-muted text-muted-foreground border-border hover:border-primary/40 hover:bg-muted/80'
+const LABEL_INACTIVE = 'bg-card text-muted-foreground border-border hover:border-primary/40 hover:bg-[var(--hover-row)]'
 
 function effectiveNeedsAttention(q: ReportQuestionOut): boolean {
   if (!q.feedback?.needs_attention) return false
@@ -174,14 +176,14 @@ function RichThreadCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
-      className={`rounded-xl border overflow-hidden transition-colors ${
-        needsAttention ? 'border-destructive/40 bg-destructive/5' : 'border-border bg-card'
+      className={`rounded-xl border overflow-hidden transition-colors bg-card ${
+        needsAttention ? 'border-[var(--status-critical)]' : 'border-border'
       }`}
     >
       {/* Header row */}
       <div className="flex items-center gap-3 p-4">
         <div className="flex-1 min-w-0 flex items-start gap-3">
-          <div className="h-8 w-8 rounded-lg gradient-primary text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0 text-xs font-semibold mt-0.5 mono">
             {index + 1}
           </div>
           <div className="flex-1 min-w-0">
@@ -196,10 +198,9 @@ function RichThreadCard({
                     if (e.key === 'Enter') titleMutation.mutate(titleDraft)
                     if (e.key === 'Escape') setEditingTitle(false)
                   }}
-                  className="flex-1 text-sm font-semibold border border-primary/40 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ background: '#ffffff' }}
+                  className="flex-1 text-sm font-semibold bg-card border border-input rounded-lg px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
                 />
-                <button onClick={() => titleMutation.mutate(titleDraft)} disabled={titleMutation.isPending} className="p-1 rounded text-emerald-600 hover:bg-emerald-50 transition-colors">
+                <button onClick={() => titleMutation.mutate(titleDraft)} disabled={titleMutation.isPending} className="p-1 rounded text-primary hover:bg-accent transition-colors">
                   <Check className="h-3.5 w-3.5" />
                 </button>
                 <button onClick={() => setEditingTitle(false)} className="p-1 rounded text-muted-foreground hover:bg-muted transition-colors">
@@ -214,7 +215,7 @@ function RichThreadCard({
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs text-muted-foreground">{thread.student_display_name}</span>
               {thread.is_mine && (
-                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">You</span>
+                <span className="text-xs bg-accent text-primary border border-[var(--ai-border)] px-1.5 py-0.5 rounded-full font-medium">You</span>
               )}
               {thread.forked_from && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -278,15 +279,15 @@ function RichThreadCard({
         <div className="flex items-center gap-2 shrink-0">
           <button onClick={() => handleVote('up')} className="group/v flex items-center gap-1 text-xs tabular-nums transition-colors">
             <ThumbsUp className={`h-3.5 w-3.5 transition-all duration-150 group-hover/v:scale-110 ${
-              myFeedback === 'up' ? 'text-emerald-500' : 'text-muted-foreground/50 group-hover/v:text-muted-foreground'
+              myFeedback === 'up' ? 'text-[var(--status-good)]' : 'text-muted-foreground/50 group-hover/v:text-muted-foreground'
             }`} />
-            {up > 0 && <span className={myFeedback === 'up' ? 'text-emerald-600 font-medium' : 'text-muted-foreground'}>{up}</span>}
+            {up > 0 && <span className={myFeedback === 'up' ? 'text-[var(--status-good)] font-medium' : 'text-muted-foreground'}>{up}</span>}
           </button>
           <button onClick={() => handleVote('down')} className="group/v flex items-center gap-1 text-xs tabular-nums transition-colors">
             <ThumbsDown className={`h-3.5 w-3.5 transition-all duration-150 group-hover/v:scale-110 ${
-              myFeedback === 'down' ? 'text-red-500' : 'text-muted-foreground/50 group-hover/v:text-muted-foreground'
+              myFeedback === 'down' ? 'text-[var(--status-critical)]' : 'text-muted-foreground/50 group-hover/v:text-muted-foreground'
             }`} />
-            {down > 0 && <span className={myFeedback === 'down' ? 'text-red-600 font-medium' : 'text-muted-foreground'}>{down}</span>}
+            {down > 0 && <span className={myFeedback === 'down' ? 'text-[var(--status-critical)] font-medium' : 'text-muted-foreground'}>{down}</span>}
           </button>
         </div>
 
@@ -297,8 +298,8 @@ function RichThreadCard({
             title="Ask a follow-up"
             className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors border ${
               forkOpen
-                ? 'bg-primary/10 text-primary border-primary/30'
-                : 'bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary border-transparent'
+                ? 'bg-accent text-primary border-[var(--ai-border)]'
+                : 'bg-card text-muted-foreground hover:bg-accent hover:text-primary border-border'
             }`}
           >
             <GitFork className="h-3.5 w-3.5" />
@@ -309,14 +310,14 @@ function RichThreadCard({
 
       {/* Fork form */}
       {forkOpen && !isProfessor && (
-        <div className="px-4 pb-3 border-t border-border bg-muted/20">
+        <div className="px-4 pb-3 border-t border-border bg-background">
           <p className="text-xs text-muted-foreground mt-3 mb-2">Ask a follow-up question based on this thread:</p>
           <textarea
             value={forkText}
             onChange={(e) => setForkText(e.target.value)}
             placeholder="Your follow-up question…"
             rows={2}
-            className="w-full text-sm border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground" style={{ background: '#ffffff' }}
+            className="w-full text-sm bg-card border border-input rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
           />
           <div className="flex items-center gap-2 mt-2 justify-end">
             <button
@@ -343,17 +344,14 @@ function RichThreadCard({
           <div key={i} className="space-y-2">
             {ex.question && (
               <div className="flex justify-end">
-                <div
-                  className="max-w-[78%] rounded-2xl px-3 py-2.5 text-sm text-white"
-                  style={{ background: 'linear-gradient(135deg,#272757,#505081)' }}
-                >
+                <div className="max-w-[78%] rounded-2xl px-3 py-2.5 text-sm bg-primary text-primary-foreground">
                   {ex.question}
                 </div>
               </div>
             )}
             {ex.answer && (
               <div className="flex justify-start">
-                <div className="max-w-[80%] rounded-2xl px-3 py-2.5 text-sm text-foreground" style={{ lineHeight: 1.7, background: '#ffffff', border: '1px solid rgba(134,134,172,0.15)' }}>
+                <div className="max-w-[80%] rounded-2xl px-3 py-2.5 text-sm bg-accent border border-[var(--ai-border)] text-[var(--ai-text)]" style={{ lineHeight: 1.7 }}>
                   {renderAnswerWithCitations(ex.answer, ex.citations)}
                 </div>
               </div>
@@ -364,7 +362,7 @@ function RichThreadCard({
 
       {/* Professor labels + notes */}
       {isProfessor && (
-        <div className="px-4 py-3 border-t border-border bg-muted/10">
+        <div className="px-4 py-3 border-t border-border bg-background">
           <div className="flex flex-wrap gap-1.5 mb-2">
             {LABELS.map(({ emoji, label, color }) => {
               const active = labels.includes(label)
@@ -386,7 +384,7 @@ function RichThreadCard({
             onChange={(e) => { setNotes(e.target.value); setLabelsDirty(true) }}
             placeholder="Add a note…"
             rows={2}
-            className="w-full text-xs border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground mt-1" style={{ background: '#ffffff' }}
+            className="w-full text-xs bg-card border border-input rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground mt-1"
           />
           {labelsDirty && (
             <div className="flex justify-end gap-2 mt-2">
@@ -579,7 +577,7 @@ export default function ReportPage() {
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-foreground">Class Dashboard</h1>
           {totalAttention > 0 && isProfessor && (
-            <div className="flex items-center gap-1.5 text-sm text-destructive font-medium">
+            <div className="flex items-center gap-1.5 text-sm text-[var(--status-critical)] font-medium">
               <AlertTriangle className="h-4 w-4" />
               {totalAttention} need{totalAttention === 1 ? 's' : ''} attention
             </div>
@@ -595,14 +593,14 @@ export default function ReportPage() {
         {isProfessor && todoCards && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             {/* Card 1: Fix These Answers */}
-            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.flaggedAnswers.length > 0 ? 'border-red-200 bg-red-50/30' : 'border-border'}`}>
+            <div className="rounded-xl border border-border bg-card p-3.5">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-7 w-7 rounded-lg bg-red-100 flex items-center justify-center">
-                  <WrenchIcon className="h-3.5 w-3.5 text-red-600" />
+                <div className="h-7 w-7 rounded-lg bg-secondary flex items-center justify-center">
+                  <WrenchIcon className="h-3.5 w-3.5" style={{ color: todoCards.flaggedAnswers.length > 0 ? 'var(--status-critical)' : 'var(--ink-2)' }} />
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Fix These Answers</span>
               </div>
-              <p className={`text-lg font-bold ${todoCards.flaggedAnswers.length > 0 ? 'text-red-600' : 'text-foreground'}`}>
+              <p className={`text-lg font-bold ${todoCards.flaggedAnswers.length > 0 ? 'text-[var(--status-critical)]' : 'text-foreground'}`}>
                 {todoCards.flaggedAnswers.length}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -611,10 +609,10 @@ export default function ReportPage() {
             </div>
 
             {/* Card 2: Revisit Next Class */}
-            <div className="rounded-xl border border-amber-200 bg-amber-50/30 bg-card p-3.5">
+            <div className="rounded-xl border border-border bg-card p-3.5">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-7 w-7 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
+                <div className="h-7 w-7 rounded-lg bg-secondary flex items-center justify-center">
+                  <RotateCcw className="h-3.5 w-3.5" style={{ color: 'var(--status-warning)' }} />
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Revisit Next Class</span>
               </div>
@@ -629,10 +627,10 @@ export default function ReportPage() {
             </div>
 
             {/* Card 3: Check In With */}
-            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.totalEnrolled > 0 && todoCards.activeStudents < todoCards.totalEnrolled ? 'border-sky-200 bg-sky-50/30' : 'border-border'}`}>
+            <div className="rounded-xl border border-border bg-card p-3.5">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-7 w-7 rounded-lg bg-sky-100 flex items-center justify-center">
-                  <Users className="h-3.5 w-3.5 text-sky-600" />
+                <div className="h-7 w-7 rounded-lg bg-accent flex items-center justify-center">
+                  <Users className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Class Participation</span>
               </div>
@@ -649,10 +647,10 @@ export default function ReportPage() {
             </div>
 
             {/* Card 4: Add Materials On */}
-            <div className={`rounded-xl border bg-card p-3.5 ${todoCards.worstCategory ? 'border-violet-200 bg-violet-50/30' : 'border-border'}`}>
+            <div className="rounded-xl border border-border bg-card p-3.5">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-7 w-7 rounded-lg bg-violet-100 flex items-center justify-center">
-                  <BookOpen className="h-3.5 w-3.5 text-violet-600" />
+                <div className="h-7 w-7 rounded-lg bg-accent flex items-center justify-center">
+                  <BookOpen className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Add Materials On</span>
               </div>
@@ -672,10 +670,10 @@ export default function ReportPage() {
         {!isProfessor && threadMetrics && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             {[
-              { icon: MessageSquare, label: 'Threads Shared', value: threadMetrics.count, color: 'text-primary', bg: 'bg-primary/10' },
-              { icon: GitFork, label: 'Total Forks', value: threadMetrics.totalForks, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-              { icon: MessageSquareText, label: 'Total Comments', value: threadMetrics.totalComments, color: 'text-sky-500', bg: 'bg-sky-500/10' },
-              { icon: ThumbsUp, label: 'Total Votes', value: threadMetrics.totalVotes, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+              { icon: MessageSquare, label: 'Threads Shared', value: threadMetrics.count, color: 'text-primary', bg: 'bg-accent' },
+              { icon: GitFork, label: 'Total Forks', value: threadMetrics.totalForks, color: 'text-primary', bg: 'bg-accent' },
+              { icon: MessageSquareText, label: 'Total Comments', value: threadMetrics.totalComments, color: 'text-primary', bg: 'bg-accent' },
+              { icon: ThumbsUp, label: 'Total Votes', value: threadMetrics.totalVotes, color: 'text-primary', bg: 'bg-accent' },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl border border-border bg-card p-3.5">
                 <div className="flex items-center gap-2 mb-2">
@@ -737,10 +735,10 @@ export default function ReportPage() {
           <div className="mb-8">
             <button
               onClick={() => navigate(`/sessions/${sessionId}/questions`)}
-              className="w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 transition-all group"
+              className="w-full flex items-center justify-between px-5 py-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-[var(--hover-row)] transition-all group"
             >
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                <div className="h-9 w-9 rounded-xl bg-accent border border-[var(--ai-border)] flex items-center justify-center transition-colors">
                   <MessageSquareText className="h-4 w-4 text-primary" />
                 </div>
                 <div className="text-left">
@@ -752,7 +750,8 @@ export default function ReportPage() {
               </div>
               <div className="flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
                 {totalAttention > 0 && (
-                  <span className="text-xs bg-destructive/15 text-destructive px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-xs bg-card border border-[var(--status-critical)] text-[var(--status-critical)] px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
                     {totalAttention} need attention
                   </span>
                 )}
