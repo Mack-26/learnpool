@@ -14,11 +14,12 @@ buy-in, and no approval step. The institutional product is not replaced;
 study groups are a second, faster acquisition channel that reuses the
 existing RAG/question/answer/comment/vote/fork infrastructure.
 
-Business framing: study groups are the acquisition and proof-of-usage
-mechanism; the institutional/educator-platform (e.g. GregMat-style) sale
-remains the primary revenue motion. This spec covers **only** the study-group
-product layer — no payments, discovery, moderation, or educator-analytics
-upgrade path.
+Business framing: study groups are the low-friction acquisition and
+proof-of-usage wedge. Monetization can expand from individual learners into
+educators, education businesses, and platforms once usage is validated — no
+single B2B motion is hard-coded as "the" revenue path at this stage. This
+spec covers **only** the study-group product layer — no payments, discovery,
+moderation, or educator-analytics upgrade path.
 
 ## Goals
 
@@ -108,6 +109,39 @@ work for study groups unmodified.
    private thread in "My Chats"; sharing back flips it visible in the group).
 10. No educator/platform functionality is built in this pass.
 
+## Authorization matrix
+
+`course_enrollments` (owner is also a row in this table, inserted at group
+creation) is the sole authorization check. Explicit matrix, enforced on
+every group-scoped endpoint:
+
+| Action              | Owner | Member | Non-member |
+|---------------------|:-----:|:------:|:----------:|
+| View group           | ✓     | ✓      | ✗          |
+| Join via link        | ✓     | ✓      | ✓          |
+| Upload material      | ✓     | ✓      | ✗          |
+| Ask question         | ✓     | ✓      | ✗          |
+| Comment / vote       | ✓     | ✓      | ✗          |
+| Fork                 | ✓     | ✓      | ✗          |
+| Share fork back      | ✓     | ✓      | ✗          |
+| Get invite link      | ✓     | ✓      | ✗          |
+| Delete group         | ✓     | ✗      | ✗          |
+
+"Owner" is distinguished only via `study_groups.owner_id` (currently used
+solely for the delete-group check and display attribution) — there is no
+separate `role` column on `course_enrollments`; owner is still a normal
+enrollment row for every other check.
+
+`GET /api/student/groups/{group_id}` and every other group/document/
+question/thread read must resolve authorization **before** returning any
+data: the handler first checks
+`EXISTS (SELECT 1 FROM course_enrollments WHERE course_id = $group.course_id AND student_id = $current_user)`
+and returns 404 (not 403, to avoid confirming a group id's existence to a
+non-member) if that check fails, only then querying and returning group
+metadata, members, `conversation_id`, or invite code. The same
+authorize-then-fetch ordering applies to any future group-scoped read
+endpoint, to prevent group-id enumeration from leaking metadata.
+
 ## API changes
 
 New router `backend/routers/group_router.py`, mounted under
@@ -117,8 +151,13 @@ New router `backend/routers/group_router.py`, mounted under
   Creates: `courses` row (`course_type='study_group'`, `professor_id=NULL`),
   `study_groups` row (`owner_id=current_user`, generated `join_code`), one
   perpetual `sessions` row, and a `course_enrollments` row for the creator.
-- `POST /api/student/groups/join/{join_code}` — inserts a
-  `course_enrollments` row for the current user if not already a member.
+- `POST /api/student/groups/join/{join_code}` — idempotent: resolves the
+  group from `join_code`, inserts a `course_enrollments` row with
+  `ON CONFLICT (course_id, student_id) DO NOTHING` (the existing composite
+  primary key already enforces this uniqueness — no schema change needed),
+  and always returns the group's data with an `already_member: bool` flag.
+  Clicking the same invite link twice must never surface an
+  "already enrolled" error.
 - `GET /api/student/groups` — list groups the current user belongs to
   (join `course_enrollments` → `courses` where `course_type='study_group'`).
 - `GET /api/student/groups/{group_id}` — group detail: name, join link,
@@ -145,10 +184,18 @@ field for display ("Forked from EECS 551 Study Group").
 
 Information architecture (left nav):
 
-- **Home** — personal entry point. Continue-studying cards, recent activity
-  across all groups, recent chats/forks. New page; requires a new
-  cross-session aggregation query (does not exist today — current dashboard
-  is scoped to one session at a time).
+- **Home** — personal entry point, deliberately constrained for MVP to three
+  things only (explicitly not a general personalized learning dashboard):
+  1. Continue studying — recently active groups + recently active personal
+     chats.
+  2. Recent activity — someone answered your question, someone commented,
+     new activity in one of your groups.
+  3. Your groups — the list, as a fast way in.
+  New page; requires a new cross-session aggregation query (does not exist
+  today — current dashboard is scoped to one session at a time). No
+  additional widgets, stats, or personalization beyond these three sections
+  in this pass — the goal is routing the student into the group/chat they
+  came for, not building an LMS homepage.
 - **My Groups** — collaborative spaces. Discord-style layout: left sidebar
   of groups → center conversation (questions, AI answers, peer comments,
   votes, fork action inline) → right member list. New `GroupWorkspacePage`,
