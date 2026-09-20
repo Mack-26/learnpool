@@ -281,6 +281,8 @@ export interface GroupDetailOut {
   join_code: string
   conversation_id: string
   members: GroupMemberOut[]
+  question_count: number
+  active_today: number
 }
 
 export interface JoinGroupResponse {
@@ -292,6 +294,22 @@ export interface GroupQuestionOut extends QuestionOut {
   asker_name: string
   is_mine: boolean
   comment_count: number
+  forked_from: string | null
+  focus_document_id: string | null
+  focus_document_name: string | null
+}
+
+export interface PrivateChatOut {
+  question_id: string
+  content: string
+  asked_at: string
+  answer: AnswerOut | null
+  group_id: string | null
+  group_name: string
+  forked_from: string | null
+  forked_from_content: string | null
+  focus_document_name: string | null
+  shared: boolean
 }
 
 export interface HomeContinueItem {

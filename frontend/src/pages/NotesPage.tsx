@@ -7,7 +7,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import { renderAnswerWithCitations } from '@/components/AnswerRenderer'
 import type { SavedAnswerOut } from '../types/api'
 
-export default function NotesPage() {
+export function SavedAnswersList() {
   const queryClient = useQueryClient()
   const [confirmUnsaveId, setConfirmUnsaveId] = useState<string | null>(null)
 
@@ -38,15 +38,7 @@ export default function NotesPage() {
   }
 
   return (
-    <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <h1 className="text-2xl font-bold text-foreground mb-1">My Notes</h1>
-        <p className="text-muted-foreground mb-6">AI answers you've saved from lecture sessions</p>
-
+    <>
         {isLoading ? (
           <p className="text-muted-foreground">Loading…</p>
         ) : saved.length === 0 ? (
@@ -125,6 +117,17 @@ export default function NotesPage() {
             ))}
           </div>
         )}
+    </>
+  )
+}
+
+export default function NotesPage() {
+  return (
+    <DashboardLayout>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <h1 className="text-2xl font-bold text-foreground mb-1">My Notes</h1>
+        <p className="text-muted-foreground mb-6">AI answers you've saved from lecture sessions</p>
+        <SavedAnswersList />
       </motion.div>
     </DashboardLayout>
   )

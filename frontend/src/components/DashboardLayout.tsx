@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Bookmark, BookOpen, Home, LogOut, Users, FileText, User, UsersRound } from 'lucide-react'
+import { BookOpen, Home, LogOut, MessageSquare, Users, FileText, User, UsersRound } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
@@ -65,10 +65,9 @@ export default function DashboardLayout({ children, fullBleed = false }: Dashboa
       ]
     : [
         { icon: Home, label: 'Home', shortLabel: 'Home', path: '/home' },
-        { icon: UsersRound, label: 'My Groups', shortLabel: 'Groups', path: '/groups' },
-        { icon: BookOpen, label: 'My Classes', shortLabel: 'Classes', path: '/classes' },
-        { icon: FileText, label: 'Lecture Materials', shortLabel: 'Materials', path: '/classes/materials' },
-        { icon: Bookmark, label: 'My Notes', shortLabel: 'Notes', path: '/notes' },
+        { icon: UsersRound, label: 'Groups', shortLabel: 'Groups', path: '/groups' },
+        { icon: BookOpen, label: 'Classes', shortLabel: 'Classes', path: '/classes' },
+        { icon: MessageSquare, label: 'My Chats', shortLabel: 'Chats', path: '/chats' },
       ]
 
   const activeItem = navItems.reduce<typeof navItems[0] | null>((best, item) => {

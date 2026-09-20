@@ -5,6 +5,7 @@ import type {
   GroupQuestionOut,
   HomeResponse,
   JoinGroupResponse,
+  PrivateChatOut,
 } from '../types/api'
 import client from './client'
 
@@ -50,5 +51,38 @@ export async function uploadGroupDocument(groupId: string, file: File, title?: s
 
 export async function getHome(): Promise<HomeResponse> {
   const res = await client.get<HomeResponse>('/api/student/home')
+  return res.data
+}
+
+export async function askGroupQuestion(
+  groupId: string,
+  content: string,
+  opts: { anonymous?: boolean; focusDocumentId?: string | null } = {},
+): Promise<GroupQuestionOut> {
+  const res = await client.post<GroupQuestionOut>(`/api/student/groups/${groupId}/questions`, {
+    content,
+    anonymous: opts.anonymous ?? false,
+    focus_document_id: opts.focusDocumentId ?? null,
+  })
+  return res.data
+}
+
+export async function forkGroupQuestionPrivately(groupId: string, questionId: string, content: string): Promise<GroupQuestionOut> {
+  const res = await client.post<GroupQuestionOut>(`/api/student/groups/${groupId}/questions/${questionId}/fork`, { content })
+  return res.data
+}
+
+export async function getMyChats(): Promise<PrivateChatOut[]> {
+  const res = await client.get<PrivateChatOut[]>('/api/student/chats')
+  return res.data
+}
+
+export async function continuePrivateChat(questionId: string, content: string): Promise<PrivateChatOut> {
+  const res = await client.post<PrivateChatOut>(`/api/student/chats/${questionId}/continue`, { content })
+  return res.data
+}
+
+export async function sharePrivateChat(questionId: string): Promise<PrivateChatOut> {
+  const res = await client.post<PrivateChatOut>(`/api/student/chats/${questionId}/share`)
   return res.data
 }
