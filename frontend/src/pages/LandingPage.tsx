@@ -96,9 +96,6 @@ export default function LandingPage() {
             >
               Product
             </a>
-            <Link to="/signup" className="flex min-h-11 items-center text-[15px] text-foreground" onClick={() => setMenuOpen(false)}>
-              For educators
-            </Link>
             <Link to="/start" className={`${BTN_PRIMARY} mt-2 h-12 rounded-[11px] text-[15px]`} onClick={() => setMenuOpen(false)}>
               Create a study group
             </Link>
@@ -339,9 +336,6 @@ export default function LandingPage() {
           </a>
           <Link to="/start" className="inline-flex min-h-11 items-center transition-colors hover:text-[#F8F6F1] md:min-h-0">
             Create a study group
-          </Link>
-          <Link to="/signup" className="inline-flex min-h-11 items-center transition-colors hover:text-[#F8F6F1] md:min-h-0">
-            For educators
           </Link>
           <span className="w-full text-[12.5px] text-[#A9A49A] md:w-auto md:text-[13.5px]">© 2026 Horizon</span>
         </nav>

@@ -130,14 +130,17 @@ h1, h2, h3 {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-}
+/* Base rules must sit in the base layer, or they outrank Tailwind utilities like text-primary-foreground. */
+@layer base {
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 @utility card-shadow {
