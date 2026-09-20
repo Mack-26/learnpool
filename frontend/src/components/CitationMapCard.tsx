@@ -1,121 +1,149 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { FileText } from 'lucide-react'
 import { getSessionCitationMap } from '../api/professor'
 import { getStudentCitationMap } from '../api/sessions'
 import { useAuthStore } from '../store/authStore'
 import type { DocumentCitationOut } from '../types/api'
-import { FileText, ChevronDown, ChevronUp } from 'lucide-react'
 
-function relevanceColor(avg: number): string {
-  if (avg >= 0.8) return '#10b981'
-  if (avg >= 0.6) return '#3b82f6'
-  return '#94a3b8'
+/* Citation heat — sequential palette --seq-1…5 (light → dark), --seq-none for
+   "not cited". Every cell carries a tooltip; the card has a Table toggle. */
+
+const SEQ = ['var(--seq-1)', 'var(--seq-2)', 'var(--seq-3)', 'var(--seq-4)', 'var(--seq-5)']
+
+function heat(count: number, max: number): string {
+  if (count <= 0) return 'var(--seq-none)'
+  const bin = Math.min(SEQ.length, Math.max(1, Math.ceil((count / max) * SEQ.length)))
+  return SEQ[bin - 1]
 }
 
-function DocCitationSection({ doc }: { doc: DocumentCitationOut }) {
-  const [showAll, setShowAll] = useState(false)
-  const MAX_SHOWN = 10
+interface PageCell {
+  page: number | null
+  count: number
+  avg: number | null
+}
 
-  // Inline text docs have a single null page entry
+/** Fills the page range 1..N (from page_count or the highest cited page) so uncited pages show as "not cited". */
+function buildCells(doc: DocumentCitationOut): PageCell[] {
+  const cited = new Map<number, { count: number; avg: number }>()
+  for (const p of doc.pages) {
+    if (p.page_number != null) cited.set(p.page_number, { count: p.citation_count, avg: p.avg_relevance })
+  }
+  const maxCited = Math.max(0, ...cited.keys())
+  const pageCount = Math.max(doc.page_count ?? 0, maxCited)
+  const cells: PageCell[] = []
+  for (let i = 1; i <= pageCount; i++) {
+    const c = cited.get(i)
+    cells.push({ page: i, count: c?.count ?? 0, avg: c?.avg ?? null })
+  }
+  return cells
+}
+
+function Cell({ cell, max }: { cell: PageCell; max: number }) {
+  const label = cell.count === 0
+    ? `p. ${cell.page} · not cited`
+    : `p. ${cell.page} · ${cell.count} citation${cell.count !== 1 ? 's' : ''}${cell.avg != null ? ` · ${Math.round(cell.avg * 100)}% match` : ''}`
+  return (
+    <span className="relative block group" tabIndex={0} aria-label={label}>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 bottom-full -translate-x-1/2 -translate-y-1.5 whitespace-nowrap rounded-md px-2 py-1 text-[11px] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity z-10"
+        style={{ background: 'var(--dark)', color: 'hsl(var(--background))' }}
+      >
+        {label}
+      </span>
+      <span
+        className="block h-[26px] rounded-[4px] transition-[filter] group-hover:brightness-95"
+        style={{ background: heat(cell.count, max) }}
+      />
+    </span>
+  )
+}
+
+function DocHeat({ doc, showName }: { doc: DocumentCitationOut; showName: boolean }) {
   const isInline = doc.pages.length === 1 && doc.pages[0].page_number === null
-
-  // Ordered by page number (reading order), not by relevance/citation count —
-  // inline docs (page_number === null) sort last.
-  const sortedPages = [...doc.pages].sort((a, b) => {
-    if (a.page_number == null) return 1
-    if (b.page_number == null) return -1
-    return a.page_number - b.page_number
-  })
-  const displayPages = showAll ? sortedPages : sortedPages.slice(0, MAX_SHOWN)
-
-  const chartData = displayPages.map((p) => ({
-    name: p.page_number != null ? `p.${p.page_number}` : 'doc',
-    count: p.citation_count,
-    avg: p.avg_relevance,
-  }))
+  const cells = isInline ? [] : buildCells(doc)
+  const max = Math.max(1, ...cells.map((c) => c.count))
+  const cols = Math.min(12, Math.max(1, cells.length))
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/30">
-        <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-        <span className="text-sm font-medium text-foreground flex-1 truncate">{doc.filename}</span>
-        <span className="text-xs text-muted-foreground shrink-0">
-          {doc.total_citations} citation{doc.total_citations !== 1 ? 's' : ''}
-        </span>
-      </div>
-
-      {isInline ? (
-        <p className="px-3 py-2 text-xs text-muted-foreground">
-          {doc.total_citations} total citation{doc.total_citations !== 1 ? 's' : ''} (inline document)
-        </p>
-      ) : (
-        <div className="p-3">
-          <ResponsiveContainer width="100%" height={Math.max(80, displayPages.length * 22)}>
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-              <XAxis
-                type="number"
-                allowDecimals={false}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={38}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }}
-                contentStyle={{
-                  background: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: 12,
-                }}
-                formatter={(value, _name, props) => [
-                  `${value} citation${(value as number) !== 1 ? 's' : ''} · relevance ${props.payload?.avg?.toFixed(2)}`,
-                  '',
-                ]}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {chartData.map((entry, idx) => (
-                  <Cell key={idx} fill={relevanceColor(entry.avg)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-
-          {sortedPages.length > MAX_SHOWN && (
-            <button
-              onClick={() => setShowAll((v) => !v)}
-              className="mt-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showAll ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {showAll ? 'Show less' : `Show ${sortedPages.length - MAX_SHOWN} more pages`}
-            </button>
-          )}
+    <div>
+      {showName && (
+        <div className="flex items-center gap-2 mb-2 min-w-0">
+          <FileText className="h-3.5 w-3.5 flex-shrink-0" style={{ color: 'var(--ink-3)' }} aria-hidden />
+          <span className="text-xs font-medium text-foreground truncate flex-1">{doc.filename}</span>
+          <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'var(--ink-2)' }}>
+            {doc.total_citations} citation{doc.total_citations !== 1 ? 's' : ''}
+          </span>
         </div>
       )}
+      {isInline ? (
+        <p className="text-xs" style={{ color: 'var(--ink-2)' }}>
+          {doc.total_citations} citation{doc.total_citations !== 1 ? 's' : ''} · pasted text, no pages
+        </p>
+      ) : (
+        <>
+          <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            {cells.map((c) => <Cell key={c.page} cell={c} max={max} />)}
+          </div>
+          <div className="mt-2 flex items-center justify-between mono text-[10px]" style={{ color: 'var(--ink-3)' }}>
+            <span>p.1</span>
+            <span>p.{cells.length}</span>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function HeatTable({ docs }: { docs: DocumentCitationOut[] }) {
+  const rows = docs.flatMap((d) =>
+    [...d.pages]
+      .sort((a, b) => (a.page_number ?? Infinity) - (b.page_number ?? Infinity))
+      .map((p) => ({
+        key: `${d.document_id}-${p.page_number ?? 'doc'}`,
+        file: d.filename,
+        page: p.page_number != null ? `p. ${p.page_number}` : '—',
+        count: p.citation_count,
+        avg: `${Math.round(p.avg_relevance * 100)}%`,
+      })),
+  )
+  return (
+    <div className="overflow-x-auto -mx-1">
+      <table className="w-full min-w-[360px] text-xs">
+        <thead>
+          <tr className="border-b border-border">
+            <th className="text-left py-1.5 px-2 font-medium" style={{ color: 'var(--ink-2)' }}>Material</th>
+            <th className="text-left py-1.5 px-2 font-medium" style={{ color: 'var(--ink-2)' }}>Page</th>
+            <th className="text-right py-1.5 px-2 font-medium" style={{ color: 'var(--ink-2)' }}>Citations</th>
+            <th className="text-right py-1.5 px-2 font-medium" style={{ color: 'var(--ink-2)' }}>Avg match</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key} className="border-b border-border/60 last:border-0">
+              <td className="py-1.5 px-2 text-foreground truncate max-w-[200px]">{r.file}</td>
+              <td className="py-1.5 px-2 text-foreground mono">{r.page}</td>
+              <td className="py-1.5 px-2 text-right tabular-nums text-foreground">{r.count}</td>
+              <td className="py-1.5 px-2 text-right tabular-nums text-foreground">{r.avg}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
 
 interface CitationMapCardProps {
   sessionId: string
+  /** Shown in the subtitle when the card sits on a course-level board. */
+  lectureTitle?: string
 }
 
-export default function CitationMapCard({ sessionId }: CitationMapCardProps) {
+export default function CitationMapCard({ sessionId, lectureTitle }: CitationMapCardProps) {
   const role = useAuthStore((s) => s.user?.role)
   const isProfessor = role === 'professor'
+  const [view, setView] = useState<'chart' | 'table'>('chart')
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ['citation-map', sessionId],
@@ -124,38 +152,66 @@ export default function CitationMapCard({ sessionId }: CitationMapCardProps) {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="rounded-xl border border-border bg-card p-4 h-full">
         <div className="h-4 w-40 bg-muted rounded animate-pulse mb-3" />
         <div className="h-32 bg-muted rounded animate-pulse" />
       </div>
     )
   }
 
-  if (docs.length === 0) {
-    return (
-      <div className="rounded-xl border border-border bg-card p-4 text-center text-xs text-muted-foreground py-8">
-        No citation data yet — citations appear once questions are answered.
-      </div>
-    )
-  }
+  const totalCitations = docs.reduce((n, d) => n + d.total_citations, 0)
+  const pagedDocs = docs.filter((d) => !(d.pages.length === 1 && d.pages[0].page_number === null))
+  const citedPages = pagedDocs.reduce((n, d) => n + d.pages.filter((p) => p.citation_count > 0).length, 0)
+  const maxCount = Math.max(1, ...docs.flatMap((d) => d.pages.map((p) => p.citation_count)))
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 h-full">
-      <h3 className="text-sm font-semibold text-foreground mb-1">Material Coverage</h3>
-      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
-        <span>Which pages students asked about most</span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#10b981' }} /> high relevance
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#3b82f6' }} /> medium
-        </span>
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-[16px_18px] h-full flex flex-col">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-[14.5px] font-semibold text-foreground">Which pages they asked about</h2>
+          <p className="mt-1 text-xs" style={{ color: 'var(--ink-2)' }}>
+            {docs.length === 0
+              ? 'Citations appear once questions are answered'
+              : `${lectureTitle ? `${lectureTitle} · ` : ''}${totalCitations} citation${totalCitations !== 1 ? 's' : ''}${citedPages > 0 ? ` across ${citedPages} page${citedPages !== 1 ? 's' : ''}` : ''}`}
+          </p>
+        </div>
+        {docs.length > 0 && (
+          <button
+            type="button"
+            aria-pressed={view === 'table'}
+            onClick={() => setView((v) => (v === 'chart' ? 'table' : 'chart'))}
+            className="h-[27px] px-2.5 rounded-[7px] border border-border bg-card text-[11.5px] text-muted-foreground hover:bg-muted hover:border-input transition-colors flex-shrink-0"
+          >
+            {view === 'chart' ? 'Table' : 'Chart'}
+          </button>
+        )}
       </div>
-      <div className="space-y-3">
-        {docs.map((doc) => (
-          <DocCitationSection key={doc.document_id} doc={doc} />
-        ))}
-      </div>
+
+      {docs.length === 0 && (
+        <p className="mt-6 text-xs text-center py-4" style={{ color: 'var(--ink-2)' }}>No citation data yet.</p>
+      )}
+
+      {docs.length > 0 && view === 'table' && <div className="mt-4"><HeatTable docs={docs} /></div>}
+
+      {docs.length > 0 && view === 'chart' && (
+        <>
+          <div className="mt-4 flex flex-col gap-4">
+            {docs.map((doc) => <DocHeat key={doc.document_id} doc={doc} showName={docs.length > 1} />)}
+          </div>
+
+          <div className="mt-auto pt-3.5 flex flex-wrap items-center gap-3 text-[11px]" style={{ color: 'var(--ink-2)' }}>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-[13px] h-[13px] rounded-[3px] border border-border" style={{ background: 'var(--seq-none)' }} />
+              not cited
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span>1</span>
+              {SEQ.map((c) => <span key={c} className="w-[13px] h-[13px] rounded-[3px]" style={{ background: c }} />)}
+              <span>{maxCount} citation{maxCount !== 1 ? 's' : ''}</span>
+            </span>
+          </div>
+        </>
+      )}
     </div>
   )
 }
