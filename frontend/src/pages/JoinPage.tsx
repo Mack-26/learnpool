@@ -76,11 +76,11 @@ export default function JoinPage() {
   const busy = createAndJoin.isPending || join.isPending
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10" style={{ background: '#1b1a3f' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-background">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="w-full max-w-md">
-        <div className="flex justify-center mb-6"><HorizonLogo variant="light" size="2.5rem" /></div>
+        <div className="flex justify-center mb-6"><HorizonLogo variant="dark" size="2.5rem" /></div>
 
-        <div className="rounded-3xl bg-white p-6 sm:p-8" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+        <div className="rounded-2xl bg-card border border-border card-shadow p-6 sm:p-8">
           {isLoading ? (
             <p className="text-sm text-muted-foreground text-center">Loading invite…</p>
           ) : isError || !invite ? (
@@ -92,13 +92,13 @@ export default function JoinPage() {
           ) : (
             <>
               <div className="flex items-center gap-3 mb-5">
-                <span className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #272757, #505081)' }}>
+                <span className="h-12 w-12 rounded-xl flex items-center justify-center text-primary bg-accent border border-[var(--ai-border)] shrink-0">
                   <UsersRound className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{invite.owner_first_name} invited you to study together</p>
-                  <h1 className="text-xl font-bold text-foreground truncate">{invite.name}</h1>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="mono text-[10px] uppercase tracking-[.09em] text-[var(--ink-3)]">{invite.owner_first_name} invited you to study together</p>
+                  <h1 className="text-xl font-semibold text-foreground tracking-[-0.02em] truncate">{invite.name}</h1>
+                  <p className="text-xs text-[var(--ink-2)] truncate">
                     {invite.subject ? `${invite.subject} · ` : ''}{invite.member_count} member{invite.member_count === 1 ? '' : 's'}
                   </p>
                 </div>
@@ -107,7 +107,7 @@ export default function JoinPage() {
               {isStudent ? (
                 <div className="text-center py-2">
                   <p className="text-sm text-muted-foreground">{join.isError ? error : 'Joining…'}</p>
-                  {join.isError && <Button size="sm" className="mt-3" onClick={() => join.mutate()}>Try again</Button>}
+                  {join.isError && <Button className="mt-3 h-9" onClick={() => join.mutate()}>Try again</Button>}
                 </div>
               ) : isProfessor ? (
                 <div className="text-center py-2">
@@ -126,7 +126,7 @@ export default function JoinPage() {
                     autoComplete="name"
                     autoFocus
                     maxLength={80}
-                    className="w-full px-3.5 py-3 rounded-xl border border-border bg-background text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full h-11 px-3.5 rounded-lg border border-input bg-background text-[15px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none focus:ring-2 focus:ring-ring/30"
                   />
                   <input
                     type="email"
@@ -136,7 +136,7 @@ export default function JoinPage() {
                     aria-label="Email"
                     autoComplete="email"
                     inputMode="email"
-                    className="w-full px-3.5 py-3 rounded-xl border border-border bg-background text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full h-11 px-3.5 rounded-lg border border-input bg-background text-[15px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none focus:ring-2 focus:ring-ring/30"
                   />
                   <input
                     type="password"
@@ -145,7 +145,7 @@ export default function JoinPage() {
                     placeholder="Password (8+ characters)"
                     aria-label="Password"
                     autoComplete="new-password"
-                    className="w-full px-3.5 py-3 rounded-xl border border-border bg-background text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full h-11 px-3.5 rounded-lg border border-input bg-background text-[15px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none focus:ring-2 focus:ring-ring/30"
                   />
                   {error && <p className="text-xs text-destructive">{error}</p>}
                   <Button type="submit" className="w-full h-11 text-[15px]" disabled={busy}>
@@ -161,7 +161,7 @@ export default function JoinPage() {
           )}
         </div>
 
-        <p className="text-[11px] text-center mt-5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <p className="text-[11.5px] text-center mt-5 text-[var(--ink-3)]">
           Horizon — study together with AI grounded in your class materials.
         </p>
       </motion.div>

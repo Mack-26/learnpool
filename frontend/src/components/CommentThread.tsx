@@ -69,34 +69,36 @@ export default function CommentThread({ commentCount, threadId, questionId }: Co
     <div className="mt-2">
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        aria-expanded={expanded}
+        className="flex items-center gap-1.5 text-xs text-[var(--ink-2)] hover:text-foreground transition-colors min-h-[36px] px-1 -mx-1"
       >
         <MessageCircle className="h-3.5 w-3.5" />
         <span>{displayCount} comment{displayCount !== 1 ? 's' : ''}</span>
       </button>
 
       {expanded && (
-        <div className="mt-3 space-y-2 border-t border-border pt-3">
-          {isLoading && <p className="text-xs text-muted-foreground">Loading…</p>}
+        <div className="mt-2 space-y-2 border-t border-border pt-3">
+          {isLoading && <p className="text-xs text-[var(--ink-2)]">Loading…</p>}
 
           {comments.map((c: CommentOut) => (
             <div key={c.comment_id} className="flex items-start gap-2">
-              <div className="flex-1 bg-muted/40 rounded-lg px-3 py-2">
-                <div className="flex items-center gap-1.5 mb-0.5">
+              <div className="flex-1 min-w-0 rounded-lg border border-border bg-card px-3.5 py-2.5">
+                <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-semibold text-foreground">{c.display_name}</span>
                   {c.role === 'professor' && (
-                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">Prof</span>
+                    <span className="text-[10.5px] font-medium bg-accent text-accent-foreground border border-[var(--ai-border)] px-1.5 py-px rounded-md">Prof</span>
                   )}
-                  <span className="text-xs text-muted-foreground ml-auto">
+                  <span className="text-xs text-[var(--ink-2)] ml-auto">
                     {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <p className="text-xs text-foreground">{c.content}</p>
+                <p className="text-[13px] leading-relaxed text-foreground/85 whitespace-pre-wrap">{c.content}</p>
               </div>
               {isProfessor && c.user_id === user?.user_id && (
                 <button
                   onClick={() => deleteMutation.mutate(c.comment_id)}
-                  className="p-1 text-muted-foreground hover:text-destructive transition-colors shrink-0 mt-1"
+                  aria-label="Delete comment"
+                  className="p-2 rounded-lg text-[var(--ink-2)] hover:text-destructive hover:bg-muted transition-colors shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -105,7 +107,7 @@ export default function CommentThread({ commentCount, threadId, questionId }: Co
           ))}
 
           {comments.length === 0 && !isLoading && (
-            <p className="text-xs text-muted-foreground italic">No comments yet. Be the first!</p>
+            <p className="text-xs text-[var(--ink-2)]">No comments yet.</p>
           )}
 
           <div className="flex items-end gap-2 pt-1">
@@ -113,8 +115,9 @@ export default function CommentThread({ commentCount, threadId, questionId }: Co
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Add a comment…"
+              aria-label="Add a comment"
               rows={2}
-              className="flex-1 text-xs bg-background border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+              className="flex-1 min-w-0 text-[13px] bg-card border border-input rounded-lg px-3.5 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-ring/30 text-foreground placeholder:text-[var(--ink-3)]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -125,7 +128,8 @@ export default function CommentThread({ commentCount, threadId, questionId }: Co
             <button
               onClick={handleSubmit}
               disabled={!draft.trim() || postMutation.isPending}
-              className="p-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
+              aria-label="Post comment"
+              className="h-10 w-10 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
             >
               <Send className="h-3.5 w-3.5" />
             </button>
