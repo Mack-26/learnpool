@@ -50,7 +50,7 @@ export default function JoinGroupModal({ open, onClose, onJoined }: Props) {
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-base font-semibold text-foreground">Join a study group</h3>
-          <button onClick={close} className="text-muted-foreground hover:text-foreground transition-colors rounded-lg p-1 hover:bg-muted">
+          <button onClick={close} aria-label="Close" className="text-muted-foreground hover:text-foreground transition-colors rounded-lg p-1 hover:bg-muted">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -64,6 +64,7 @@ export default function JoinGroupModal({ open, onClose, onJoined }: Props) {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="e.g. a3f8b2c1"
+            aria-label="Group join code"
             maxLength={20}
             className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30"
             autoFocus

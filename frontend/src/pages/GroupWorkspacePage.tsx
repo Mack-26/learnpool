@@ -104,6 +104,7 @@ function InviteCode({ code }: { code: string }) {
     <button
       onClick={copy}
       className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono tracking-wider hover:border-primary/40 transition-colors"
+      aria-label={`Copy invite code ${code}`}
       title="Copy invite code"
     >
       <span>{code}</span>
@@ -140,6 +141,7 @@ function MaterialsPanel({ groupId }: { groupId: string }) {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={upload.isPending}
+          aria-label="Upload material"
           className="text-xs text-primary font-medium flex items-center gap-1 hover:underline disabled:opacity-50"
         >
           <Upload className="h-3 w-3" /> {upload.isPending ? 'Uploading…' : 'Upload'}
@@ -149,6 +151,7 @@ function MaterialsPanel({ groupId }: { groupId: string }) {
           type="file"
           accept=".pdf,.txt,.docx,.md"
           className="hidden"
+          aria-label="Choose a file to upload"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload.mutate(f); e.target.value = '' }}
         />
       </div>
@@ -311,14 +314,14 @@ function Conversation({ group }: { group: GroupDetailOut }) {
   }, [questions.length, pending])
 
   const ask = useMutation({
-    mutationFn: async () => {
-      const text = content.trim()
+    mutationFn: async (text: string) => {
       if (replyTo) return forkQuestion(replyTo.question_id, text, personality)
       return postQuestion(group.conversation_id, text, personality, anonymous)
     },
-    onMutate: () => { setPending(content.trim()); setError(null) },
-    onSuccess: () => {
-      setContent('')
+    onMutate: (text) => { setPending(text); setError(null) },
+    onSuccess: (_data, text) => {
+      // Don't wipe anything the user typed while this request was in flight.
+      setContent((current) => (current.trim() === text ? '' : current))
       setReplyTo(null)
       queryClient.invalidateQueries({ queryKey: ['group-questions', group.id] })
       queryClient.invalidateQueries({ queryKey: ['home'] })
@@ -336,8 +339,9 @@ function Conversation({ group }: { group: GroupDetailOut }) {
   })
 
   const submit = () => {
-    if (!content.trim() || ask.isPending) return
-    ask.mutate()
+    const text = content.trim()
+    if (!text || ask.isPending) return
+    ask.mutate(text)
   }
 
   return (
@@ -376,7 +380,7 @@ function Conversation({ group }: { group: GroupDetailOut }) {
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5 px-1">
             <CornerDownRight className="h-3 w-3" />
             <span className="truncate">Following up on: “{replyTo.content.replace(FORK_PREFIX, '').slice(0, 80)}”</span>
-            <button onClick={() => setReplyTo(null)} className="ml-auto hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+            <button onClick={() => setReplyTo(null)} aria-label="Cancel follow-up" className="ml-auto hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
           </div>
         )}
         {error && <p className="text-xs text-destructive mb-1.5 px-1">{error}</p>}
@@ -387,6 +391,7 @@ function Conversation({ group }: { group: GroupDetailOut }) {
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } }}
             placeholder={`Ask ${group.name}…`}
+            aria-label={`Ask ${group.name}`}
             rows={1}
             maxLength={2000}
             className="flex-1 resize-none bg-transparent px-2 py-2 text-[15px] focus:outline-none max-h-40"
@@ -396,13 +401,15 @@ function Conversation({ group }: { group: GroupDetailOut }) {
             <button
               type="button"
               onClick={() => setAnonymous((a) => !a)}
+              aria-pressed={anonymous}
+              aria-label={anonymous ? 'Asking anonymously — click to show your name' : 'Ask anonymously'}
               title={anonymous ? 'Asking anonymously — click to show your name' : 'Ask anonymously'}
               className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors ${anonymous ? 'bg-muted text-primary' : 'text-muted-foreground hover:bg-muted/60'}`}
             >
               {anonymous ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           )}
-          <Button size="sm" onClick={submit} disabled={!content.trim() || ask.isPending} className="h-9 gap-1.5">
+          <Button size="sm" onClick={submit} disabled={!content.trim() || ask.isPending} aria-label="Ask the group" className="h-9 gap-1.5">
             <Send className="h-3.5 w-3.5" /> Ask
           </Button>
         </div>

@@ -46,7 +46,7 @@ export default function CreateGroupModal({ open, onClose, onCreated }: Props) {
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-base font-semibold text-foreground">Create a study group</h3>
-          <button onClick={close} className="text-muted-foreground hover:text-foreground transition-colors rounded-lg p-1 hover:bg-muted">
+          <button onClick={close} aria-label="Close" className="text-muted-foreground hover:text-foreground transition-colors rounded-lg p-1 hover:bg-muted">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -60,6 +60,7 @@ export default function CreateGroupModal({ open, onClose, onCreated }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Group name, e.g. EECS 551"
+            aria-label="Group name"
             maxLength={200}
             className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             autoFocus
@@ -69,6 +70,7 @@ export default function CreateGroupModal({ open, onClose, onCreated }: Props) {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Subject (optional), e.g. Matrix Methods for ML"
+            aria-label="Subject"
             maxLength={200}
             className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />

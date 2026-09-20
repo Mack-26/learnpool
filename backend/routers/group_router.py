@@ -9,6 +9,8 @@ never exposed as "session" in this router's responses.
 
 import asyncio
 import secrets
+
+import asyncpg
 import tempfile
 import uuid
 from pathlib import Path
@@ -101,17 +103,27 @@ async def create_group(
     db=Depends(get_db),
     current_user: dict = Depends(_require_student),
 ):
-    join_code = secrets.token_hex(4)
-
     async with db.transaction():
-        course_row = await db.fetchrow(
-            """
-            INSERT INTO courses (professor_id, name, description, course_type, invite_code)
-            VALUES (NULL, $1, $2, 'study_group', $3)
-            RETURNING id
-            """,
-            body.name, body.subject, join_code,
-        )
+        # courses.invite_code is UNIQUE; 32 bits of entropy makes a collision
+        # rare but not impossible, so retry rather than surface a 500.
+        for attempt in range(5):
+            join_code = secrets.token_hex(4)
+            try:
+                course_row = await db.fetchrow(
+                    """
+                    INSERT INTO courses (professor_id, name, description, course_type, invite_code)
+                    VALUES (NULL, $1, $2, 'study_group', $3)
+                    RETURNING id
+                    """,
+                    body.name, body.subject, join_code,
+                )
+                break
+            except asyncpg.UniqueViolationError:
+                if attempt == 4:
+                    raise HTTPException(
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        detail="Could not allocate a join code, please try again",
+                    )
         course_id = str(course_row["id"])
 
         await db.execute(
