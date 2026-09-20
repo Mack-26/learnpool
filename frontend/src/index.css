@@ -29,51 +29,74 @@
 }
 
 :root {
-  /* Blue Eclipse surface hierarchy */
-  --background: 240 50% 98%;        /* #f7f7fc — base surface (used inside panels) */
-  --foreground: 241 67% 17%;        /* #0F0E47 — deep navy */
+  /* Horizon design system (design/README.md) — ivory page, ink text, green accent.
+     Values are HSL triplets so the existing hsl(var(--x)) Tailwind theme keeps working. */
+  --background: 45 33% 97%;         /* #FAF9F6 page */
+  --foreground: 40 6% 9%;           /* #191816 ink */
 
-  --card: 0 0% 100%;                /* #ffffff — white cards on lavender background */
-  --card-foreground: 241 67% 17%;
+  --card: 0 0% 100%;                /* #FFFFFF */
+  --card-foreground: 40 6% 9%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 241 67% 17%;
+  --popover-foreground: 40 6% 9%;
 
-  /* Primary — #272757 deep indigo */
-  --primary: 240 37% 25%;
+  --primary: 158 45% 20%;           /* #1C4A3C accent */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 240 25% 91%;         /* #e2e2ee */
-  --secondary-foreground: 241 67% 17%;
+  --secondary: 47 26% 94%;          /* #F3F1EA band */
+  --secondary-foreground: 40 6% 9%;
 
-  --muted: 240 22% 88%;             /* #d8d8e8 */
-  --muted-foreground: 240 23% 41%;  /* #505081 */
+  --muted: 47 26% 94%;              /* #F3F1EA */
+  --muted-foreground: 40 5% 32%;    /* #56534C */
 
-  --accent: 240 25% 91%;            /* #e2e2ee */
-  --accent-foreground: 240 37% 25%; /* primary */
+  --accent: 140 21% 96%;            /* #F5F8F6 AI surface */
+  --accent-foreground: 158 48% 17%; /* #174236 */
 
-  --destructive: 0 84% 60%;
+  --destructive: 6 55% 40%;         /* #A33327 critical */
   --destructive-foreground: 0 0% 100%;
 
-  --border: 240 20% 91%;            /* matches session card subtle border */
-  --input: 240 22% 88%;             /* muted */
-  --ring: 240 37% 25%;
+  --border: 43 24% 88%;             /* #E8E4DA hairline */
+  --input: 43 19% 85%;              /* #E1DDD3 */
+  --ring: 158 45% 20%;
 
   --radius: 0.75rem;
 
-  --success: 142 71% 45%;
+  --success: 158 78% 27%;           /* #0F7A52 */
   --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
+  --warning: 34 73% 41%;            /* #B5741C */
   --warning-foreground: 0 0% 100%;
 
-  /* Blue Eclipse gradient — #272757 → #505081 */
-  --gradient-primary: linear-gradient(135deg, #272757, #505081);
-  --gradient-hero: linear-gradient(135deg, #0F0E47, #272757);
+  /* Extra tokens the artboards use, as plain values */
+  --ink-2: #6F6B63;                 /* tertiary text */
+  --ink-3: #86827A;                 /* eyebrows / meta */
+  --chip: #F5F1E7;                  /* material chip */
+  --ai-surface: #F5F8F6;
+  --ai-border: #DCE8E1;
+  --ai-text: #24302B;
+  --ai-meta: #4A7263;
+  --dark: #1A1A17;                  /* dark band */
+  --hover-row: #F7F6F2;
 
-  /* Navy-tinted shadows */
-  --shadow-card: 0 1px 3px 0 rgba(15,14,71,0.05), 0 1px 2px -1px rgba(15,14,71,0.05);
-  --shadow-elevated: 0 20px 40px -12px rgba(15,14,71,0.12);
-  --shadow-hover: 0 8px 24px -4px rgba(39,39,87,0.18), 0 4px 8px -4px rgba(15,14,71,0.08);
+  /* Charts — categorical (fixed order), sequential (citation heat), status */
+  --chart-1: #0F8A60;
+  --chart-2: #C05B2B;
+  --chart-3: #3E6FB0;
+  --chart-4: #A8862A;
+  --seq-1: #7FBCA3; --seq-2: #5AAA8B; --seq-3: #36996F; --seq-4: #1C7A57; --seq-5: #0B5A3E;
+  --seq-none: #F1EFE8;
+  --status-good: #0F7A52;
+  --status-warning: #B5741C;
+  --status-warning-text: #8F5A12;
+  --status-critical: #A33327;
+  --grid: #EDE9E0;
+
+  /* Legacy names kept so existing classes don't blank out; both are now the flat accent. */
+  --gradient-primary: #1C4A3C;
+  --gradient-hero: #1A1A17;
+
+  --shadow-card: 0 1px 2px rgba(25,24,22,0.05);
+  --shadow-elevated: 0 24px 60px -24px rgba(25,24,22,0.25);
+  --shadow-hover: 0 6px 20px -8px rgba(25,24,22,0.18);
 }
 
 *, *::before, *::after {
@@ -91,11 +114,20 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   -webkit-font-smoothing: antialiased;
-  font-family: 'Inter', 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
 }
 
-h1, h2 {
-  font-family: 'Newsreader', 'Georgia', serif;
+h1, h2, h3 {
+  font-family: inherit;
+  letter-spacing: -0.02em;
+}
+
+.mono {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 button {

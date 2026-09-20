@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Horizon — EECS 551 group space</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;display=swap">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; color: #191816; font-family: 'Instrument Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #1C4A3C; text-decoration: none; }
+  a:hover { color: #143A2F; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .row { transition: background-color .18s ease; }
+  .row:hover { background: #F7F6F2; }
+  .btn-ghost { transition: background-color .18s ease, border-color .18s ease; }
+  .btn-ghost:hover { background: #F1EFE8; border-color: #CFC9BC; }
+  .btn-primary { transition: background-color .18s ease; }
+  .btn-primary:hover { background: #143A2F; }
+  .chip { transition: background-color .18s ease; }
+  .chip:hover { background: #EFEADD; }
+  .mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+</style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; background: #FFFFFF; overflow: hidden;">
+
+  <!-- ── sidebar ── -->
+  <aside style="width: 268px; flex-shrink: 0; background: #FAF9F5; border-right: 1px solid #EDE9E0; padding: 22px 16px; display: flex; flex-direction: column; gap: 22px;">
+    <div style="display: flex; align-items: center; gap: 9px; padding: 0 6px;">
+      <svg width="19" height="19" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#1C4A3C" stroke-width="1.8" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#1C4A3C" stroke-width="1.8" stroke-linecap="round" fill="none"></path></svg>
+      <span style="font-size: 16px; font-weight: 600; letter-spacing: -.017em;">Horizon</span>
+    </div>
+
+    <div style="padding: 13px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #EAE6DD;">
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .06em; color: #7C7870;">EECS 551</div>
+      <div style="margin-top: 5px; font-size: 15px; font-weight: 600; letter-spacing: -.015em;">SVD Study Group</div>
+      <div style="margin-top: 4px; font-size: 12px; color: #6F6B63;">Matrix Methods for Machine Learning</div>
+      <div style="margin-top: 11px; display: flex; align-items: center; gap: 6px;">
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #2F4A40; color: #FFFFFF; font-size: 9.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">PR</span>
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #6A5A46; color: #FFFFFF; font-size: 9.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">DO</span>
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #3E4A5C; color: #FFFFFF; font-size: 9.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">MC</span>
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #5C4550; color: #FFFFFF; font-size: 9.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">JW</span>
+        <span style="font-size: 11.5px; color: #6F6B63; margin-left: 2px;">+2 members</span>
+      </div>
+    </div>
+
+    <nav style="display: flex; flex-direction: column; gap: 2px;">
+      <span style="display: flex; align-items: center; justify-content: space-between; height: 35px; padding: 0 11px; border-radius: 8px; background: #EDF1EE; color: #1C4A3C; font-size: 13.5px; font-weight: 500;">Discussion <span style="font-size: 12px; color: #4A7263;">18</span></span>
+      <span class="row" style="display: flex; align-items: center; justify-content: space-between; height: 35px; padding: 0 11px; border-radius: 8px; color: #56534C; font-size: 13.5px;">Materials <span style="font-size: 12px; color: #86827A;">3</span></span>
+      <span class="row" style="display: flex; align-items: center; justify-content: space-between; height: 35px; padding: 0 11px; border-radius: 8px; color: #56534C; font-size: 13.5px;">My space <span style="font-size: 12px; color: #86827A;">4</span></span>
+      <span class="row" style="display: flex; align-items: center; justify-content: space-between; height: 35px; padding: 0 11px; border-radius: 8px; color: #56534C; font-size: 13.5px;">People <span style="font-size: 12px; color: #86827A;">6</span></span>
+    </nav>
+
+    <div style="border-top: 1px solid #EDE9E0; padding-top: 18px;">
+      <div class="mono" style="padding: 0 11px; font-size: 10px; letter-spacing: .09em; color: #86827A;">ACTIVE MATERIALS</div>
+      <div style="margin-top: 11px; display: flex; flex-direction: column; gap: 3px;">
+        <span class="row" style="display: flex; gap: 9px; padding: 9px 11px; border-radius: 8px;">
+          <svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px;"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+          <span style="font-size: 12.5px; line-height: 1.4; color: #191816;">Lecture 7 — Singular Value Decomposition<span style="display: block; font-size: 11px; color: #6F6B63;">28 pages · cited in 14 answers</span></span>
+        </span>
+        <span class="row" style="display: flex; gap: 9px; padding: 9px 11px; border-radius: 8px;">
+          <svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px;"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+          <span style="font-size: 12.5px; line-height: 1.4; color: #191816;">Homework 3<span style="display: block; font-size: 11px; color: #6F6B63;">6 pages · cited in 9 answers</span></span>
+        </span>
+        <span class="row" style="display: flex; gap: 9px; padding: 9px 11px; border-radius: 8px;">
+          <svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px;"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+          <span style="font-size: 12.5px; line-height: 1.4; color: #191816;">Midterm Review<span style="display: block; font-size: 11px; color: #6F6B63;">12 pages · cited in 5 answers</span></span>
+        </span>
+      </div>
+      <button type="button" class="btn-ghost" style="margin-top: 11px; width: 100%; height: 34px; border-radius: 8px; border: 1px dashed #DCD6C9; background: #FFFFFF; font-family: inherit; font-size: 12.5px; color: #3D3A34;">Add course material</button>
+    </div>
+
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 11px 11px; border-radius: 9px; background: #FFFFFF; border: 1px solid #EAE6DD;">
+      <span style="width: 27px; height: 27px; border-radius: 50%; background: #2F4A40; color: #FFFFFF; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">PR</span>
+      <span style="min-width: 0; font-size: 12.5px; line-height: 1.3;">Priya Raghunathan<span style="display: block; font-size: 11px; color: #6F6B63;">Undergraduate · EECS</span></span>
+    </div>
+  </aside>
+
+  <!-- ── main ── -->
+  <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+
+    <!-- thread header -->
+    <header style="flex-shrink: 0; padding: 24px 40px 0;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;">
+        <div style="min-width: 0;">
+          <div style="font-size: 12.5px; color: #6F6B63;">Discussion &nbsp;/&nbsp; Frobenius norm &amp; orthogonal transformations</div>
+          <h1 style="margin: 7px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -.024em; line-height: 1.2;">Frobenius norm &amp; orthogonal transformations</h1>
+          <div style="margin-top: 7px; display: flex; align-items: center; gap: 13px; font-size: 12.5px; color: #6F6B63;">
+            <span>Started by Priya Raghunathan · 2 days ago</span>
+            <span>4 replies</span>
+            <span>2 forks</span>
+            <span style="color: #4A7263; background: #EDF1EE; border-radius: 5px; padding: 2px 8px;">Lecture 7</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; flex-shrink: 0;">
+          <button type="button" class="btn-ghost" style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; border-radius: 8px; border: 1px solid #E4E0D6; background: #FFFFFF; font-family: inherit; font-size: 13px; color: #191816;">
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.8v4.4c0 1.3 1 2.3 2.3 2.3H9" stroke="#3D3A34" stroke-width="1.4" fill="none" stroke-linecap="round"></path><circle cx="3" cy="1.8" r="1.3" fill="#3D3A34"></circle><circle cx="9.4" cy="8.5" r="1.3" fill="#3D3A34"></circle></svg>
+            Fork to my space
+          </button>
+          <button type="button" class="btn-ghost" style="height: 34px; padding: 0 13px; border-radius: 8px; border: 1px solid #E4E0D6; background: #FFFFFF; font-family: inherit; font-size: 13px; color: #191816;">Invite</button>
+        </div>
+      </div>
+      <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px; padding-bottom: 18px; border-bottom: 1px solid #EDE9E0;">
+        <span class="chip" style="display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 7px; background: #F5F1E7; border: 1px solid #E7DFCD; font-size: 12px; color: #5E5342;">Lecture 7 — SVD</span>
+        <span class="chip" style="display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 7px; background: #F5F1E7; border: 1px solid #E7DFCD; font-size: 12px; color: #5E5342;">Homework 3</span>
+        <span class="chip" style="display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 7px; background: #F5F1E7; border: 1px solid #E7DFCD; font-size: 12px; color: #5E5342;">Midterm Review</span>
+        <span style="font-size: 12px; color: #86827A; margin-left: 4px;">Horizon answers from these three</span>
+      </div>
+    </header>
+
+    <!-- conversation -->
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 0; display: flex; flex-direction: column; gap: 16px;">
+
+      <article style="border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF; padding: 17px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #2F4A40; color: #FFFFFF; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center;">PR</span>
+          <span style="font-size: 14px; font-weight: 600; letter-spacing: -.01em;">Priya Raghunathan</span>
+          <span style="font-size: 12.5px; color: #6F6B63;">2 days ago</span>
+        </div>
+        <p style="margin: 12px 0 0; font-size: 18px; line-height: 1.48; letter-spacing: -.015em;">Why does the Frobenius norm remain invariant under orthogonal transformations?</p>
+        <div style="margin-top: 13px; display: flex; align-items: center; gap: 16px;">
+          <button type="button" class="btn-ghost" style="display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border-radius: 7px; border: 1px solid #E4E0D6; background: #FFFFFF; font-family: inherit; font-size: 12px; color: #3D3A34;"><svg width="10" height="9" viewBox="0 0 9 8" aria-hidden="true"><path d="M4.5.8 8.2 7H.8z" fill="#4A7263"></path></svg>7</button>
+          <span style="font-size: 12px; color: #6F6B63;">Reply</span>
+          <span style="font-size: 12px; color: #6F6B63;">Fork to my space</span>
+        </div>
+      </article>
+
+      <article style="border: 1px solid #DCE8E1; border-radius: 12px; background: #F5F8F6; padding: 17px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF; border: 1px solid #CFE0D7; display: flex; align-items: center; justify-content: center;"><svg width="15" height="15" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path></svg></span>
+          <span style="font-size: 14px; font-weight: 600; color: #174236; letter-spacing: -.01em;">Horizon</span>
+          <span style="font-size: 12.5px; color: #4A7263;">Answered from Lecture 7 · 2 passages</span>
+          <span style="margin-left: auto; font-size: 12px; color: #4A7263;">12 found this helpful</span>
+        </div>
+        <p style="margin: 13px 0 0; font-size: 15.5px; line-height: 1.66; color: #24302B;">Because the Frobenius norm is defined through the trace, and the trace is exactly what an orthogonal matrix leaves alone. For orthogonal <span class="mono" style="font-size: 14px;">Q</span> we have <span class="mono" style="font-size: 14px;">Q⊤Q = I</span>, so<span style="color: #4A7263; font-weight: 500;"> [1]</span></p>
+        <div class="mono" style="margin: 12px 0 0; padding: 13px 15px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E1EAE5; font-size: 13.5px; color: #24302B;">‖QA‖²<sub>F</sub> = tr((QA)⊤(QA)) = tr(A⊤Q⊤QA) = tr(A⊤A) = ‖A‖²<sub>F</sub></div>
+        <p style="margin: 13px 0 0; font-size: 15.5px; line-height: 1.66; color: #24302B;">Geometrically <span class="mono" style="font-size: 14px;">Q</span> rotates the columns of <span class="mono" style="font-size: 14px;">A</span> without changing their lengths, so nothing is added or lost. Writing <span class="mono" style="font-size: 14px;">A = UΣV⊤</span> and peeling off both orthogonal factors gives <span class="mono" style="font-size: 14px;">‖A‖<sub>F</sub> = ‖Σ‖<sub>F</sub></span> — the norm depends only on the singular values, which is the identity Homework 3 Q2(b) asks you to use.<span style="color: #4A7263; font-weight: 500;"> [2]</span></p>
+        <div style="margin-top: 15px; padding: 13px 15px; border: 1px solid #DDE7E1; border-radius: 9px; background: #FFFFFF;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 12px; font-weight: 600; color: #174236;">[1] · Lecture 7 — Singular Value Decomposition · Page 12</span>
+            <span style="font-size: 12px; color: #6F6B63;">94% match</span>
+          </div>
+          <p style="margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: #3D3A34;">“The Frobenius norm is unitarily invariant: for orthogonal <span class="mono" style="font-size: 12.5px;">Q</span> and <span class="mono" style="font-size: 12.5px;">Z</span>, ‖QAZ⊤‖<sub>F</sub> = ‖A‖<sub>F</sub>. Consequently ‖A‖<sub>F</sub> may be read directly off the singular values…”</p>
+        </div>
+        <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px;">
+          <span class="chip" style="display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 7px; background: #FFFFFF; border: 1px solid #DDE7E1; font-size: 12px; color: #24302B;"><span style="color: #4A7263; font-weight: 600;">[2]</span> Lecture 7 — SVD <span style="color: #6F6B63;">· p. 14 · 91% match</span></span>
+          <button type="button" class="btn-ghost" style="height: 28px; padding: 0 11px; border-radius: 7px; border: 1px solid #DDE7E1; background: #FFFFFF; font-family: inherit; font-size: 12px; color: #24302B;">Ask a follow-up</button>
+        </div>
+      </article>
+
+      <article style="margin-left: 40px; border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF; padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 26px; height: 26px; border-radius: 50%; background: #6A5A46; color: #FFFFFF; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center;">DO</span>
+          <span style="font-size: 13.5px; font-weight: 600; letter-spacing: -.01em;">Daniel Osei</span>
+          <span style="font-size: 12px; color: #6F6B63;">yesterday</span>
+        </div>
+        <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.62; color: #3D3A34;">The one-line version that made it click for me: the Frobenius norm is just the length of <span class="mono" style="font-size: 13.5px;">A</span> flattened into one long vector, and <span class="mono" style="font-size: 13.5px;">Q</span> is a rotation. Rotating a vector can’t change its length.</p>
+        <div style="margin-top: 11px; display: flex; align-items: center; gap: 15px;">
+          <button type="button" class="btn-ghost" style="display: inline-flex; align-items: center; gap: 7px; height: 27px; padding: 0 10px; border-radius: 7px; border: 1px solid #E4E0D6; background: #FFFFFF; font-family: inherit; font-size: 12px; color: #3D3A34;"><svg width="10" height="9" viewBox="0 0 9 8" aria-hidden="true"><path d="M4.5.8 8.2 7H.8z" fill="#4A7263"></path></svg>5 helpful</button>
+          <span style="font-size: 12px; color: #6F6B63;">Reply</span>
+        </div>
+      </article>
+
+      <article style="margin-left: 40px; border: 1px solid #E8E4DA; border-radius: 12px 12px 0 0; border-bottom: 0; background: #FFFFFF; padding: 16px 20px 0;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 26px; height: 26px; border-radius: 50%; background: #3E4A5C; color: #FFFFFF; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center;">MC</span>
+          <span style="font-size: 13.5px; font-weight: 600; letter-spacing: -.01em;">Mei-Lin Chen</span>
+          <span style="font-size: 12px; color: #6F6B63;">6 hours ago</span>
+        </div>
+        <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.62; color: #3D3A34;">This is the identity Homework 3 Q2(b) wants — once the orthogonal factors drop out, the low-rank error is just the dropped singular values.</p>
+      </article>
+    </div>
+
+    <!-- composer -->
+    <div style="flex-shrink: 0; padding: 16px 40px 24px; background: linear-gradient(to bottom, rgba(255,255,255,0), #FFFFFF 40%);">
+      <div style="display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 9px 0 16px; border: 1px solid #E1DDD3; border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(25,24,22,.05);">
+        <label class="sr-only" for="ask">Ask the group, or ask Horizon</label>
+        <input id="ask" type="text" placeholder="Ask the group, or ask Horizon using your materials…" style="flex-grow: 1; min-width: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 14.5px; color: #191816;">
+        <button type="button" class="btn-ghost" aria-label="Attach a course material" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E8E4DA; background: #FFFFFF;"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2.5v9M2.5 7h9" stroke="#6F6B63" stroke-width="1.5" stroke-linecap="round"></path></svg></button>
+        <button type="button" class="btn-primary" style="height: 34px; padding: 0 15px; border: 0; border-radius: 8px; background: #1C4A3C; color: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 500;">Ask Horizon</button>
+      </div>
+      <div style="margin-top: 9px; display: flex; align-items: center; gap: 16px; font-size: 11.5px; color: #86827A;">
+        <span>Answers use only this group’s active materials</span>
+        <span>·</span>
+        <span>Everyone in the group can see and reply</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

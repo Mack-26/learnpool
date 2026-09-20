@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Horizon — asking on a phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;display=swap">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: #FCFBF8; color: #191816; font-family: 'Instrument Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #1C4A3C; text-decoration: none; }
+  a:hover { color: #143A2F; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .btn-ghost { transition: background-color .18s ease, border-color .18s ease; }
+  .btn-ghost:hover { background: #F1EFE8; border-color: #CFC9BC; }
+  .btn-primary { transition: background-color .18s ease; }
+  .btn-primary:hover { background: #143A2F; }
+  .mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; display: flex; flex-direction: column; background: #FCFBF8; overflow: hidden;">
+
+  <!-- header -->
+  <header style="flex-shrink: 0; padding: 12px 12px 12px 8px; background: #FFFFFF; border-bottom: 1px solid #EDE9E0; display: flex; align-items: center; gap: 6px;">
+    <a href="#back" aria-label="Back to Biology 101" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+      <svg width="13" height="11" viewBox="0 0 12 10" aria-hidden="true"><path d="M5 1 1 5l4 4M1 5h10" stroke="#3D3A34" stroke-width="1.5" fill="none" stroke-linecap="round"></path></svg>
+    </a>
+    <div style="min-width: 0; flex-grow: 1;">
+      <div style="display: flex; align-items: center; gap: 7px;">
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 19px; padding: 0 7px; border-radius: 5px; background: #1C4A3C; color: #FFFFFF; font-size: 10px; font-weight: 500;">
+          <span style="width: 4px; height: 4px; border-radius: 50%; background: #9FD3BE;"></span>Live
+        </span>
+        <span style="font-size: 11px; color: #6F6B63;">Biology 101</span>
+      </div>
+      <div style="margin-top: 3px; font-size: 14.5px; font-weight: 600; letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Lecture 9 — Membranes</div>
+    </div>
+    <button type="button" class="btn-ghost" aria-label="Materials in use" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #EAE6DD; background: #FFFFFF;">
+      <svg width="15" height="18" viewBox="0 0 13 16" aria-hidden="true"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#6F6B63" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+    </button>
+  </header>
+
+  <!-- conversation -->
+  <div style="flex-grow: 1; min-height: 0; padding: 14px 16px 0; display: flex; flex-direction: column; gap: 11px;">
+
+    <article style="border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF; padding: 13px 14px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #4A5240; color: #FFFFFF; font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;">AB</span>
+        <span style="font-size: 12.5px; font-weight: 600;">You</span>
+        <span style="font-size: 11px; color: #6F6B63;">asked the class · 4m</span>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 15.5px; line-height: 1.45; letter-spacing: -.013em;">Why does water move toward the saltier side in osmosis?</p>
+    </article>
+
+    <article style="border: 1px solid #DCE8E1; border-radius: 12px; background: #F5F8F6; padding: 13px 14px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="14" height="14" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
+        <span style="font-size: 12.5px; font-weight: 600; color: #174236;">Horizon</span>
+        <span style="font-size: 10.5px; color: #4A7263;">from your slides</span>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 14px; line-height: 1.62; color: #24302B;">Water doesn't move toward the salt — it moves toward wherever there is <span style="font-weight: 500;">less free water</span>, and dissolved salt is what lowers it. The net flow runs that way until both sides even out.<span style="color: #4A7263; font-weight: 500;"> [1]</span></p>
+
+      <div style="margin-top: 12px; padding: 11px 12px; border: 1px solid #DDE7E1; border-radius: 9px; background: #FFFFFF;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 600; color: #174236;">[1] · Lecture 9 slides · p. 6</span>
+          <span style="font-size: 11px; color: #6F6B63; flex-shrink: 0;">93% match</span>
+        </div>
+        <p style="margin: 7px 0 0; font-size: 12px; line-height: 1.55; color: #3D3A34;">"Osmosis is the net movement of water toward the compartment of higher solute concentration…"</p>
+        <a href="#slide" style="display: inline-block; margin-top: 8px; font-size: 12px; color: #1C4A3C;">Open slide 6 →</a>
+      </div>
+
+      <div style="margin-top: 11px; display: flex; gap: 8px;">
+        <button type="button" class="btn-ghost" style="flex-grow: 1; height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; border-radius: 10px; border: 1px solid #DDE7E1; background: #FFFFFF; font-family: inherit; font-size: 13px; color: #24302B;">
+          <svg width="12" height="13" viewBox="0 0 12 13" aria-hidden="true"><path d="M2.5 1.5h7v10l-3.5-2.6L2.5 11.5z" stroke="#24302B" stroke-width="1.3" fill="none" stroke-linejoin="round"></path></svg>
+          Save
+        </button>
+        <button type="button" class="btn-ghost" style="flex-grow: 1; height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; border-radius: 10px; border: 1px solid #DDE7E1; background: #FFFFFF; font-family: inherit; font-size: 13px; color: #24302B;">
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.8v4.4c0 1.3 1 2.3 2.3 2.3H9" stroke="#24302B" stroke-width="1.3" fill="none" stroke-linecap="round"></path><circle cx="3" cy="1.8" r="1.2" fill="#24302B"></circle><circle cx="9.4" cy="8.5" r="1.2" fill="#24302B"></circle></svg>
+          Explore
+        </button>
+        <button type="button" class="btn-ghost" aria-label="This helped" style="width: 52px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #DDE7E1; background: #FFFFFF;">
+          <svg width="14" height="13" viewBox="0 0 13 12" aria-hidden="true"><path d="M4 11V5.2l2.6-4c.9 0 1.5.8 1.3 1.7L7.4 5h3a1.3 1.3 0 0 1 1.2 1.6l-.9 3.5A1.6 1.6 0 0 1 9.2 11z" stroke="#24302B" stroke-width="1.2" fill="none" stroke-linejoin="round"></path><rect x="1" y="5" width="2.4" height="6" rx=".8" stroke="#24302B" stroke-width="1.2" fill="none"></rect></svg>
+        </button>
+      </div>
+    </article>
+
+    <article style="border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF; padding: 13px 14px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #55504A; color: #FFFFFF; font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;">TB</span>
+        <span style="font-size: 12.5px; font-weight: 600;">Tyler Brooks</span>
+        <span style="font-size: 11px; color: #6F6B63;">2m</span>
+        <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #3D3A34;"><svg width="9" height="8" viewBox="0 0 9 8" aria-hidden="true"><path d="M4.5.8 8.2 7H.8z" fill="#4A7263"></path></svg>12</span>
+      </div>
+      <p style="margin: 9px 0 0; font-size: 13.5px; line-height: 1.6; color: #3D3A34;">The way our TA put it: water isn't chasing the salt, it's just spreading out. Wherever there's less free water, more water arrives.</p>
+    </article>
+
+    <div style="display: flex; align-items: center; gap: 9px; padding: 2px 4px;">
+      <span style="width: 20px; height: 20px; border-radius: 50%; background: #5C4550; color: #FFFFFF; font-size: 8.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">JW</span>
+      <span style="font-size: 11.5px; color: #6F6B63;">Jonas is writing a correction…</span>
+    </div>
+  </div>
+
+  <!-- composer -->
+  <div style="flex-shrink: 0; padding: 12px 16px 20px; background: #FFFFFF; border-top: 1px solid #EDE9E0;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 10px; background: #F1EFE8; border: 1px solid #E4E0D6;">
+        <span style="display: inline-flex; align-items: center; height: 30px; padding: 0 11px; border-radius: 7px; background: #FFFFFF; font-size: 12px; font-weight: 500; color: #191816; box-shadow: 0 1px 2px rgba(25,24,22,.06);">The class</span>
+        <span style="display: inline-flex; align-items: center; height: 30px; padding: 0 11px; border-radius: 7px; font-size: 12px; color: #6F6B63;">Just me</span>
+      </div>
+      <button type="button" class="btn-ghost" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px dashed #DCD6C9; background: #FFFFFF; font-family: inherit; font-size: 11.5px; color: #56534C;">
+        <svg width="12" height="14" viewBox="0 0 13 16" aria-hidden="true"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect></svg>
+        2 materials
+      </button>
+    </div>
+    <div style="margin-top: 10px; display: flex; align-items: flex-end; gap: 9px;">
+      <div style="flex-grow: 1; min-width: 0; display: flex; align-items: center; height: 48px; padding: 0 14px; border: 1px solid #E1DDD3; border-radius: 12px; background: #FCFBF8;">
+        <label class="sr-only" for="m-ask">Ask about this lecture</label>
+        <input id="m-ask" type="text" placeholder="Ask about this lecture…" style="width: 100%; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 14.5px; color: #191816;">
+      </div>
+      <button type="button" class="btn-primary" aria-label="Ask" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 12px; background: #1C4A3C;">
+        <svg width="17" height="15" viewBox="0 0 17 15" aria-hidden="true"><path d="M1.5 7.5h12M9 3l4.5 4.5L9 12" stroke="#FFFFFF" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
