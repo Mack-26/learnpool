@@ -165,6 +165,29 @@ All student routes require `Authorization: Bearer <token>` and `role = 'student'
 | GET | `/api/student/sessions/{id}/check` | Enrollment + status check |
 | POST | `/api/student/sessions/{id}/questions` | Ask a question (runs full RAG pipeline) |
 | GET | `/api/student/sessions/{id}/questions` | Chat history for this student |
+| GET | `/api/student/home` | Continue studying / recent activity / your groups |
+
+### Study groups (self-serve, student-owned) — `backend/routers/group_router.py`
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/student/groups` | Create a group (any student) |
+| GET | `/api/student/groups` | Groups I belong to |
+| POST | `/api/student/groups/join/{join_code}` | Join by code — idempotent, case-insensitive |
+| GET | `/api/student/groups/{id}` | Detail + members + `conversation_id` (404 to non-members) |
+| GET | `/api/student/groups/{id}/questions` | Whole-group question feed (honors `anonymous`) |
+| GET/POST | `/api/student/groups/{id}/documents[/upload]` | Any member may upload |
+
+A study group is a `courses` row with `course_type='study_group'` and
+`professor_id=NULL`, paired 1:1 with a `study_groups` row (`owner_id`).
+Membership is `course_enrollments`; the join code is `courses.invite_code`.
+Each group has exactly one perpetual `sessions` row (always `active`) so the
+questions/answers/threads/comments tables work unchanged — but never expose
+"session" in group-facing fields or copy; call it a conversation. Institutional
+queries must filter `course_type = 'institutional'`. Group members get a
+rolling-24h question quota (`MAX_QUESTIONS_PER_GROUP_MEMBER_PER_DAY`, default 50)
+instead of the per-session lifetime cap. Ask/fork/comment/save endpoints are
+reused as-is against the group's `conversation_id`.
 
 ---
 
