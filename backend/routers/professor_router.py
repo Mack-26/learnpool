@@ -308,11 +308,13 @@ async def update_session_status(
     current_user: dict = Depends(_require_professor),
 ):
     """Update session status (active, ended, released)."""
+    # Study-group conversations never have a lifecycle; course_type makes the
+    # exclusion explicit rather than relying on professor_id being NULL.
     owned = await db.fetchval(
         """
         SELECT 1 FROM sessions s
         JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
-        WHERE s.id = $2
+        WHERE s.id = $2 AND c.course_type = 'institutional'
         """,
         current_user["id"],
         session_id,
@@ -403,7 +405,7 @@ async def update_session(
         """
         SELECT s.id, s.status FROM sessions s
         JOIN courses c ON c.id = s.course_id AND c.professor_id = $1
-        WHERE s.id = $2
+        WHERE s.id = $2 AND c.course_type = 'institutional'
         """,
         current_user["id"],
         session_id,

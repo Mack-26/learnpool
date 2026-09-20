@@ -67,7 +67,7 @@ async def get_courses(
         JOIN course_enrollments ce ON c.id = ce.course_id
         JOIN users u ON c.professor_id = u.id
         LEFT JOIN sessions s ON s.course_id = c.id
-        WHERE ce.student_id = $1
+        WHERE ce.student_id = $1 AND c.course_type = 'institutional'
         GROUP BY c.id, c.name, c.description, u.display_name
         ORDER BY c.name
         """,
@@ -274,6 +274,7 @@ async def get_all_sessions(
         SELECT s.id, s.title, s.status, s.started_at
         FROM sessions s
         JOIN course_enrollments ce ON s.course_id = ce.course_id
+        JOIN courses c ON c.id = s.course_id AND c.course_type = 'institutional'
         WHERE ce.student_id = $1
         ORDER BY s.started_at DESC
         """,
@@ -1362,7 +1363,7 @@ async def join_course_by_code(
         FROM courses c
         JOIN users u ON c.professor_id = u.id
         LEFT JOIN sessions s ON s.course_id = c.id
-        WHERE LOWER(c.invite_code) = LOWER($1)
+        WHERE LOWER(c.invite_code) = LOWER($1) AND c.course_type = 'institutional'
         GROUP BY c.id, c.name, c.description, c.invite_code, u.display_name
         """,
         body.invite_code,
