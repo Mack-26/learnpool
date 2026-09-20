@@ -1,7 +1,7 @@
 // Horizon landing page — implements design/Main.html (1440) and
 // design/Mobile.html (390) as one responsive component. See design/README.md
 // for tokens, copy rules and motion rules.
-import { useState, type MouseEvent } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import HorizonLogo from "../components/HorizonLogo";
 import HeroDemo from "../components/landing/HeroDemo";
@@ -11,24 +11,13 @@ import { Avatar, GhostPill, Reveal, SectionHead, UpIcon } from "../components/la
 
 const BTN_PRIMARY =
   "inline-flex items-center justify-center font-medium text-primary-foreground bg-primary transition-[background-color,box-shadow] duration-200 hover:bg-[#143A2F] hover:shadow-[0_6px_18px_-8px_rgba(28,74,60,.55)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
-const BTN_GHOST =
-  "inline-flex items-center justify-center gap-[7px] font-medium text-foreground bg-white border border-input transition-colors duration-200 hover:bg-[#F1EFE8] hover:border-[#CFC9BC] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 const NAV_LINK =
   "inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground md:text-[14.5px]";
 
-function scrollToId(e: MouseEvent<HTMLAnchorElement>, id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  e.preventDefault();
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-  window.history.replaceState(null, "", `#${id}`);
-}
-
 const PROBLEMS = [
-  ["Group chats", "Questions disappear into the scroll."],
-  ["AI chats", "Answers stay private."],
-  ["Course folders", "Materials sit apart from the conversation."],
+  ["The class group chat", "Real questions get buried under memes and logistics."],
+  ["Private chatbot tabs", "Ten people ask the same thing. Nobody sees each other's answers."],
+  ["The course folder", "Forty PDFs you can't ask anything."],
 ];
 
 const PROOF = [
@@ -48,11 +37,6 @@ export default function LandingPage() {
           <Link to="/" className="inline-flex min-h-11 items-center" aria-label="Horizon home">
             <HorizonLogo variant="dark" size="1.75rem" />
           </Link>
-          <nav className="hidden items-center gap-[34px] md:flex" aria-label="Primary">
-            <a href="#product" onClick={(e) => scrollToId(e, "product")} className={NAV_LINK}>
-              Product
-            </a>
-          </nav>
           <div className="flex items-center gap-3.5 md:gap-5">
             <Link to="/login" className={NAV_LINK}>
               Sign in
@@ -86,16 +70,9 @@ export default function LandingPage() {
             aria-label="Mobile"
             className="flex flex-col gap-1 border-t border-[#EBE7DE] bg-background px-5 pb-4 pt-2 md:hidden"
           >
-            <a
-              href="#product"
-              onClick={(e) => {
-                setMenuOpen(false);
-                scrollToId(e, "product");
-              }}
-              className="flex min-h-11 items-center text-[15px] text-foreground"
-            >
-              Product
-            </a>
+            <Link to="/login" className="flex min-h-11 items-center text-[15px] text-foreground" onClick={() => setMenuOpen(false)}>
+              Sign in
+            </Link>
             <Link to="/start" className={`${BTN_PRIMARY} mt-2 h-12 rounded-[11px] text-[15px]`} onClick={() => setMenuOpen(false)}>
               Create a study group
             </Link>
@@ -122,16 +99,6 @@ export default function LandingPage() {
             <Link to="/start" className={`${BTN_PRIMARY} h-[50px] rounded-[11px] text-[15.5px] md:h-12 md:rounded-[10px] md:px-6`}>
               Create a study group
             </Link>
-            <a
-              href="#product"
-              onClick={(e) => scrollToId(e, "product")}
-              className={`${BTN_GHOST} h-[50px] rounded-[11px] text-[15.5px] md:h-12 md:rounded-[10px] md:px-[22px]`}
-            >
-              See how it works{" "}
-              <span aria-hidden="true" className="text-[var(--ink-2)]">
-                →
-              </span>
-            </a>
           </div>
         </Reveal>
         <Reveal delay={240} className="mt-10 flex w-full justify-center md:mt-[88px]">
@@ -146,15 +113,14 @@ export default function LandingPage() {
             <div className="mono text-[10px] tracking-[.1em] text-[var(--ink-2)] md:text-[10.5px]">
               01&nbsp;&nbsp;/&nbsp;&nbsp;THE PROBLEM
             </div>
-            <h2 className="mt-[18px] max-w-[900px] text-[36px] font-medium leading-[1.1] tracking-[-.032em] md:mt-[26px] md:text-[58px] md:leading-[1.08] md:tracking-[-.034em]">
-              Course materials are shared.
+            <h2 className="mt-[18px] max-w-[1000px] text-[36px] font-medium leading-[1.1] tracking-[-.032em] md:mt-[26px] md:text-[58px] md:leading-[1.08] md:tracking-[-.034em]">
+              Everyone's stuck on the same thing.
               <br />
-              <span className="text-[#8A857C]">Learning usually isn't.</span>
+              <span className="text-[#8A857C]">Nobody knows it.</span>
             </h2>
-            <p className="mt-5 max-w-[560px] text-[16.5px] leading-[1.55] text-muted-foreground md:mt-[26px] md:text-lg">
-              Everyone has the same materials.
-              <br />
-              Everyone studies somewhere different.
+            <p className="mt-5 max-w-[600px] text-[16.5px] leading-[1.55] text-muted-foreground md:mt-[26px] md:text-lg">
+              Your class already has a group chat, a folder of slides, and a dozen private
+              chatbot tabs. None of them talk to each other.
             </p>
           </Reveal>
           <div className="mt-8 grid gap-3 md:mt-14 md:grid-cols-3 md:gap-6">
@@ -331,9 +297,9 @@ export default function LandingPage() {
           <HorizonLogo variant="light" size="1.5rem" />
         </Link>
         <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[13px] text-[#A9A49A] md:gap-7 md:text-[13.5px]">
-          <a href="#product" onClick={(e) => scrollToId(e, "product")} className="inline-flex min-h-11 items-center transition-colors hover:text-[#F8F6F1] md:min-h-0">
-            Product
-          </a>
+          <Link to="/login" className="inline-flex min-h-11 items-center transition-colors hover:text-[#F8F6F1] md:min-h-0">
+            Sign in
+          </Link>
           <Link to="/start" className="inline-flex min-h-11 items-center transition-colors hover:text-[#F8F6F1] md:min-h-0">
             Create a study group
           </Link>
