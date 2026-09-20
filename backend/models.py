@@ -406,3 +406,8 @@ class GroupDetailOut(BaseModel):
 class JoinGroupResponse(BaseModel):
     group: GroupOut
     already_member: bool
+
+
+class GroupQuestionOut(QuestionOut):
+    asker_name: str  # "Anonymous" when the question was asked anonymously
+    is_mine: bool
