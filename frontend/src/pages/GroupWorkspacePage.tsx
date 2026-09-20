@@ -257,7 +257,6 @@ function MessageRow({
             <span className="text-[14px] font-semibold text-foreground">{q.is_mine ? 'You' : q.asker_name}</span>
             <span className="text-[11px] text-muted-foreground">{timeOf(q.asked_at)}</span>
             {isFollowUp && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><CornerDownRight className="h-3 w-3" /> follow-up</span>}
-            {q.forked_from && !isFollowUp && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><GitFork className="h-3 w-3" /> shared from a private exploration</span>}
           </div>
           {q.focus_document_name && (
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 rounded-md px-1.5 py-0.5 mt-0.5 mb-1">
@@ -324,8 +323,19 @@ function ForkModalBody({ source, groupId, onClose }: { source: GroupQuestionOut;
     onSuccess: () => { setDone(true); queryClient.invalidateQueries({ queryKey: ['my-chats'] }) },
   })
   const close = () => { if (!fork.isPending) onClose() }
+  const isPending = fork.isPending
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !isPending) onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose, isPending])
+  useEffect(() => {
+    // Return focus to whatever opened the modal when it unmounts.
+    const opener = document.activeElement as HTMLElement | null
+    return () => opener?.focus?.()
+  }, [])
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={close}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Fork to My Chats" onClick={close}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.2 }} className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
@@ -384,6 +394,18 @@ function Conversation({
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const attachRef = useRef<HTMLDivElement>(null)
+  const attachButtonRef = useRef<HTMLButtonElement>(null)
+  const submitting = useRef(false)  // synchronous guard; isPending only flips after a re-render
+
+  useEffect(() => {
+    if (!attachOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setAttachOpen(false); attachButtonRef.current?.focus() } }
+    const onClick = (e: MouseEvent) => { if (attachRef.current && !attachRef.current.contains(e.target as Node)) setAttachOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onClick)
+    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onClick) }
+  }, [attachOpen])
 
   const { data: questions = [] } = useQuery({ queryKey: ['group-questions', group.id], queryFn: () => getGroupQuestions(group.id), refetchInterval: POLL_MS })
   const { data: saved = [] } = useQuery({ queryKey: ['saved-answers'], queryFn: getSavedAnswers })
@@ -413,7 +435,7 @@ function Conversation({
       const res = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
       setError(res?.status === 429 ? (res.data?.detail ?? 'Daily question limit reached.') : 'Could not send. Please try again.')
     },
-    onSettled: () => setPending(null),
+    onSettled: () => { setPending(null); submitting.current = false },
   })
 
   const toggleSave = useMutation({
@@ -423,7 +445,8 @@ function Conversation({
 
   const submit = () => {
     const text = content.trim()
-    if (!text || ask.isPending) return
+    if (!text || submitting.current) return
+    submitting.current = true
     ask.mutate(text)
   }
 
@@ -479,8 +502,9 @@ function Conversation({
           )}
           <div className="flex items-end gap-1.5">
             {!replyTo && (
-              <div className="relative">
+              <div className="relative" ref={attachRef}>
                 <button
+                  ref={attachButtonRef}
                   type="button"
                   onClick={() => setAttachOpen((o) => !o)}
                   aria-label="Attach a material"

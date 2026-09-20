@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
@@ -14,7 +14,8 @@ const FORK_PREFIX = /^\[Forked from:[^\]]*\]\s*/
 
 type Tab = 'explorations' | 'saved'
 
-// Group a flat list of private questions into chains rooted at the fork from the group.
+// Group private questions into chains. Each parent continues with its earliest
+// child; any later siblings start their own chain so no branch is dropped.
 function buildChains(chats: PrivateChatOut[]): PrivateChatOut[][] {
   const byId = new Map(chats.map((c) => [c.question_id, c]))
   const childrenOf = new Map<string, PrivateChatOut[]>()
@@ -26,20 +27,25 @@ function buildChains(chats: PrivateChatOut[]): PrivateChatOut[][] {
       roots.push(c)
     }
   }
+  for (const kids of childrenOf.values()) {
+    kids.sort((a, b) => a.asked_at.localeCompare(b.asked_at))
+    roots.push(...kids.slice(1))
+  }
+  const visited = new Set<string>()
   const chainFrom = (root: PrivateChatOut): PrivateChatOut[] => {
-    const chain = [root]
-    let cur = root
-    for (;;) {
-      const next = (childrenOf.get(cur.question_id) ?? []).sort((a, b) => a.asked_at.localeCompare(b.asked_at))[0]
-      if (!next) break
-      chain.push(next)
-      cur = next
+    const chain: PrivateChatOut[] = []
+    let cur: PrivateChatOut | undefined = root
+    while (cur && !visited.has(cur.question_id)) {
+      visited.add(cur.question_id)
+      chain.push(cur)
+      cur = childrenOf.get(cur.question_id)?.[0]
     }
     return chain
   }
   return roots
     .sort((a, b) => b.asked_at.localeCompare(a.asked_at))
     .map(chainFrom)
+    .filter((chain) => chain.length > 0)
 }
 
 function ExplorationCard({ chain }: { chain: PrivateChatOut[] }) {
@@ -49,10 +55,12 @@ function ExplorationCard({ chain }: { chain: PrivateChatOut[] }) {
   const tail = chain[chain.length - 1]
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const submitting = useRef(false)  // synchronous guard; isPending only flips after a re-render
 
   const cont = useMutation({
     mutationFn: (text: string) => continuePrivateChat(tail.question_id, text),
     onSuccess: () => { setDraft(''); setError(null); queryClient.invalidateQueries({ queryKey: ['my-chats'] }) },
+    onSettled: () => { submitting.current = false },
     onError: (err: unknown) => {
       const res = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
       setError(res?.status === 429 ? (res.data?.detail ?? 'Daily question limit reached.') : 'Could not send. Please try again.')
@@ -100,7 +108,12 @@ function ExplorationCard({ chain }: { chain: PrivateChatOut[] }) {
 
       {error && <p className="text-xs text-destructive mt-3">{error}</p>}
       <form
-        onSubmit={(e) => { e.preventDefault(); if (draft.trim().length >= 5 && !cont.isPending) cont.mutate(draft.trim()) }}
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (draft.trim().length < 5 || submitting.current) return
+          submitting.current = true
+          cont.mutate(draft.trim())
+        }}
         className="mt-4 flex items-center gap-2"
       >
         <input
