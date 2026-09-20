@@ -46,7 +46,7 @@ moderation, or educator-analytics upgrade path.
 
 ## Data model changes
 
-Small additive migration (`db/migrations/007_study_groups.sql`), no breaking
+Small additive migration (`db/migrations/010_study_groups.sql`), no breaking
 changes to existing tables besides relaxing one NOT NULL constraint.
 
 ```sql
@@ -57,19 +57,22 @@ ALTER TABLE courses ADD COLUMN course_type course_type NOT NULL DEFAULT 'institu
 ALTER TABLE courses ALTER COLUMN professor_id DROP NOT NULL;
 -- professor_id stays NULL for study_group courses; enforced at application layer.
 
--- study_groups: authoritative ownership + join mechanism for self-serve groups.
+-- study_groups: authoritative ownership for self-serve groups.
 -- One-to-one with a study_group-typed course.
 CREATE TABLE study_groups (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     course_id  UUID NOT NULL UNIQUE REFERENCES courses(id) ON DELETE CASCADE,
     owner_id   UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    join_code  TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_study_groups_owner ON study_groups (owner_id);
-CREATE INDEX idx_study_groups_join_code ON study_groups (join_code);
 ```
+
+The join code reuses the existing `courses.invite_code` column (`TEXT UNIQUE
+NOT NULL`, added in `007_invite_codes.sql`, generated with
+`secrets.token_hex(4)`). No second join-code column is added; the group API
+exposes it under the name `join_code`.
 
 `course_enrollments` (existing table) remains the single source of truth for
 membership/authorization for **both** institutional courses and study

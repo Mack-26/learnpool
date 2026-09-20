@@ -27,7 +27,7 @@
 ## File Structure
 
 **Backend — new files:**
-- `db/migrations/008_study_groups.sql` — schema migration.
+- `db/migrations/010_study_groups.sql` — schema migration.
 - `backend/routers/group_router.py` — all group endpoints.
 
 **Backend — modified files:**
@@ -52,7 +52,7 @@
 ### Task 1: Migration — study group schema
 
 **Files:**
-- Create: `db/migrations/008_study_groups.sql`
+- Create: `db/migrations/010_study_groups.sql`
 
 **Interfaces:**
 - Produces: `courses.course_type` (`'institutional'|'study_group'`, default `'institutional'`), `courses.professor_id` now nullable, `study_groups(id, course_id, owner_id, created_at)` table.
@@ -61,8 +61,8 @@
 
 ```sql
 -- =============================================================================
--- Migration 008: Study Groups
--- Apply: make db-shell → \i /docker-entrypoint-initdb.d/008_study_groups.sql
+-- Migration 010: Study Groups
+-- Apply: make db-shell → \i /docker-entrypoint-initdb.d/010_study_groups.sql
 -- =============================================================================
 
 CREATE TYPE course_type AS ENUM ('institutional', 'study_group');
@@ -87,7 +87,7 @@ make db-shell
 ```
 Then inside psql:
 ```
-\i /docker-entrypoint-initdb.d/008_study_groups.sql
+\i /docker-entrypoint-initdb.d/010_study_groups.sql
 ```
 
 - [ ] **Step 3: Verify**
@@ -102,7 +102,7 @@ Expected: `courses` shows `course_type course_type NOT NULL DEFAULT 'institution
 - [ ] **Step 4: Commit**
 
 ```bash
-git add db/migrations/008_study_groups.sql
+git add db/migrations/010_study_groups.sql
 git commit -m "$(cat <<'EOF'
 db: add study_groups table and course_type discriminator
 
