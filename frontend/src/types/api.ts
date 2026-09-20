@@ -131,6 +131,7 @@ export interface RichThreadOut {
   my_feedback: 'up' | 'down' | null
   student_display_name: string
   is_mine: boolean
+  origin_group_name: string | null
 }
 
 export interface AnswerFeedbackOut {
@@ -252,4 +253,72 @@ export interface CourseOverviewResponse {
   sessions: SessionOverviewItem[]
   recurring_topics: RecurringTopicItem[]
   student_summary: StudentSummaryItem[]
+}
+
+// ─── Study groups ─────────────────────────────────────────────────────────────
+
+export interface GroupOut {
+  id: string
+  name: string
+  subject: string | null
+  owner_id: string
+  owner_name: string
+  join_code: string
+  member_count: number
+  conversation_id: string
+}
+
+export interface GroupMemberOut {
+  id: string
+  display_name: string
+  is_owner: boolean
+}
+
+export interface GroupDetailOut {
+  id: string
+  name: string
+  subject: string | null
+  join_code: string
+  conversation_id: string
+  members: GroupMemberOut[]
+}
+
+export interface JoinGroupResponse {
+  group: GroupOut
+  already_member: boolean
+}
+
+export interface GroupQuestionOut extends QuestionOut {
+  asker_name: string
+  is_mine: boolean
+}
+
+export interface HomeContinueItem {
+  course_id: string
+  name: string
+  course_type: 'institutional' | 'study_group'
+  group_id: string | null
+  last_activity: string | null
+}
+
+export interface HomeActivityItem {
+  question_id: string
+  content: string
+  asked_at: string
+  course_name: string
+  course_type: 'institutional' | 'study_group'
+  group_id: string | null
+  asker_name: string
+}
+
+export interface HomeGroupItem {
+  id: string
+  name: string
+  member_count: number
+}
+
+export interface HomeResponse {
+  continue_studying: HomeContinueItem[]
+  recent_activity: HomeActivityItem[]
+  groups: HomeGroupItem[]
 }
