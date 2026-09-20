@@ -1,11 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import HorizonLogo from '../components/HorizonLogo'
+import { Button } from '@/components/ui/button'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  // Only allow same-origin paths so the param can't bounce users off-site.
+  const rawNext = searchParams.get('next')
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
   const setAuth = useAuthStore((s) => s.setAuth)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,7 +28,7 @@ export default function LoginPage() {
         display_name: data.display_name,
         role: data.role,
       })
-      navigate(data.role === 'professor' ? '/instructor' : '/classes')
+      navigate(next && data.role === 'student' ? next : data.role === 'professor' ? '/instructor' : '/home')
     } catch (err: unknown) {
       const res = err && typeof err === 'object' && 'response' in err
         ? (err as { response?: { status?: number; data?: { detail?: string | unknown } } }).response
@@ -42,193 +47,90 @@ export default function LoginPage() {
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    background: 'rgba(255,255,255,0.07)',
-    border: '1px solid rgba(182,177,217,0.15)',
-    borderRadius: '0.65rem',
-    padding: '0.75rem 1rem',
-    fontFamily: "'Inter', sans-serif",
-    fontSize: '0.95rem',
-    color: '#f5f3ff',
-    outline: 'none',
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-  }
+  const inputClass = 'w-full h-11 px-3.5 rounded-lg border border-input bg-background text-[15px] text-foreground placeholder:text-[var(--ink-3)] focus:outline-none focus:ring-2 focus:ring-ring/30'
+  const labelClass = 'block mb-1.5 mono text-[10px] uppercase tracking-[.09em] text-[var(--ink-3)]'
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#211d45',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem 1.5rem',
-      fontFamily: "'Inter', sans-serif",
-    }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: 'fixed', top: '-8rem', left: '50%', transform: 'translateX(-50%)',
-        width: '40rem', height: '24rem',
-        background: 'radial-gradient(ellipse, rgba(124,131,245,0.08) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-
-      <div style={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-background">
+      <div className="w-full max-w-md">
 
         {/* Logo */}
-        <div style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="flex items-center justify-between mb-6">
           <Link to="/">
-            <HorizonLogo variant="light" size="2rem" />
+            <HorizonLogo variant="dark" size="2.5rem" />
           </Link>
-          <Link to="/" style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.7rem', letterSpacing: '0.06em', color: 'rgba(182,177,217,0.45)', textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(182,177,217,0.8)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(182,177,217,0.45)')}>
-            ← BACK
+          <Link to="/" className="mono text-[10px] uppercase tracking-[.09em] text-[var(--ink-3)] hover:text-foreground transition-colors">
+            ← Back
           </Link>
         </div>
 
-        {/* Heading */}
-        <h1 style={{
-          fontFamily: "'Instrument Serif', serif",
-          fontSize: '2rem',
-          fontWeight: 400,
-          color: '#f5f3ff',
-          margin: '0 0 0.4rem 0',
-          lineHeight: 1.15,
-          letterSpacing: '-0.01em',
-        }}>
-          Welcome back.
-        </h1>
-        <p style={{ color: '#b6b1d9', fontSize: '0.9rem', margin: '0 0 2rem 0', lineHeight: 1.6 }}>
-          Sign in to your Horizon account.
-        </p>
+        <div className="rounded-2xl bg-card border border-border card-shadow p-6 sm:p-8">
+          {/* Heading */}
+          <h1 className="text-xl font-semibold text-foreground tracking-[-0.02em] mb-1">
+            Welcome back.
+          </h1>
+          <p className="text-xs text-[var(--ink-2)] mb-5">
+            Sign in to your Horizon account.
+          </p>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-          <div>
-            <label style={{
-              fontFamily: "'DM Mono', monospace", fontSize: '0.65rem',
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: 'rgba(182,177,217,0.5)', display: 'block', marginBottom: '0.5rem',
-            }}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="you@university.edu"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={inputStyle}
-              onFocus={e => {
-                e.currentTarget.style.borderColor = 'rgba(124,131,245,0.5)'
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,131,245,0.1)'
-              }}
-              onBlur={e => {
-                e.currentTarget.style.borderColor = 'rgba(182,177,217,0.15)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className={labelClass}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="you@university.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                inputMode="email"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className={inputClass}
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs text-destructive">
+                {error}
+              </p>
+            )}
+
+            <Button type="submit" className="w-full h-11 text-[15px]" disabled={isLoading}>
+              {isLoading ? 'Signing in…' : 'Sign in'}
+            </Button>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-border" />
+            <span className="mono text-[10px] uppercase tracking-[.09em] text-[var(--ink-3)]">or</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div>
-            <label style={{
-              fontFamily: "'DM Mono', monospace", fontSize: '0.65rem',
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: 'rgba(182,177,217,0.5)', display: 'block', marginBottom: '0.5rem',
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={inputStyle}
-              onFocus={e => {
-                e.currentTarget.style.borderColor = 'rgba(124,131,245,0.5)'
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,131,245,0.1)'
-              }}
-              onBlur={e => {
-                e.currentTarget.style.borderColor = 'rgba(182,177,217,0.15)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            />
-          </div>
-
-          {error && (
-            <p style={{
-              fontSize: '0.8rem', color: '#f87171', margin: 0,
-              background: 'rgba(248,113,113,0.08)',
-              border: '1px solid rgba(248,113,113,0.2)',
-              borderRadius: '0.5rem', padding: '0.75rem 1rem',
-            }}>
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              marginTop: '0.25rem',
-              width: '100%',
-              background: isLoading ? 'rgba(182,177,217,0.15)' : '#ede9fe',
-              color: isLoading ? '#b6b1d9' : '#211d45',
-              border: 'none',
-              borderRadius: '0.65rem',
-              padding: '0.875rem',
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 600,
-              fontSize: '0.95rem',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              boxShadow: isLoading ? 'none' : '0 8px 32px rgba(124,131,245,0.2)',
-              transition: 'all 0.2s ease',
-            }}
+          <Link
+            to="/signup"
+            className="block w-full h-11 leading-[2.75rem] text-center rounded-lg border border-border bg-card text-[15px] font-medium text-foreground hover:bg-[var(--hover-row)] transition-colors"
           >
-            {isLoading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.5rem 0' }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(182,177,217,0.1)' }} />
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.7rem', color: 'rgba(182,177,217,0.3)', letterSpacing: '0.05em' }}>OR</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(182,177,217,0.1)' }} />
+            Create an account →
+          </Link>
         </div>
-
-        <Link
-          to="/signup"
-          style={{
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            background: 'transparent',
-            color: '#b6b1d9',
-            border: '1px solid rgba(182,177,217,0.15)',
-            borderRadius: '0.65rem',
-            padding: '0.875rem',
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: 500,
-            fontSize: '0.95rem',
-            boxSizing: 'border-box',
-            textDecoration: 'none',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLElement).style.borderColor = 'rgba(182,177,217,0.3)'
-            ;(e.currentTarget as HTMLElement).style.color = '#f5f3ff'
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.borderColor = 'rgba(182,177,217,0.15)'
-            ;(e.currentTarget as HTMLElement).style.color = '#b6b1d9'
-          }}
-        >
-          Create an account →
-        </Link>
       </div>
     </div>
   )

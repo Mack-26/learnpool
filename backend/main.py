@@ -12,6 +12,7 @@ from database import create_pool
 from routers.auth_router import router as auth_router
 from routers.student_router import router as student_router
 from routers.professor_router import router as professor_router
+from routers.group_router import router as group_router, public_router as invites_router
 
 
 @asynccontextmanager
@@ -37,6 +38,8 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(student_router)
 app.include_router(professor_router)
+app.include_router(group_router)
+app.include_router(invites_router)
 
 # Serve uploaded PDFs — redirects to Azure Blob SAS URL in prod, local file in dev
 _uploads_dir = Path(__file__).resolve().parent / "uploads"

@@ -1,0 +1,147 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 5880,
+      "title": "Landing page — desktop (1440)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Mobile.dc.html": {
+      "expand": "fill",
+      "h": 5400,
+      "title": "Landing page — mobile (390)",
+      "w": 390,
+      "x": 1520,
+      "y": 0
+    },
+    "Product-Prep.dc.html": {
+      "h": 900,
+      "title": "Product — study group (hero demo)",
+      "w": 1440,
+      "x": 1990,
+      "y": 0
+    },
+    "Product-Space.dc.html": {
+      "h": 900,
+      "title": "Product — private space & share back",
+      "w": 1440,
+      "x": 1990,
+      "y": 1020
+    },
+    "Product-Group.dc.html": {
+      "h": 900,
+      "title": "Product — university course (for the deck)",
+      "w": 1440,
+      "x": 1990,
+      "y": 2040
+    },
+    "Product-Fork.dc.html": {
+      "h": 900,
+      "title": "Product — university course, private space (for the deck)",
+      "w": 1440,
+      "x": 1990,
+      "y": 3060
+    },
+    "App-Home.dc.html": {
+      "h": 900,
+      "title": "App — course home & lecture cards",
+      "w": 1440,
+      "x": 4010,
+      "y": 0
+    },
+    "App-Student.dc.html": {
+      "h": 900,
+      "title": "App — student dashboard (your week)",
+      "w": 1440,
+      "x": 4010,
+      "y": 1020
+    },
+    "App-Lecture.dc.html": {
+      "h": 900,
+      "title": "App — lecture Q&A (chat redesign)",
+      "w": 1440,
+      "x": 4010,
+      "y": 2040
+    },
+    "App-States.dc.html": {
+      "h": 900,
+      "title": "App — the four moments of asking",
+      "w": 1440,
+      "x": 4010,
+      "y": 3060
+    },
+    "App-Prof.dc.html": {
+      "h": 900,
+      "title": "App — professor dashboard (what the class asked)",
+      "w": 1440,
+      "x": 4010,
+      "y": 4080
+    },
+    "App-Mobile.dc.html": {
+      "h": 844,
+      "title": "App — asking on a phone (390)",
+      "w": 390,
+      "x": 5530,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-20T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "title": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Horizon — landing page, product screens & app UX",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "tokens": {
+      "color": "gray",
+      "text": "Palette — page #FAF9F6, band #F3F1EA, text #191816 / #56534C / #6F6B63, hairline #E8E4DA, accent #1C4A3C, AI surface #F5F8F6, material chip #F5F1E7, dark band #1A1A17.\n\nType — Instrument Sans throughout, 400/500/600. Section heads 48-50px at -0.03em; the problem statement 58px at -0.034em with its second line in #8A857C. System mono for formulas, page refs and eyebrows. No serif.\n\nCopy rules — one idea per section, headlines 3-8 words, support 1-2 sentences, never describe what the screenshot already shows, no subject or course name in the hero copy, \"AI\" once on the page.\n\nDemo — the UI chrome stays generic (group name + members / questions / materials); the subject is only ever content inside it. GRE Quant Prep in the hero and the product section, Biology 101 in the people section, Python Fundamentals in the private-space section, a university course kept for the deck. Sections: Hero, Problem, Product, People, Your own space, CTA — no separate how-it-works beat; the source card inside Product carries the grounding proof. People: Sarah Mehta, David Okonkwo, Mei-Lin Chen, Jonas Weber, Amara Boateng, Tyler Brooks.\n\nMotion — reveal-on-scroll (16px rise, 850ms ease-out) for hero and section heads only; hover on buttons, rows and chips; no parallax, no floating shapes. Reduced-motion disables reveals.",
+      "w": 420,
+      "x": 3510,
+      "y": 0
+    },
+    "appux": {
+      "color": "teal",
+      "text": "App UX rules the screens follow.\n\n1. One card system. Status is a chip, never a repainted card — the live lecture differs by one tinted surface and one primary button, nothing else.\n\n2. Every lecture card answers four questions: what it is, when, is it open, and what changed since you last looked (\"3 new\").\n\n3. One primary action per card. \"Ask a question\" on the live lecture; plain \"open\" everywhere else.\n\n4. Sources are open by default. The first passage, its page and its match sit under the answer; the rest are one click.\n\n5. Scope and audience are visible at the moment of asking: which materials will be used, and whether the class sees it. Never buried in settings.\n\n6. Honest empty and low-confidence states. If nothing in the materials matches, Horizon says so and hands the question to the class.\n\n7. Phone first for asking: 44px targets, one-thumb composer, sources inline rather than behind a toggle.\n\n8. Dashboards answer \"what do I do next\", not \"how am I doing\". The student board leads with unfinished work; the professor board leads with the five answers students pushed back on.\n\n9. No student-facing score. Participation numbers are the professor's view; the student sees their own questions, notes and replies.",
+      "w": 400,
+      "x": 5530,
+      "y": 964
+    },
+    "charts": {
+      "color": "blue",
+      "text": "Chart system (validated, not eyeballed).\n\nCategorical, fixed order: #0F8A60 · #C05B2B · #3E6FB0 · #A8862A — passes lightness band, chroma floor, CVD separation (worst adjacent dE 8.3 protan) and 3:1 contrast on white. Only slot 1 is used so far: single-series bars are one hue, never a ramp over nominal categories.\n\nSequential (citation heat), one hue light to dark: #7FBCA3 · #5AAA8B · #36996F · #1C7A57 · #0B5A3E, with #F1EFE8 for \"not cited\". Monotone lightness, light end clears the surface at 2.13:1.\n\nStatus, reserved and never reused as a series: good #0F7A52 · warning mark #B5741C (text #8F5A12) · critical #A33327, each shipped with an icon and a label.\n\nMarks — 9px bars, 4px rounded data-ends anchored to the baseline, 2px surface gaps, recessive #EDE9E0 grid, direct labels only where they carry the story, hover tooltip on every mark, a Table toggle on each chart.\n\nOne axis per chart. The current app plots questions, participants and satisfaction on one plot with two scales — that is split into separate charts here.",
+      "w": 400,
+      "x": 5530,
+      "y": 1620
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Mobile.dc.html",
+    "Product-Prep.dc.html",
+    "Product-Space.dc.html",
+    "Product-Group.dc.html",
+    "Product-Fork.dc.html",
+    "App-Home.dc.html",
+    "App-Student.dc.html",
+    "App-Lecture.dc.html",
+    "App-States.dc.html",
+    "App-Prof.dc.html",
+    "App-Mobile.dc.html"
+  ],
+  "pages": [],
+  "title": "Horizon Landing Page"
+}

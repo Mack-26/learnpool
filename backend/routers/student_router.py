@@ -13,9 +13,15 @@ from models import (
     CreateThreadRequest,
     DocumentCitationOut,
     DocumentOut,
+    ForkRequest,
     ForkThreadRequest,
+    HomeActivityItem,
+    HomeContinueItem,
+    HomeGroupItem,
+    HomeResponse,
     JoinCourseRequest,
     PostQuestionRequest,
+    PrivateChatOut,
     PublishQuestionsRequest,
     QuestionOut,
     AnswerOut,
@@ -50,6 +56,41 @@ def _require_student(current_user: dict = Depends(get_current_user)) -> dict:
     return current_user
 
 
+async def _question_quota(db, session_id: str, student_id: str) -> tuple[int, int]:
+    """Return (questions_used, limit) for this student in this conversation.
+
+    Institutional sessions: lifetime cap per session. Study groups are
+    perpetual, so they get a rolling-24h cap per member instead.
+    """
+    course_type = await db.fetchval(
+        "SELECT c.course_type FROM sessions s JOIN courses c ON c.id = s.course_id WHERE s.id = $1",
+        session_id,
+    )
+    if course_type == "study_group":
+        used = await db.fetchval(
+            """
+            SELECT COUNT(*) FROM questions
+            WHERE session_id = $1 AND student_id = $2 AND asked_at > now() - interval '24 hours'
+            """,
+            session_id, student_id,
+        )
+        return int(used or 0), settings.max_questions_per_group_member_per_day
+    used = await db.fetchval(
+        "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
+        session_id, student_id,
+    )
+    return int(used or 0), settings.max_questions_per_session
+
+
+async def _assert_question_quota(db, session_id: str, student_id: str) -> None:
+    used, limit = await _question_quota(db, session_id, student_id)
+    if used >= limit:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"You've reached the {limit}-question limit for this conversation.",
+        )
+
+
 # ---------------------------------------------------------------------------
 # GET /api/student/courses
 # ---------------------------------------------------------------------------
@@ -67,7 +108,7 @@ async def get_courses(
         JOIN course_enrollments ce ON c.id = ce.course_id
         JOIN users u ON c.professor_id = u.id
         LEFT JOIN sessions s ON s.course_id = c.id
-        WHERE ce.student_id = $1
+        WHERE ce.student_id = $1 AND c.course_type = 'institutional'
         GROUP BY c.id, c.name, c.description, u.display_name
         ORDER BY c.name
         """,
@@ -208,20 +249,16 @@ async def check_session(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
     is_enrolled = row["student_id"] is not None
-    questions_used = 0
+    questions_used, questions_limit = 0, settings.max_questions_per_session
     if is_enrolled:
-        questions_used = int(await db.fetchval(
-            "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
-            session_id,
-            current_user["id"],
-        ) or 0)
+        questions_used, questions_limit = await _question_quota(db, session_id, str(current_user["id"]))
 
     return SessionCheckResponse(
         session_id=str(row["id"]),
         enrolled=is_enrolled,
         session_status=row["status"],
         questions_used=questions_used,
-        questions_limit=settings.max_questions_per_session,
+        questions_limit=questions_limit,
     )
 
 
@@ -274,6 +311,7 @@ async def get_all_sessions(
         SELECT s.id, s.title, s.status, s.started_at
         FROM sessions s
         JOIN course_enrollments ce ON s.course_id = ce.course_id
+        JOIN courses c ON c.id = s.course_id AND c.course_type = 'institutional'
         WHERE ce.student_id = $1
         ORDER BY s.started_at DESC
         """,
@@ -308,16 +346,7 @@ async def post_question(
     if session_row["status"] not in ("active", "released"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Lecture is {session_row['status']}; Q&A is closed")
 
-    question_count = await db.fetchval(
-        "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
-        session_id,
-        str(current_user["id"]),
-    )
-    if question_count >= settings.max_questions_per_session:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"You've reached the {settings.max_questions_per_session}-question limit for this session.",
-        )
+    await _assert_question_quota(db, session_id, str(current_user["id"]))
 
     return await rag_service.handle_question(
         session_id=session_id,
@@ -416,6 +445,7 @@ async def submit_feedback(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE a.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         answer_id,
@@ -551,6 +581,7 @@ async def get_question_comments(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE q.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         question_id,
@@ -599,6 +630,7 @@ async def post_question_comment(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE q.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         question_id,
@@ -648,6 +680,7 @@ async def fork_question(
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         LEFT JOIN answers a ON a.question_id = q.id
         WHERE q.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         question_id,
@@ -657,16 +690,7 @@ async def fork_question(
 
     session_id = str(parent["session_id"])
 
-    question_count = await db.fetchval(
-        "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
-        session_id,
-        str(current_user["id"]),
-    )
-    if question_count >= settings.max_questions_per_session:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"You've reached the {settings.max_questions_per_session}-question limit for this session.",
-        )
+    await _assert_question_quota(db, session_id, str(current_user["id"]))
 
     # Increment parent fork_count
     await db.execute(
@@ -716,6 +740,7 @@ async def save_answer(
         JOIN sessions s ON s.id = q.session_id
         JOIN course_enrollments ce ON ce.course_id = s.course_id AND ce.student_id = $1
         WHERE a.id = $2
+          AND (q.visibility = 'group' OR q.student_id = $1)
         """,
         current_user["id"],
         answer_id,
@@ -1036,13 +1061,7 @@ async def fork_thread(
     if not enrolled:
         raise HTTPException(status_code=403, detail="Not enrolled")
 
-    # Check question limit
-    q_count = await db.fetchval(
-        "SELECT COUNT(*) FROM questions WHERE session_id = $1 AND student_id = $2",
-        session_id, str(current_user["id"]),
-    )
-    if int(q_count) >= settings.max_questions_per_session:
-        raise HTTPException(status_code=429, detail="Question limit reached")
+    await _assert_question_quota(db, session_id, str(current_user["id"]))
 
     # Build context from original thread exchanges
     exchange_rows = await db.fetch(
@@ -1226,6 +1245,22 @@ async def _fetch_rich_threads(db, session_id: str, current_user_id: str, thread_
 
     thread_ids = [str(r["id"]) for r in thread_rows]
 
+    # Provenance: name of the study group a fork originated in (None for institutional)
+    forked_from_ids = [str(r["forked_from"]) for r in thread_rows if r["forked_from"]]
+    origin_group_map: dict[str, str] = {}
+    if forked_from_ids:
+        origin_rows = await db.fetch(
+            """
+            SELECT t.id AS origin_thread_id, c.name AS course_name
+            FROM threads t
+            JOIN sessions s ON s.id = t.session_id
+            JOIN courses c ON c.id = s.course_id
+            WHERE t.id = ANY($1::uuid[]) AND c.course_type = 'study_group'
+            """,
+            forked_from_ids,
+        )
+        origin_group_map = {str(r["origin_thread_id"]): r["course_name"] for r in origin_rows}
+
     # Exchanges
     exchange_rows = await db.fetch(
         """
@@ -1328,6 +1363,7 @@ async def _fetch_rich_threads(db, session_id: str, current_user_id: str, thread_
             professor_notes=r["professor_notes"],
             fork_count=int(r["fork_count"]),
             forked_from=str(r["forked_from"]) if r["forked_from"] else None,
+            origin_group_name=origin_group_map.get(str(r["forked_from"])) if r["forked_from"] else None,
             comment_count=int(r["comment_count"]),
             feedback=ThreadFeedbackOut(
                 thumbs_up=up_map.get(str(r["id"]), 0),
@@ -1362,7 +1398,7 @@ async def join_course_by_code(
         FROM courses c
         JOIN users u ON c.professor_id = u.id
         LEFT JOIN sessions s ON s.course_id = c.id
-        WHERE LOWER(c.invite_code) = LOWER($1)
+        WHERE LOWER(c.invite_code) = LOWER($1) AND c.course_type = 'institutional'
         GROUP BY c.id, c.name, c.description, c.invite_code, u.display_name
         """,
         body.invite_code,
@@ -1424,3 +1460,242 @@ async def get_classmates(
     )
     return [ClassmateOut(id=str(r["id"]), display_name=r["display_name"], role=r["role"]) for r in rows]
 
+
+
+# ---------------------------------------------------------------------------
+# GET /api/student/home
+# MVP Home is capped to three sections: continue studying, recent activity,
+# your groups. Do not add widgets here without revisiting the spec.
+# ---------------------------------------------------------------------------
+
+@router.get("/home", response_model=HomeResponse)
+async def get_home(
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    continue_rows = await db.fetch(
+        """
+        SELECT c.id AS course_id, c.name, c.course_type, sg.id AS group_id,
+               MAX(q.asked_at) AS last_activity
+        FROM course_enrollments ce
+        JOIN courses c ON c.id = ce.course_id
+        LEFT JOIN study_groups sg ON sg.course_id = c.id
+        LEFT JOIN sessions s ON s.course_id = c.id
+        LEFT JOIN questions q ON q.session_id = s.id
+        WHERE ce.student_id = $1
+        GROUP BY c.id, c.name, c.course_type, sg.id
+        ORDER BY last_activity DESC NULLS LAST, c.name
+        LIMIT 6
+        """,
+        current_user["id"],
+    )
+
+    activity_rows = await db.fetch(
+        """
+        SELECT q.id AS question_id, q.content, q.asked_at, q.anonymous,
+               q.student_id, u.display_name,
+               c.name AS course_name, c.course_type, sg.id AS group_id
+        FROM questions q
+        JOIN sessions s ON s.id = q.session_id
+        JOIN courses c ON c.id = s.course_id
+        JOIN course_enrollments ce ON ce.course_id = c.id AND ce.student_id = $1
+        JOIN users u ON u.id = q.student_id
+        LEFT JOIN study_groups sg ON sg.course_id = c.id
+        WHERE (c.course_type = 'study_group' AND q.visibility = 'group') OR q.student_id = $1
+        ORDER BY q.asked_at DESC
+        LIMIT 10
+        """,
+        current_user["id"],
+    )
+
+    group_rows = await db.fetch(
+        """
+        SELECT sg.id, c.name,
+               (SELECT COUNT(*) FROM course_enrollments m WHERE m.course_id = c.id) AS member_count
+        FROM study_groups sg
+        JOIN courses c ON c.id = sg.course_id
+        JOIN course_enrollments ce ON ce.course_id = c.id AND ce.student_id = $1
+        ORDER BY sg.created_at DESC
+        """,
+        current_user["id"],
+    )
+
+    me = str(current_user["id"])
+    return HomeResponse(
+        continue_studying=[
+            HomeContinueItem(
+                course_id=str(r["course_id"]),
+                name=r["name"],
+                course_type=r["course_type"],
+                group_id=str(r["group_id"]) if r["group_id"] else None,
+                last_activity=r["last_activity"],
+            )
+            for r in continue_rows
+        ],
+        recent_activity=[
+            HomeActivityItem(
+                question_id=str(r["question_id"]),
+                content=r["content"],
+                asked_at=r["asked_at"],
+                course_name=r["course_name"],
+                course_type=r["course_type"],
+                group_id=str(r["group_id"]) if r["group_id"] else None,
+                asker_name=(
+                    "You" if str(r["student_id"]) == me
+                    else "Anonymous" if r["anonymous"]
+                    else r["display_name"]
+                ),
+            )
+            for r in activity_rows
+        ],
+        groups=[
+            HomeGroupItem(id=str(r["id"]), name=r["name"], member_count=int(r["member_count"]))
+            for r in group_rows
+        ],
+    )
+
+
+# ---------------------------------------------------------------------------
+# My Chats — private explorations (forks) the student owns
+# ---------------------------------------------------------------------------
+
+_PRIVATE_CHAT_SELECT = """
+    SELECT q.id AS question_id, q.content, q.asked_at, q.visibility, q.forked_from,
+           pq.content AS forked_from_content,
+           fd.filename AS focus_document_name,
+           c.name AS group_name, sg.id AS group_id,
+           a.id AS answer_id, a.content AS answer_content, a.model_used, a.generation_latency_ms
+    FROM questions q
+    JOIN sessions s ON s.id = q.session_id
+    JOIN courses c ON c.id = s.course_id
+    LEFT JOIN study_groups sg ON sg.course_id = c.id
+    LEFT JOIN questions pq ON pq.id = q.forked_from
+    LEFT JOIN documents fd ON fd.id = q.focus_document_id
+    LEFT JOIN answers a ON a.question_id = q.id
+"""
+
+
+async def _private_chat_out(db, r) -> PrivateChatOut:
+    answer = None
+    if r["answer_id"]:
+        cit_rows = await db.fetch(
+            """
+            SELECT ac.chunk_id, dc.content, dc.page_number, ac.relevance_score, ac.citation_order,
+                   d.filename, d.id AS document_id
+            FROM answer_citations ac
+            JOIN document_chunks dc ON dc.id = ac.chunk_id
+            JOIN documents d ON d.id = dc.document_id
+            WHERE ac.answer_id = $1 ORDER BY ac.citation_order
+            """,
+            r["answer_id"],
+        )
+        answer = AnswerOut(
+            answer_id=str(r["answer_id"]),
+            content=r["answer_content"],
+            model_used=r["model_used"],
+            generation_latency_ms=r["generation_latency_ms"],
+            citations=[
+                CitationOut(
+                    chunk_id=str(c["chunk_id"]), content=c["content"], page_number=c["page_number"],
+                    relevance_score=c["relevance_score"], citation_order=c["citation_order"],
+                    filename=c["filename"], document_id=str(c["document_id"]),
+                )
+                for c in cit_rows
+            ],
+        )
+    return PrivateChatOut(
+        question_id=str(r["question_id"]),
+        content=r["content"],
+        asked_at=r["asked_at"],
+        answer=answer,
+        group_id=str(r["group_id"]) if r["group_id"] else None,
+        group_name=r["group_name"],
+        forked_from=str(r["forked_from"]) if r["forked_from"] else None,
+        forked_from_content=r["forked_from_content"],
+        focus_document_name=r["focus_document_name"],
+        shared=r["visibility"] == "group",
+    )
+
+
+@router.get("/chats", response_model=list[PrivateChatOut])
+async def list_my_chats(
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Private forks I own, newest first. Ones I've shared back stay listed (shared=true)."""
+    rows = await db.fetch(
+        _PRIVATE_CHAT_SELECT + """
+        WHERE q.student_id = $1 AND c.course_type = 'study_group' AND q.forked_from IS NOT NULL
+        ORDER BY q.asked_at DESC
+        LIMIT 100
+        """,
+        current_user["id"],
+    )
+    return [await _private_chat_out(db, r) for r in rows]
+
+
+@router.post("/chats/{question_id}/continue", response_model=PrivateChatOut, status_code=status.HTTP_201_CREATED)
+async def continue_private_chat(
+    question_id: str,
+    body: ForkRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Ask a further private question building on one of my private forks."""
+    parent = await db.fetchrow(
+        "SELECT session_id, content, focus_document_id FROM questions WHERE id = $1 AND student_id = $2 AND visibility = 'private'",
+        question_id, current_user["id"],
+    )
+    if not parent:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
+    session_id = str(parent["session_id"])
+    await _assert_question_quota(db, session_id, str(current_user["id"]))
+
+    result = await rag_service.handle_question(
+        session_id=session_id,
+        student_id=str(current_user["id"]),
+        content=body.content,
+        db=db,
+        visibility="private",
+        focus_document_id=str(parent["focus_document_id"]) if parent["focus_document_id"] else None,
+    )
+    await db.execute("UPDATE questions SET forked_from = $1 WHERE id = $2", question_id, result.question_id)
+    row = await db.fetchrow(_PRIVATE_CHAT_SELECT + " WHERE q.id = $1", result.question_id)
+    return await _private_chat_out(db, row)
+
+
+@router.post("/chats/{question_id}/share", response_model=PrivateChatOut)
+async def share_private_chat_back(
+    question_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(_require_student),
+):
+    """Flip one of my private forks to group visibility so the whole group sees it."""
+    # forked_from becomes visible to the whole group once shared, so it must not
+    # point at a still-private ancestor — walk up to the nearest group-visible one.
+    public_ancestor = await db.fetchval(
+        """
+        WITH RECURSIVE up AS (
+            SELECT q.id, q.forked_from, q.visibility, q.student_id, 0 AS depth
+            FROM questions q WHERE q.id = $1 AND q.student_id = $2 AND q.visibility = 'private'
+            UNION ALL
+            SELECT p.id, p.forked_from, p.visibility, p.student_id, up.depth + 1
+            FROM questions p JOIN up ON p.id = up.forked_from
+            WHERE up.depth < 50
+        )
+        SELECT id FROM up WHERE depth > 0 AND visibility = 'group' ORDER BY depth LIMIT 1
+        """,
+        question_id, current_user["id"],
+    )
+    updated = await db.fetchval(
+        """
+        UPDATE questions SET visibility = 'group', forked_from = $3
+        WHERE id = $1 AND student_id = $2 AND visibility = 'private'
+        RETURNING id
+        """,
+        question_id, current_user["id"], public_ancestor,
+    )
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
+    row = await db.fetchrow(_PRIVATE_CHAT_SELECT + " WHERE q.id = $1", question_id)
+    return await _private_chat_out(db, row)

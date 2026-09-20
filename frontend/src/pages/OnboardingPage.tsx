@@ -15,22 +15,35 @@ function useIsMobile() {
 }
 
 // ── Design tokens ────────────────────────────────────────────────────────────
+// Horizon tokens (frontend/src/index.css). Consumed as inline styles, so we reference the CSS vars.
 const T = {
-  primary: '#272757',
-  primaryContainer: '#505081',
-  surface: '#f7f7fc',
-  surfaceLow: '#ededf5',
-  surfaceHigh: '#e2e2ee',
-  surfaceHighest: '#d8d8e8',
-  onSurface: '#0F0E47',
-  onSurfaceVariant: '#505081',
-  outlineVariant: '#8686AC',
-  gradient: 'linear-gradient(135deg, #272757, #505081)',
-  shadow: '0 20px 40px -12px rgba(15,14,71,0.12)',
+  primary: 'hsl(var(--primary))',
+  primaryContainer: 'hsl(var(--accent-foreground))',
+  onPrimary: 'hsl(var(--primary-foreground))',
+  surface: 'hsl(var(--background))',
+  surfaceLow: 'hsl(var(--card))',
+  surfaceHigh: 'hsl(var(--secondary))',
+  surfaceHighest: 'hsl(var(--muted))',
+  onSurface: 'hsl(var(--foreground))',
+  onSurfaceVariant: 'hsl(var(--muted-foreground))',
+  outlineVariant: 'var(--ink-3)',
+  border: 'hsl(var(--border))',
+  aiSurface: 'var(--ai-surface)',
+  aiBorder: 'var(--ai-border)',
+  aiText: 'var(--ai-text)',
+  aiMeta: 'var(--ai-meta)',
+  statusGood: 'var(--status-good)',
+  statusWarning: 'var(--status-warning)',
+  statusWarningText: 'var(--status-warning-text)',
+  statusCritical: 'var(--status-critical)',
+  // Flat accent — the legacy var is now the solid Horizon green.
+  gradient: 'var(--gradient-primary)',
+  shadow: 'var(--shadow-elevated)',
 }
 
-const serif = "'Newsreader', 'Georgia', serif"
-const sans = "'Manrope', sans-serif"
+// Instrument Sans is set on <body>; headings inherit it. No serif.
+const serif = 'inherit'
+const sans = 'inherit'
 
 type Role = 'student' | 'professor'
 
@@ -90,7 +103,7 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
                 <span style={{
                   position: 'absolute', top: '0.75rem', right: '0.75rem',
                   width: '1.5rem', height: '1.5rem', borderRadius: '9999px',
-                  background: T.gradient, color: '#fff',
+                  background: T.gradient, color: T.onPrimary,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.75rem', fontWeight: 700,
                 }}>✓</span>
@@ -100,7 +113,7 @@ function StepRole({ selected, onSelect }: { selected: Role | null; onSelect: (r:
                 background: isSelected ? T.gradient : T.surfaceHighest,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1.5rem', fontWeight: 700, fontFamily: serif, marginBottom: '1.25rem',
-                color: isSelected ? '#fff' : T.primary,
+                color: isSelected ? T.onPrimary : T.primary,
                 boxShadow: isSelected ? T.shadow : 'none',
                 transition: 'all 0.25s ease',
               }}>
@@ -140,7 +153,7 @@ function StepInsight() {
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
           <div style={{ background: T.gradient, borderRadius: '1rem 1rem 0.25rem 1rem', padding: '0.75rem 1rem', maxWidth: '80%' }}>
-            <p style={{ fontFamily: sans, fontSize: '0.875rem', color: '#fff', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontFamily: sans, fontSize: '0.875rem', color: T.onPrimary, margin: 0, lineHeight: 1.5 }}>
               What's the difference between supervised and unsupervised learning?
             </p>
           </div>
@@ -200,7 +213,7 @@ function StepBranch() {
             </p>
             <p style={{ fontFamily: sans, fontSize: '0.875rem', color: T.onSurface, lineHeight: 1.6, margin: 0 }}>
               Price elasticity measures consumer sensitivity to price.{' '}
-              <span style={{ background: 'rgba(186,26,26,0.1)', color: '#c0392b', borderRadius: '0.2rem', padding: '0.05rem 0.2rem', textDecoration: 'underline dotted' }}>
+              <span style={{ color: T.statusCritical, borderRadius: '0.2rem', padding: '0.05rem 0.2rem', textDecoration: 'underline dotted' }}>
                 A perfectly inelastic good has elasticity of exactly 1.
               </span>
             </p>
@@ -256,7 +269,7 @@ function StepClassPulse() {
             <span key={label} style={{
               fontFamily: sans, fontSize: '0.7rem', fontWeight: 700,
               background: active ? T.gradient : T.surfaceHighest,
-              color: active ? '#fff' : T.onSurfaceVariant,
+              color: active ? T.onPrimary : T.onSurfaceVariant,
               borderRadius: '9999px', padding: '0.25rem 0.7rem',
             }}>
               {label} ({count})
@@ -324,7 +337,7 @@ function StepFork() {
             It iteratively moves in the direction of steepest descent…
           </p>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 700, background: T.gradient, color: '#fff', borderRadius: '9999px', padding: '0.2rem 0.6rem' }}>
+            <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 700, background: T.gradient, color: T.onPrimary, borderRadius: '9999px', padding: '0.2rem 0.6rem' }}>
               Fork →
             </span>
           </div>
@@ -336,9 +349,9 @@ function StepFork() {
           <div style={{ width: '2px', height: '0.6rem', background: T.outlineVariant }} />
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '0.75rem', padding: '1rem', outline: `2px solid ${T.primary}` }}>
+        <div style={{ background: T.surfaceLow, borderRadius: '0.75rem', padding: '1rem', outline: `2px solid ${T.primary}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#fff', fontWeight: 700 }}>You</div>
+            <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '9999px', background: T.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: T.onPrimary, fontWeight: 700 }}>You</div>
             <span style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant }}>forked from above</span>
           </div>
           <p style={{ fontFamily: sans, fontSize: '0.85rem', color: T.onSurface, fontWeight: 600, margin: '0 0 0.5rem 0', lineHeight: 1.4 }}>
@@ -418,16 +431,14 @@ function StepCreate({
 
       {/* Right: signup form */}
       <div style={{
-        background: 'rgba(255,255,255,0.8)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: T.surfaceLow,
+        border: `1px solid ${T.border}`,
         borderRadius: '1.5rem',
         padding: '2rem',
         boxShadow: T.shadow,
         position: 'relative',
         overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', top: '-3rem', right: '-3rem', width: '8rem', height: '8rem', background: 'rgba(39,39,87,0.05)', borderRadius: '9999px', filter: 'blur(24px)' }} />
 
         <h2 style={{ fontFamily: serif, fontSize: '1.5rem', color: T.onSurface, margin: '0 0 0.25rem 0', position: 'relative' }}>Almost there</h2>
         <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurfaceVariant, margin: '0 0 1.75rem 0', position: 'relative' }}>Your role is saved — just create your credentials.</p>
@@ -492,7 +503,7 @@ function StepCreate({
           </div>
 
           {error && (
-            <p style={{ fontFamily: sans, fontSize: '0.8rem', color: '#c0392b', margin: 0, background: 'rgba(186,26,26,0.06)', borderRadius: '0.5rem', padding: '0.75rem 1rem' }}>
+            <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.statusCritical, margin: 0, background: T.surface, border: `1px solid ${T.statusCritical}`, borderRadius: '0.5rem', padding: '0.75rem 1rem' }}>
               {error}
             </p>
           )}
@@ -504,7 +515,7 @@ function StepCreate({
               marginTop: '0.5rem',
               width: '100%',
               background: isLoading ? T.outlineVariant : T.gradient,
-              color: '#fff',
+              color: T.onPrimary,
               border: 'none',
               borderRadius: '9999px',
               padding: '1rem',
@@ -594,7 +605,7 @@ function StepInstructorSetup() {
                 <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>{name}</p>
                 <p style={{ fontFamily: sans, fontSize: '0.65rem', color: T.onSurfaceVariant, margin: 0 }}>{pages}</p>
               </div>
-              <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '9999px', background: active ? T.gradient : T.surfaceHighest, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
+              <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '9999px', background: active ? T.gradient : T.surfaceHighest, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: T.onPrimary, fontWeight: 700, flexShrink: 0 }}>
                 {active ? '✓' : ''}
               </div>
             </div>
@@ -602,7 +613,7 @@ function StepInstructorSetup() {
         </div>
 
         <div style={{ background: T.gradient, borderRadius: '9999px', padding: '0.75rem 1.5rem', textAlign: 'center', marginBottom: '0.75rem' }}>
-          <span style={{ fontFamily: sans, fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>Go Live →</span>
+          <span style={{ fontFamily: sans, fontSize: '0.85rem', fontWeight: 700, color: T.onPrimary }}>Go Live →</span>
         </div>
         <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textAlign: 'center', margin: 0 }}>
           Students can join as soon as you go live
@@ -635,7 +646,10 @@ function StepInstructorLive() {
             <p style={{ fontFamily: serif, fontSize: '1rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>Lecture 4 · Gradient Descent</p>
             <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, margin: '0.2rem 0 0 0' }}>31 students joined</p>
           </div>
-          <span style={{ fontFamily: sans, fontSize: '0.65rem', background: '#dcfce7', color: '#166534', borderRadius: '9999px', padding: '0.25rem 0.7rem', fontWeight: 700 }}>● Live</span>
+          <span style={{ fontFamily: sans, fontSize: '0.65rem', background: T.surfaceLow, color: T.onSurface, border: `1px solid ${T.border}`, borderRadius: '9999px', padding: '0.25rem 0.7rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ width: '0.4rem', height: '0.4rem', borderRadius: '9999px', background: T.statusGood, display: 'inline-block' }} />
+            Live
+          </span>
         </div>
 
         {[
@@ -656,9 +670,9 @@ function StepInstructorLive() {
           </div>
         ))}
 
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.5rem', padding: '0.75rem 1rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderLeft: `3px solid ${T.statusWarning}`, borderRadius: '0.5rem', padding: '0.75rem 1rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>⚠️</span>
-          <p style={{ fontFamily: sans, fontSize: '0.75rem', color: '#92400e', margin: 0, lineHeight: 1.45 }}>
+          <p style={{ fontFamily: sans, fontSize: '0.75rem', color: T.statusWarningText, margin: 0, lineHeight: 1.45 }}>
             6 students have asked about learning rate selection — consider addressing it now
           </p>
         </div>
@@ -691,12 +705,12 @@ function StepInstructorReview() {
       <div style={{ width: '100%', flex: mobile ? undefined : 1, background: T.surfaceLow, borderRadius: '0.75rem', padding: '1.5rem', boxShadow: T.shadow }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
           <p style={{ fontFamily: serif, fontSize: '0.95rem', color: T.onSurface, margin: 0, fontWeight: 600 }}>Lecture 4 · Gradient Descent</p>
-          <span style={{ fontFamily: sans, fontSize: '0.65rem', background: '#fef3c7', color: '#92400e', borderRadius: '9999px', padding: '0.2rem 0.65rem', fontWeight: 700 }}>Pending Review</span>
+          <span style={{ fontFamily: sans, fontSize: '0.65rem', background: T.surfaceLow, color: T.statusWarningText, border: `1px solid ${T.statusWarning}`, borderRadius: '9999px', padding: '0.2rem 0.65rem', fontWeight: 600 }}>Pending Review</span>
         </div>
 
         <div style={{ background: T.surfaceHighest, borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 700, background: '#e2e2ee', color: '#272757', borderRadius: '9999px', padding: '0.15rem 0.5rem' }}>Doubts</span>
+            <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 600, background: T.aiSurface, color: T.aiMeta, border: `1px solid ${T.aiBorder}`, borderRadius: '9999px', padding: '0.15rem 0.5rem' }}>Doubts</span>
             <span style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, marginLeft: 'auto' }}>👍 11 · 👎 1</span>
           </div>
           <p style={{ fontFamily: sans, fontSize: '0.85rem', color: T.onSurface, fontWeight: 600, margin: '0 0 0.4rem 0', lineHeight: 1.4 }}>
@@ -714,7 +728,7 @@ function StepInstructorReview() {
               { emoji: '⚠️', label: 'Misleading', active: false },
               { emoji: '🔄', label: 'Follow-up', active: false },
             ].map(({ emoji, label, active }) => (
-              <span key={label} style={{ fontFamily: sans, fontSize: '0.7rem', fontWeight: 600, background: active ? T.gradient : T.surfaceLow, color: active ? '#fff' : T.onSurfaceVariant, borderRadius: '9999px', padding: '0.25rem 0.6rem' }}>
+              <span key={label} style={{ fontFamily: sans, fontSize: '0.7rem', fontWeight: 600, background: active ? T.gradient : T.surfaceLow, color: active ? T.onPrimary : T.onSurfaceVariant, borderRadius: '9999px', padding: '0.25rem 0.6rem' }}>
                 {emoji} {label}
               </span>
             ))}
@@ -753,7 +767,7 @@ function StepInstructorRelease() {
             <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, margin: '0.2rem 0 0 0' }}>19 questions reviewed</p>
           </div>
           <div style={{ background: T.gradient, borderRadius: '9999px', padding: '0.5rem 1rem', flexShrink: 0 }}>
-            <span style={{ fontFamily: sans, fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>Release →</span>
+            <span style={{ fontFamily: sans, fontSize: '0.8rem', fontWeight: 700, color: T.onPrimary }}>Release →</span>
           </div>
         </div>
 
@@ -766,12 +780,12 @@ function StepInstructorRelease() {
         <div style={{ border: `1.5px solid ${T.surfaceHighest}`, borderRadius: '0.75rem', padding: '1rem', opacity: 0.9 }}>
           <p style={{ fontFamily: sans, fontSize: '0.7rem', color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.75rem 0' }}>Lecture 4 — Released · 19 questions</p>
           {[
-            { q: 'What happens to gradient descent when the learning rate is too high?', label: '✓ Discussed', labelColor: T.gradient, labelText: '#fff' },
-            { q: 'Is Adam optimizer always better than vanilla SGD?', label: '❌ Wrong Answer', labelColor: '#fee2e2', labelText: '#c0392b' },
+            { q: 'What happens to gradient descent when the learning rate is too high?', label: '✓ Discussed', labelColor: T.gradient, labelText: T.onPrimary },
+            { q: 'Is Adam optimizer always better than vanilla SGD?', label: '❌ Wrong Answer', labelColor: T.surfaceLow, labelText: T.statusCritical },
           ].map(({ q, label, labelColor, labelText }) => (
             <div key={q} style={{ padding: '0.6rem 0', borderBottom: `1px solid ${T.surfaceHighest}` }}>
               <p style={{ fontFamily: sans, fontSize: '0.8rem', color: T.onSurface, margin: '0 0 0.35rem 0', lineHeight: 1.4 }}>{q}</p>
-              <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 700, background: labelColor, color: labelText, borderRadius: '9999px', padding: '0.15rem 0.5rem' }}>{label}</span>
+              <span style={{ fontFamily: sans, fontSize: '0.65rem', fontWeight: 600, background: labelColor, color: labelText, border: `1px solid ${labelText}`, borderRadius: '9999px', padding: '0.15rem 0.5rem' }}>{label}</span>
             </div>
           ))}
         </div>
@@ -821,7 +835,7 @@ function ProgressBar({ step, labels, onStepClick }: { step: number; labels: stri
               <div style={{
                 width: dotSize, height: dotSize, borderRadius: '9999px',
                 background: done || active ? T.gradient : T.surfaceHighest,
-                color: done || active ? '#fff' : T.onSurfaceVariant,
+                color: done || active ? T.onPrimary : T.onSurfaceVariant,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: sans, fontSize: mobile ? '0.65rem' : '0.8rem', fontWeight: 700,
                 boxShadow: active ? T.shadow : 'none',
@@ -982,7 +996,8 @@ export default function OnboardingPage() {
           alignItems: 'center',
           gap: '0.4rem',
           padding: '0.75rem 1.5rem 1.25rem',
-          background: `linear-gradient(to bottom, transparent, ${T.surface} 28%)`,
+          background: T.surface,
+          borderTop: `1px solid ${T.border}`,
           zIndex: 40,
         }}>
           {mobile ? (
@@ -994,7 +1009,7 @@ export default function OnboardingPage() {
                 style={{
                   width: '100%',
                   background: canContinue ? T.gradient : T.outlineVariant,
-                  color: '#fff',
+                  color: T.onPrimary,
                   border: 'none',
                   borderRadius: '9999px',
                   padding: '0.875rem 2.5rem',
@@ -1057,7 +1072,7 @@ export default function OnboardingPage() {
                 disabled={!canContinue}
                 style={{
                   background: canContinue ? T.gradient : T.outlineVariant,
-                  color: '#fff',
+                  color: T.onPrimary,
                   border: 'none',
                   borderRadius: '9999px',
                   padding: '0.875rem 2.5rem',

@@ -286,6 +286,7 @@ class RichThreadOut(BaseModel):
     my_feedback: str | None   # 'up' | 'down' | None
     student_display_name: str  # anonymized e.g. "Student 3"
     is_mine: bool
+    origin_group_name: str | None = None  # set when forked_from lives in a study group
 
 
 class ForkThreadRequest(BaseModel):
@@ -365,3 +366,117 @@ class CourseOverviewResponse(BaseModel):
     sessions: list[SessionOverviewItem]
     recurring_topics: list[RecurringTopicItem]
     student_summary: list[StudentSummaryItem]
+
+
+# ---------------------------------------------------------------------------
+# Study groups (self-serve, student-owned)
+# ---------------------------------------------------------------------------
+
+class CreateGroupRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    subject: str | None = Field(default=None, max_length=200)
+
+
+class GroupOut(BaseModel):
+    id: str
+    name: str
+    subject: str | None
+    owner_id: str
+    owner_name: str
+    join_code: str
+    member_count: int
+    conversation_id: str  # internal sessions.id — never surfaced as "session" to group users
+
+
+class GroupMemberOut(BaseModel):
+    id: str
+    display_name: str
+    is_owner: bool
+
+
+class GroupDetailOut(BaseModel):
+    id: str
+    name: str
+    subject: str | None
+    join_code: str
+    conversation_id: str
+    members: list[GroupMemberOut]
+    question_count: int = 0
+    active_today: int = 0  # distinct members who asked in the last 24h
+
+
+class JoinGroupResponse(BaseModel):
+    group: GroupOut
+    already_member: bool
+
+
+class InvitePreviewOut(BaseModel):
+    """What an invite link shows before the visitor signs in — deliberately minimal."""
+    join_code: str
+    name: str
+    subject: str | None
+    member_count: int
+    owner_first_name: str
+
+
+class GroupQuestionOut(QuestionOut):
+    asker_name: str  # "Anonymous" when the question was asked anonymously
+    is_mine: bool
+    comment_count: int = 0
+    forked_from: str | None = None
+    focus_document_id: str | None = None
+    focus_document_name: str | None = None
+
+
+class AskGroupQuestionRequest(BaseModel):
+    content: str = Field(..., min_length=5, max_length=2000)
+    anonymous: bool = False
+    focus_document_id: str | None = None
+
+
+class ForkRequest(BaseModel):
+    content: str = Field(..., min_length=5, max_length=2000)
+
+
+class PrivateChatOut(BaseModel):
+    """A private exploration (fork) the student owns — lives in My Chats."""
+    question_id: str
+    content: str
+    asked_at: datetime
+    answer: AnswerOut | None
+    group_id: str | None
+    group_name: str
+    forked_from: str | None
+    forked_from_content: str | None
+    focus_document_name: str | None
+    shared: bool  # True once shared back to the group
+
+
+class HomeContinueItem(BaseModel):
+    course_id: str
+    name: str
+    course_type: str  # 'institutional' | 'study_group'
+    group_id: str | None  # set for study groups, for deep-linking
+    last_activity: datetime | None
+
+
+class HomeActivityItem(BaseModel):
+    question_id: str
+    content: str
+    asked_at: datetime
+    course_name: str
+    course_type: str
+    group_id: str | None
+    asker_name: str
+
+
+class HomeGroupItem(BaseModel):
+    id: str
+    name: str
+    member_count: int
+
+
+class HomeResponse(BaseModel):
+    continue_studying: list[HomeContinueItem]
+    recent_activity: list[HomeActivityItem]
+    groups: list[HomeGroupItem]

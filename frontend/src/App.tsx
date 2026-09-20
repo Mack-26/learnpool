@@ -19,6 +19,11 @@ import NotesPage from './pages/NotesPage'
 import ClassThreadsPage from './pages/ClassThreadsPage'
 import AllQuestionsPage from './pages/AllQuestionsPage'
 import ClassmatesPage from './pages/ClassmatesPage'
+import GroupWorkspacePage from './pages/GroupWorkspacePage'
+import HomePage from './pages/HomePage'
+import MyChatsPage from './pages/MyChatsPage'
+import JoinPage from './pages/JoinPage'
+import StartPage from './pages/StartPage'
 
 export default function App() {
   return (
@@ -26,10 +31,16 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<OnboardingPage />} />
+      <Route path="/join/:code" element={<JoinPage />} />
+      <Route path="/start" element={<StartPage />} />
       {/* Student routes */}
+      <Route path="/home" element={<ProtectedRoute requireRole="student"><HomePage /></ProtectedRoute>} />
+      <Route path="/groups" element={<ProtectedRoute requireRole="student"><GroupWorkspacePage /></ProtectedRoute>} />
+      <Route path="/groups/:groupId" element={<ProtectedRoute requireRole="student"><GroupWorkspacePage /></ProtectedRoute>} />
       <Route path="/classes" element={<ProtectedRoute requireRole="student"><ClassListPage /></ProtectedRoute>} />
       <Route path="/classes/materials" element={<ProtectedRoute requireRole="student"><LectureMaterialsPage /></ProtectedRoute>} />
       <Route path="/notes" element={<ProtectedRoute requireRole="student"><NotesPage /></ProtectedRoute>} />
+      <Route path="/chats" element={<ProtectedRoute requireRole="student"><MyChatsPage /></ProtectedRoute>} />
       <Route path="/classes/:courseId" element={<ProtectedRoute requireRole="student"><SessionListPage /></ProtectedRoute>} />
       <Route path="/classes/:courseId/people" element={<ProtectedRoute requireRole="student"><ClassmatesPage /></ProtectedRoute>} />
       <Route path="/sessions/:sessionId" element={<ProtectedRoute requireRole="student"><SessionDetailPage /></ProtectedRoute>} />

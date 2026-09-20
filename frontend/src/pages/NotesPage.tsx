@@ -7,7 +7,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import { renderAnswerWithCitations } from '@/components/AnswerRenderer'
 import type { SavedAnswerOut } from '../types/api'
 
-export default function NotesPage() {
+export function SavedAnswersList() {
   const queryClient = useQueryClient()
   const [confirmUnsaveId, setConfirmUnsaveId] = useState<string | null>(null)
 
@@ -38,21 +38,13 @@ export default function NotesPage() {
   }
 
   return (
-    <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <h1 className="text-2xl font-bold text-foreground mb-1">My Notes</h1>
-        <p className="text-muted-foreground mb-6">AI answers you've saved from lecture sessions</p>
-
+    <>
         {isLoading ? (
           <p className="text-muted-foreground">Loading…</p>
         ) : saved.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground gap-3">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Bookmark className="h-7 w-7 text-primary opacity-60" />
+            <div className="h-14 w-14 rounded-2xl bg-accent border border-[var(--ai-border)] flex items-center justify-center">
+              <Bookmark className="h-7 w-7 text-primary opacity-70" />
             </div>
             <div>
               <p className="text-base font-medium text-foreground">No saved answers yet</p>
@@ -79,23 +71,21 @@ export default function NotesPage() {
                       <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         {confirmUnsaveId === item.answer_id ? (
                           <>
-                            <span style={{ fontSize: '0.7rem', color: '#505081' }}>Remove?</span>
+                            <span className="text-xs text-muted-foreground">Remove?</span>
                             <button
                               onClick={() => handleUnsave(item.answer_id)}
-                              style={{ fontSize: '0.7rem', fontWeight: 700, color: '#c0392b', background: 'rgba(186,26,26,0.08)', border: 'none', borderRadius: '0.3rem', padding: '0.2rem 0.5rem', cursor: 'pointer' }}
+                              className="text-xs font-semibold text-destructive bg-destructive/10 hover:bg-destructive/15 border-0 rounded px-2 py-0.5 transition-colors"
                             >Yes</button>
                             <button
                               onClick={() => setConfirmUnsaveId(null)}
-                              style={{ fontSize: '0.7rem', color: '#8686AC', background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem 0.4rem' }}
+                              className="text-xs text-muted-foreground hover:text-foreground bg-transparent border-0 px-1.5 py-0.5 transition-colors"
                             >No</button>
                           </>
                         ) : (
                           <button
                             onClick={() => setConfirmUnsaveId(item.answer_id)}
                             title="Remove from notes"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#272757', padding: '0.25rem', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', transition: 'opacity 0.2s' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.5')}
-                            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                            className="bg-transparent border-0 text-primary p-1 rounded-md flex items-center hover:opacity-60 transition-opacity"
                           >
                             <Bookmark className="h-4 w-4" fill="currentColor" />
                           </button>
@@ -108,7 +98,7 @@ export default function NotesPage() {
                       </p>
 
                       {/* Answer */}
-                      <div className="rounded-lg bg-card px-3 py-2.5 text-sm text-foreground" style={{ lineHeight: 1.7, border: '1px solid rgba(134,134,172,0.15)' }}>
+                      <div className="rounded-lg bg-accent border border-[var(--ai-border)] px-3 py-2.5 text-sm text-[var(--ai-text)]" style={{ lineHeight: 1.7 }}>
                         {renderAnswerWithCitations(item.answer_content, item.citations)}
                       </div>
 
@@ -125,6 +115,17 @@ export default function NotesPage() {
             ))}
           </div>
         )}
+    </>
+  )
+}
+
+export default function NotesPage() {
+  return (
+    <DashboardLayout>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <h1 className="text-2xl font-bold text-foreground mb-1">My Notes</h1>
+        <p className="text-muted-foreground mb-6">AI answers you've saved from lecture sessions</p>
+        <SavedAnswersList />
       </motion.div>
     </DashboardLayout>
   )

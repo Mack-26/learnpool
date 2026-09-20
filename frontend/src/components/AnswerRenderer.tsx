@@ -18,8 +18,9 @@ export function CitationBadge({ num, citation }: { num: number; citation: Citati
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           minWidth: '1rem', height: '1rem', borderRadius: '3px',
-          background: '#272757', color: '#fff',
-          fontSize: '0.58rem', fontWeight: 700, cursor: 'default',
+          background: 'var(--ai-surface)', color: 'var(--ai-meta)',
+          border: '1px solid var(--ai-border)',
+          fontSize: '0.58rem', fontWeight: 600, cursor: 'default',
           verticalAlign: 'super', margin: '0 1px', padding: '0 2px',
           lineHeight: 1, userSelect: 'none',
         }}
@@ -29,15 +30,16 @@ export function CitationBadge({ num, citation }: { num: number; citation: Citati
       {hovered && (
         <span style={{
           position: 'absolute', bottom: '1.6rem', left: '50%', transform: 'translateX(-50%)',
-          background: '#1a1a2e', color: '#fff', borderRadius: '0.75rem',
+          background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', borderRadius: '0.75rem',
+          border: '1px solid hsl(var(--border))',
           padding: '0.85rem 1rem', width: '300px', zIndex: 100,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+          boxShadow: 'var(--shadow-elevated)',
           fontSize: '0.78rem', lineHeight: 1.55, display: 'block', pointerEvents: 'none',
         }}>
-          <span style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem', color: '#a5b4fc', fontSize: '0.8rem' }}>
+          <span style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--ai-meta)', fontSize: '0.8rem' }}>
             {citation.filename || 'Source'}{citation.page_number ? ` · p.${citation.page_number}` : ''}
           </span>
-          <span style={{ color: 'rgba(255,255,255,0.8)', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+          <span style={{ color: 'hsl(var(--muted-foreground))', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
             {citation.content}
           </span>
         </span>
@@ -75,8 +77,9 @@ export function renderInline(text: string, citations: CitationRef[]): React.Reac
         <sup key={i} style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           minWidth: '1rem', height: '1rem', borderRadius: '3px',
-          background: '#d8d8e8', color: '#8686AC',
-          fontSize: '0.58rem', fontWeight: 700,
+          background: 'hsl(var(--muted))', color: 'var(--ink-3)',
+          border: '1px solid hsl(var(--border))',
+          fontSize: '0.58rem', fontWeight: 600,
           verticalAlign: 'super', margin: '0 1px', padding: '0 2px', lineHeight: 1,
         }}>{num}</sup>
       )

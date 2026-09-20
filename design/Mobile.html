@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Horizon — mobile landing page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;display=swap">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: #FAF9F6; color: #191816; font-family: 'Instrument Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #1C4A3C; text-decoration: none; }
+  a:hover { color: #143A2F; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .btn-primary { transition: background-color .18s ease; }
+  .btn-primary:hover { background: #143A2F; }
+  .btn-ghost { transition: background-color .18s ease, border-color .18s ease; }
+  .btn-ghost:hover { background: #F1EFE8; border-color: #CFC9BC; }
+  .btn-invert:hover { background: #FFFFFF; }
+  .mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 5400px; display: flex; flex-direction: column; background: #FAF9F6; overflow: hidden;">
+
+  <!-- nav -->
+  <header style="height: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #EBE7DE;">
+    <a href="#top" style="display: flex; align-items: center; gap: 8px; color: #191816;">
+      <svg width="18" height="18" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#1C4A3C" stroke-width="1.8" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#1C4A3C" stroke-width="1.8" stroke-linecap="round" fill="none"></path></svg>
+      <span style="font-size: 16px; font-weight: 600; letter-spacing: -.017em;">Horizon</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <a href="#signin" style="font-size: 14px; color: #56534C;">Sign in</a>
+      <button type="button" aria-label="Open menu" class="btn-ghost" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 9px; background: transparent;">
+        <svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><path d="M1 1h16M1 6h16M1 11h16" stroke="#3D3A34" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- hero -->
+  <section id="top" style="flex-shrink: 0; padding: 52px 24px 60px;">
+    <h1 style="margin: 0; font-size: 42px; line-height: 1.08; letter-spacing: -.033em; font-weight: 500;">
+      <span style="display: block;">Study together.</span>
+      <span style="display: block;">Ask together.</span>
+      <span style="display: block; color: #1C4A3C;">Learn together.</span>
+    </h1>
+    <p style="margin: 22px 0 0; font-size: 17px; line-height: 1.5; color: #56534C; letter-spacing: -.008em;">A shared learning space for your people, your materials, and AI.</p>
+    <div style="margin-top: 28px; display: flex; flex-direction: column; gap: 10px;">
+      <a class="btn-primary" href="#create" style="display: flex; align-items: center; justify-content: center; height: 50px; border-radius: 11px; background: #1C4A3C; color: #FFFFFF; font-size: 15.5px; font-weight: 500;">Create a study group</a>
+      <a class="btn-ghost" href="#product" style="display: flex; align-items: center; justify-content: center; gap: 7px; height: 50px; border-radius: 11px; border: 1px solid #DED9CE; background: #FFFFFF; color: #191816; font-size: 15.5px; font-weight: 500;">See how it works <span aria-hidden="true" style="color: #6F6B63;">→</span></a>
+    </div>
+
+    <!-- hero product card -->
+    <div style="margin-top: 40px; border: 1px solid #E1DDD3; border-radius: 14px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(25,24,22,.05), 0 22px 50px -26px rgba(25,24,22,.22); overflow: hidden;">
+      <div style="padding: 13px 15px; border-bottom: 1px solid #EDE9E0; background: #FAF9F5;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 14px; font-weight: 600; letter-spacing: -.015em;">GRE Quant Prep</span>
+          <span style="font-size: 11px; color: #6F6B63;">6 members</span>
+        </div>
+        <div style="margin-top: 3px; font-size: 11px; color: #6F6B63;">24 questions · 3 materials</div>
+        <div style="margin-top: 9px; display: flex; gap: 6px; flex-wrap: wrap;">
+          <span style="height: 23px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 6px; background: #F5F1E7; border: 1px solid #E7DFCD; font-size: 10.5px; color: #5E5342;">Quant Review</span>
+          <span style="height: 23px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 6px; background: #F5F1E7; border: 1px solid #E7DFCD; font-size: 10.5px; color: #5E5342;">Problem Set 4</span>
+          <span style="height: 23px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 6px; background: #F5F1E7; border: 1px solid #E7DFCD; font-size: 10.5px; color: #5E5342;">Practice Test 2</span>
+        </div>
+      </div>
+      <div style="padding: 14px 15px; display: flex; flex-direction: column; gap: 11px;">
+        <div style="border: 1px solid #E8E4DA; border-radius: 10px; background: #FFFFFF; padding: 12px 13px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 21px; height: 21px; border-radius: 50%; background: #2F4A40; color: #FFFFFF; font-size: 8.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">SM</span>
+            <span style="font-size: 12px; font-weight: 600;">Sarah Mehta</span>
+            <span style="font-size: 10.5px; color: #6F6B63;">2d</span>
+          </div>
+          <p style="margin: 9px 0 0; font-size: 14px; line-height: 1.45; letter-spacing: -.01em;">If <span class="mono" style="font-size: 13px;">x + 1/x = 5</span>, what is <span class="mono" style="font-size: 13px;">x² + 1/x²</span>?</p>
+          <div style="margin-top: 9px; display: flex; align-items: center; gap: 12px; font-size: 10.5px; color: #6F6B63;"><span>9 votes</span><span>3 replies</span><span>2 forks</span></div>
+        </div>
+        <div style="border: 1px solid #DCE8E1; border-radius: 10px; background: #F5F8F6; padding: 12px 13px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="13" height="13" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
+            <span style="font-size: 12px; font-weight: 600; color: #174236;">Horizon</span>
+            <span style="font-size: 10.5px; color: #4A7263;">from your materials</span>
+          </div>
+          <p style="margin: 9px 0 0; font-size: 13px; line-height: 1.6; color: #24302B;">You don't need x. Square what you were given — the cross terms collapse:</p>
+          <div class="mono" style="margin: 9px 0 0; padding: 9px 10px; border-radius: 7px; background: #FFFFFF; border: 1px solid #E1EAE5; font-size: 11px; color: #24302B; line-height: 1.7;">(x + 1/x)² = x² + 2 + 1/x² = 25<br>x² + 1/x² = 23</div>
+          <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 6px; background: #FFFFFF; border: 1px solid #DDE7E1; font-size: 10.5px; color: #24302B;"><span style="color: #4A7263; font-weight: 600;">[1]</span> Quant Review · p. 12</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 6px; background: #FFFFFF; border: 1px solid #DDE7E1; font-size: 10.5px; color: #24302B;"><span style="color: #4A7263; font-weight: 600;">[2]</span> Problem Set 4 · p. 2</span>
+          </div>
+        </div>
+        <div style="margin-left: 18px; border: 1px solid #E8E4DA; border-radius: 10px; background: #FFFFFF; padding: 12px 13px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 20px; height: 20px; border-radius: 50%; background: #6A5A46; color: #FFFFFF; font-size: 8.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">DO</span>
+            <span style="font-size: 11.5px; font-weight: 600;">David Okonkwo</span>
+            <span style="font-size: 10.5px; color: #6F6B63;">1d</span>
+          </div>
+          <p style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: #3D3A34;">I got 23 by substitution, but it took four minutes. Squaring the sum is the move on test day.</p>
+          <div style="margin-top: 8px; font-size: 10.5px; color: #6F6B63;">7 found this helpful</div>
+        </div>
+      </div>
+      <div style="padding: 12px 15px 14px; border-top: 1px solid #EDE9E0;">
+        <div style="display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 8px 0 13px; border: 1px solid #E1DDD3; border-radius: 10px; background: #FFFFFF;">
+          <label class="sr-only" for="m-ask">Ask the group</label>
+          <input id="m-ask" type="text" placeholder="Ask the group…" style="flex-grow: 1; min-width: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 12.5px; color: #191816;">
+          <button type="button" class="btn-primary" style="height: 28px; padding: 0 11px; border: 0; border-radius: 7px; background: #1C4A3C; color: #FFFFFF; font-family: inherit; font-size: 11.5px; font-weight: 500;">Ask</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 problem -->
+  <section style="flex-shrink: 0; padding: 60px 24px; border-top: 1px solid #EBE7DE;">
+    <div class="mono" style="font-size: 10px; letter-spacing: .1em; color: #86827A;">01 &nbsp;/&nbsp; THE PROBLEM</div>
+    <h2 style="margin: 18px 0 0; font-size: 36px; font-weight: 500; line-height: 1.1; letter-spacing: -.032em;">Course materials are shared.<br><span style="color: #8A857C;">Learning usually isn't.</span></h2>
+    <p style="margin: 20px 0 0; font-size: 16.5px; line-height: 1.55; color: #56534C;">Everyone has the same materials.<br>Everyone studies somewhere different.</p>
+    <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="padding: 17px 18px; border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF;">
+        <div style="font-size: 14.5px; font-weight: 600;">Group chats</div>
+        <p style="margin: 6px 0 0; font-size: 14.5px; line-height: 1.5; color: #56534C;">Questions disappear into the scroll.</p>
+      </div>
+      <div style="padding: 17px 18px; border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF;">
+        <div style="font-size: 14.5px; font-weight: 600;">AI chats</div>
+        <p style="margin: 6px 0 0; font-size: 14.5px; line-height: 1.5; color: #56534C;">Answers stay private.</p>
+      </div>
+      <div style="padding: 17px 18px; border: 1px solid #E8E4DA; border-radius: 12px; background: #FFFFFF;">
+        <div style="font-size: 14.5px; font-weight: 600;">Course folders</div>
+        <p style="margin: 6px 0 0; font-size: 14.5px; line-height: 1.5; color: #56534C;">Materials sit apart from the conversation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 product -->
+  <section style="flex-shrink: 0; padding: 60px 24px; background: #F3F1EA; border-top: 1px solid #E7E3D9;">
+    <div class="mono" style="font-size: 10px; letter-spacing: .1em; color: #857F73;">02 &nbsp;/&nbsp; THE PRODUCT</div>
+    <h2 style="margin: 18px 0 0; font-size: 34px; line-height: 1.12; letter-spacing: -.03em; font-weight: 500;">One shared space for what you're learning.</h2>
+    <p style="margin: 16px 0 0; font-size: 16.5px; line-height: 1.55; color: #56534C;">Materials, questions, answers, and the people learning with you — in one place.</p>
+
+    <div style="margin-top: 32px; border: 1px solid #DED9CE; border-radius: 14px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(25,24,22,.05), 0 22px 50px -26px rgba(25,24,22,.20); overflow: hidden;">
+      <div style="padding: 14px 15px; border-bottom: 1px solid #EDE9E0; background: #FAF9F5;">
+        <div class="mono" style="font-size: 9.5px; letter-spacing: .09em; color: #86827A;">MY GROUPS</div>
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 3px;">
+          <span style="display: block; padding: 8px 10px; border-radius: 7px; background: #EDF1EE; font-size: 12.5px; color: #1C4A3C; font-weight: 500; line-height: 1.3;">GRE Quant Prep<span style="display: block; font-size: 10.5px; color: #4A7263; font-weight: 400;">6 members · 24 questions</span></span>
+          <span style="display: block; padding: 8px 10px; border-radius: 7px; font-size: 12.5px; color: #3D3A34; line-height: 1.3;">Biology 101 — Midterm 2<span style="display: block; font-size: 10.5px; color: #6F6B63;">42 members · 67 questions</span></span>
+          <span style="display: block; padding: 8px 10px; border-radius: 7px; font-size: 12.5px; color: #3D3A34; line-height: 1.3;">Python Fundamentals<span style="display: block; font-size: 10.5px; color: #6F6B63;">18 members · 31 questions</span></span>
+          <span style="display: block; padding: 8px 10px; border-radius: 7px; font-size: 12.5px; color: #3D3A34; line-height: 1.3;">Spanish B2 — Conversation<span style="display: block; font-size: 10.5px; color: #6F6B63;">7 members · 19 questions</span></span>
+        </div>
+      </div>
+      <div style="padding: 8px 8px 12px;">
+        <div style="padding: 12px 11px; border-radius: 9px; border: 1px solid #E8E4DA; background: #FFFFFF;">
+          <div style="font-size: 13px; font-weight: 500; line-height: 1.4;">If <span class="mono" style="font-size: 12px;">x + 1/x = 5</span>, what is <span class="mono" style="font-size: 12px;">x² + 1/x²</span>?</div>
+          <div style="margin-top: 7px; display: flex; align-items: center; gap: 10px; font-size: 10.5px; color: #6F6B63;"><span>Sarah M.</span><span>3 replies</span><span>9 votes</span></div>
+        </div>
+        <div style="padding: 12px 11px;">
+          <div style="font-size: 13px; font-weight: 500; line-height: 1.4;">When is it faster to test the answer choices than to solve?</div>
+          <div style="margin-top: 7px; display: flex; align-items: center; gap: 10px; font-size: 10.5px; color: #6F6B63;"><span>David O.</span><span>6 replies</span><span>14 votes</span></div>
+        </div>
+        <div style="padding: 12px 11px;">
+          <div style="font-size: 13px; font-weight: 500; line-height: 1.4;">Problem Set 4 Q7 — why isn't the average 50?</div>
+          <div style="margin-top: 7px; display: flex; align-items: center; gap: 10px; font-size: 10.5px; color: #6F6B63;"><span>Amara B.</span><span>4 replies</span><span>7 votes</span></div>
+        </div>
+        <div style="padding: 12px 11px;">
+          <div style="font-size: 13px; font-weight: 500; line-height: 1.4;">Practice Test 2 Q14 gives <span class="mono" style="font-size: 12px;">x − 1/x</span> — what changes?</div>
+          <div style="margin-top: 7px; display: flex; align-items: center; gap: 10px; font-size: 10.5px; color: #6F6B63;"><span>Mei-Lin C.</span><span>5 replies</span><span>11 votes</span></div>
+        </div>
+      </div>
+      <div style="padding: 14px 15px; border-top: 1px solid #EDE9E0; background: #FCFBF8;">
+        <div class="mono" style="font-size: 9.5px; letter-spacing: .09em; color: #86827A;">GROUP MATERIALS</div>
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <span style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #191816;">
+            <svg width="12" height="15" viewBox="0 0 13 16" aria-hidden="true" style="flex-shrink: 0;"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+            Quant Review — Algebra <span style="color: #6F6B63;">· 34 pages</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #191816;">
+            <svg width="12" height="15" viewBox="0 0 13 16" aria-hidden="true" style="flex-shrink: 0;"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+            Problem Set 4 <span style="color: #6F6B63;">· 8 pages</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #191816;">
+            <svg width="12" height="15" viewBox="0 0 13 16" aria-hidden="true" style="flex-shrink: 0;"><rect x=".7" y=".7" width="11.6" height="14.6" rx="1.8" stroke="#9A8C6E" stroke-width="1.3" fill="#F9F6EE"></rect><path d="M3.6 5.2h5.8M3.6 8h5.8M3.6 10.8h3.4" stroke="#B9AB8B" stroke-width="1.2" stroke-linecap="round"></path></svg>
+            Practice Test 2 <span style="color: #6F6B63;">· 22 pages</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; padding: 14px 15px; border: 1px solid #DDE7E1; border-radius: 11px; background: #FFFFFF;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 600; color: #174236;">[1] · Quant Review · Page 12</span>
+        <span style="font-size: 11px; color: #6F6B63; flex-shrink: 0;">96% match</span>
+      </div>
+      <p style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: #3D3A34;">"When a problem gives you a sum and asks for a sum of squares, square the expression you were given…"</p>
+      <div style="margin-top: 10px; padding-top: 9px; border-top: 1px solid #EDE9E0; font-size: 12px; color: #56534C;">Every answer opens the passage it came from.</div>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <div style="padding: 13px 0; border-top: 1px solid #E3DFD4; display: flex; gap: 16px;">
+        <span style="width: 82px; flex-shrink: 0; font-size: 14.5px; font-weight: 600;">Grounded</span>
+        <span style="font-size: 14.5px; line-height: 1.5; color: #56534C;">Answers come from your group's materials.</span>
+      </div>
+      <div style="padding: 13px 0; border-top: 1px solid #E3DFD4; display: flex; gap: 16px;">
+        <span style="width: 82px; flex-shrink: 0; font-size: 14.5px; font-weight: 600;">Visible</span>
+        <span style="font-size: 14.5px; line-height: 1.5; color: #56534C;">Every question is shared with the group.</span>
+      </div>
+      <div style="padding: 13px 0; border-top: 1px solid #E3DFD4; border-bottom: 1px solid #E3DFD4; display: flex; gap: 16px;">
+        <span style="width: 82px; flex-shrink: 0; font-size: 14.5px; font-weight: 600;">Checked</span>
+        <span style="font-size: 14.5px; line-height: 1.5; color: #56534C;">Classmates reply, correct, and vote.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 people -->
+  <section style="flex-shrink: 0; padding: 60px 24px; background: #F3F1EA; border-top: 1px solid #E7E3D9;">
+    <div class="mono" style="font-size: 10px; letter-spacing: .1em; color: #857F73;">03 &nbsp;/&nbsp; PEOPLE</div>
+    <h2 style="margin: 18px 0 0; font-size: 34px; line-height: 1.12; letter-spacing: -.03em; font-weight: 500;">Your classmates are part of the answer.</h2>
+    <p style="margin: 16px 0 0; font-size: 16.5px; line-height: 1.55; color: #56534C;">The explanation that helped stays with the question.</p>
+
+    <div style="margin-top: 28px; border: 1px solid #E1DDD3; border-radius: 13px; background: #FFFFFF; overflow: hidden;">
+      <div style="padding: 13px 15px; border-bottom: 1px solid #EDE9E0; background: #FCFBF8; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: #56534C;">Biology 101 — Midterm 2</span>
+        <span style="font-size: 11px; color: #6F6B63;">42 members</span>
+      </div>
+      <div style="padding: 15px 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 21px; height: 21px; border-radius: 50%; background: #4A5240; color: #FFFFFF; font-size: 8.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">AB</span>
+            <span style="font-size: 12px; font-weight: 600;">Amara Boateng</span>
+            <span style="font-size: 10.5px; color: #6F6B63;">3d</span>
+          </div>
+          <p style="margin: 9px 0 0; font-size: 15.5px; line-height: 1.42; letter-spacing: -.014em; font-weight: 500;">Why does water move toward the saltier side in osmosis?</p>
+        </div>
+        <div style="padding: 11px 12px; border: 1px solid #DCE8E1; border-radius: 10px; background: #F5F8F6;">
+          <div style="display: flex; align-items: center; gap: 7px;">
+            <svg width="12" height="12" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#1C4A3C" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
+            <span style="font-size: 11.5px; font-weight: 600; color: #174236;">Horizon</span>
+            <span style="margin-left: auto; font-size: 10.5px; color: #4A7263;">Lecture 9 · p. 6</span>
+          </div>
+          <p style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: #24302B;">Water moves toward the side with less free water — the dissolved salt is what lowers it.</p>
+        </div>
+        <div style="margin-left: 16px; border: 1px solid #E8E4DA; border-radius: 11px; background: #FFFFFF; padding: 13px 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 20px; height: 20px; border-radius: 50%; background: #55504A; color: #FFFFFF; font-size: 8.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">TB</span>
+            <span style="font-size: 11.5px; font-weight: 600;">Tyler Brooks</span>
+          </div>
+          <p style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: #3D3A34;">The way our TA put it: water isn't chasing the salt. It's just spreading out, and there's more room on the salty side.</p>
+          <div style="margin-top: 8px; font-size: 10.5px; color: #6F6B63;">12 found this helpful</div>
+        </div>
+        <div style="margin-left: 16px; border: 1px solid #E8E4DA; border-radius: 11px; background: #FFFFFF; padding: 13px 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 20px; height: 20px; border-radius: 50%; background: #5C4550; color: #FFFFFF; font-size: 8.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;">JW</span>
+            <span style="font-size: 11.5px; font-weight: 600;">Jonas Weber</span>
+          </div>
+          <p style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: #3D3A34;">One thing to fix before the exam: the answer key says "higher solute concentration," never "saltier."</p>
+          <div style="margin-top: 8px; font-size: 10.5px; color: #6F6B63;">8 found this helpful</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 private -->
+  <section style="flex-shrink: 0; padding: 60px 24px; border-top: 1px solid #EBE7DE;">
+    <div class="mono" style="font-size: 10px; letter-spacing: .1em; color: #86827A;">04 &nbsp;/&nbsp; YOUR OWN SPACE</div>
+    <h2 style="margin: 18px 0 0; font-size: 34px; line-height: 1.12; letter-spacing: -.03em; font-weight: 500;">Take the conversation further.</h2>
+    <p style="margin: 16px 0 0; font-size: 16.5px; line-height: 1.55; color: #56534C;">Fork any discussion into your own space. Explore privately, then share what helps the group.</p>
+
+    <div style="margin-top: 28px; border: 1px solid #E1DDD3; border-radius: 12px; background: #FFFFFF; overflow: hidden;">
+      <div style="padding: 11px 14px; border-bottom: 1px solid #EDE9E0; background: #FCFBF8; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 11.5px; font-weight: 500; color: #3D3A34;">Python Fundamentals</span>
+        <span class="mono" style="font-size: 9px; letter-spacing: .08em; color: #86827A;">SHARED</span>
+      </div>
+      <div style="padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.45;">Why does <span class="mono" style="font-size: 12.5px;">range(1, 5)</span> stop at 4?</p>
+        <div style="font-size: 11px; color: #6F6B63;">4 replies · 12 votes</div>
+        <button type="button" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border: 0; border-radius: 9px; background: #1C4A3C; color: #FFFFFF; font-family: inherit; font-size: 12.5px; font-weight: 500;">
+          <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.8v4.4c0 1.3 1 2.3 2.3 2.3H9" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round"></path><circle cx="3" cy="1.8" r="1.3" fill="#FFFFFF"></circle><circle cx="9.4" cy="8.5" r="1.3" fill="#FFFFFF"></circle></svg>
+          Fork to my space
+        </button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 0;">
+      <span class="mono" style="font-size: 9px; letter-spacing: .08em; color: #857F73;">FORK</span>
+      <svg width="10" height="34" viewBox="0 0 10 34" aria-hidden="true"><path d="M5 0v26" stroke="#CFC9BC" stroke-width="1.3" stroke-dasharray="4 4"></path><path d="M1.5 26 5 32l3.5-6z" fill="#CFC9BC"></path></svg>
+    </div>
+
+    <div style="border: 1px solid #D6D0C2; border-radius: 12px; background: #FFFFFF; overflow: hidden; box-shadow: 0 1px 2px rgba(25,24,22,.04), 0 16px 36px -22px rgba(25,24,22,.2);">
+      <div style="padding: 11px 14px; border-bottom: 1px solid #EDE9E0; background: #FAF9F5; display: flex; align-items: center; justify-content: space-between;">
+        <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 500; color: #3D3A34;">
+          <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.2" width="8" height="5.4" rx="1.3" stroke="#6F6B63" stroke-width="1.2" fill="none"></rect><path d="M4 5.2V4a2 2 0 0 1 4 0v1.2" stroke="#6F6B63" stroke-width="1.2" fill="none"></path></svg>
+          My space
+        </span>
+        <span class="mono" style="font-size: 9px; letter-spacing: .08em; color: #86827A;">PRIVATE</span>
+      </div>
+      <div style="padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.45;">So how do I get 1 through 5 when the end comes from a variable?</p>
+        <div style="padding: 11px 12px; border: 1px solid #E8E4DA; border-radius: 9px; background: #FCFBF8;">
+          <p style="margin: 0; font-size: 12.5px; line-height: 1.55; color: #3D3A34;">Add one to the stop value: <span class="mono" style="font-size: 12px;">range(1, n + 1)</span>. The same rule is why <span class="mono" style="font-size: 12px;">len(list)</span> works as a stop.</p>
+          <div style="margin-top: 7px; font-size: 10.5px; color: #6F6B63;">Loops &amp; Ranges · p. 3</div>
+        </div>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #3D3A34;"><input type="checkbox" checked="" style="width: 13px; height: 13px; accent-color: #1C4A3C;">Include my questions</label>
+        <button type="button" class="btn-ghost" style="height: 40px; border-radius: 9px; border: 1px solid #C8C1B1; background: #FFFFFF; font-family: inherit; font-size: 12.5px; font-weight: 500; color: #191816;">Share with the group</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 0;">
+      <span class="mono" style="font-size: 9px; letter-spacing: .08em; color: #857F73;">SHARED BACK</span>
+      <svg width="10" height="34" viewBox="0 0 10 34" aria-hidden="true"><path d="M5 0v26" stroke="#CFC9BC" stroke-width="1.3" stroke-dasharray="4 4"></path><path d="M1.5 26 5 32l3.5-6z" fill="#CFC9BC"></path></svg>
+    </div>
+
+    <div style="padding: 15px 16px; border: 1px solid #DCE8E1; border-radius: 12px; background: #FFFFFF;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #6A5A46; color: #FFFFFF; font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;">DO</span>
+        <span style="font-size: 12.5px; font-weight: 600;">David shared a note</span>
+        <span style="margin-left: auto; font-size: 10.5px; color: #4A7263; background: #EDF1EE; border-radius: 5px; padding: 3px 7px;">From a space</span>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: #3D3A34;"><span style="font-weight: 500;">Off-by-one, once and for all.</span> Why the stop value is excluded, and the two places in Exercises 2 where it bites.</p>
+      <div style="margin-top: 10px; display: flex; align-items: center; gap: 12px; font-size: 11px; color: #6F6B63;"><span>14 votes</span><span>6 replies</span><span>3 exchanges</span></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="create" style="flex-grow: 1; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1A1A17; padding: 64px 24px;">
+    <h2 style="margin: 0; text-align: center; font-size: 34px; line-height: 1.14; letter-spacing: -.03em; font-weight: 500; color: #F8F6F1;">Start learning together.</h2>
+    <a class="btn-invert" href="#create" style="margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border-radius: 11px; background: #F8F6F1; color: #1A1A17; font-size: 15.5px; font-weight: 500;">Create a study group <span aria-hidden="true">→</span></a>
+    <p style="margin: 18px 0 0; text-align: center; font-size: 13.5px; color: #A9A49A;">Free for students. Bring the materials you already have.</p>
+  </section>
+
+  <footer style="flex-shrink: 0; padding: 22px 24px 28px; background: #1A1A17; border-top: 1px solid #2B2B27; display: flex; flex-direction: column; gap: 14px;">
+    <span style="display: inline-flex; align-items: center; gap: 8px; color: #F8F6F1;">
+      <svg width="16" height="16" viewBox="0 0 19 19" aria-hidden="true"><path d="M1.4 13.2h16.2" stroke="#F8F6F1" stroke-width="1.7" stroke-linecap="round" fill="none"></path><path d="M4.2 13.2a5.3 5.3 0 0 1 10.6 0" stroke="#F8F6F1" stroke-width="1.7" stroke-linecap="round" fill="none"></path></svg>
+      <span style="font-size: 14.5px; font-weight: 600; letter-spacing: -.015em;">Horizon</span>
+    </span>
+    <span style="display: flex; align-items: center; gap: 18px; font-size: 13px; color: #A9A49A;">
+      <a href="#product" style="color: #A9A49A;">Product</a>
+      <a href="#create" style="color: #A9A49A;">Create a study group</a>
+    </span>
+    <span style="font-size: 12.5px; color: #77736B;">© 2026 Horizon</span>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":5400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
