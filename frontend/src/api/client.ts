@@ -1,8 +1,12 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 
+// Dev: relative URLs go through the Vite proxy to localhost:8000 (vite.config.ts).
+// Prod: the deployed API, unless VITE_API_BASE_URL overrides it at build time.
 const client = axios.create({
-  baseURL: 'https://vibelearning-api.ashyforest-5660fbcb.canadacentral.azurecontainerapps.io',
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ??
+    (import.meta.env.DEV ? '' : 'https://vibelearning-api.ashyforest-5660fbcb.canadacentral.azurecontainerapps.io'),
 })
 
 // Inject Bearer token on every request

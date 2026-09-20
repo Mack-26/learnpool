@@ -19,6 +19,8 @@ import NotesPage from './pages/NotesPage'
 import ClassThreadsPage from './pages/ClassThreadsPage'
 import AllQuestionsPage from './pages/AllQuestionsPage'
 import ClassmatesPage from './pages/ClassmatesPage'
+import GroupWorkspacePage from './pages/GroupWorkspacePage'
+import HomePage from './pages/HomePage'
 
 export default function App() {
   return (
@@ -27,6 +29,9 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<OnboardingPage />} />
       {/* Student routes */}
+      <Route path="/home" element={<ProtectedRoute requireRole="student"><HomePage /></ProtectedRoute>} />
+      <Route path="/groups" element={<ProtectedRoute requireRole="student"><GroupWorkspacePage /></ProtectedRoute>} />
+      <Route path="/groups/:groupId" element={<ProtectedRoute requireRole="student"><GroupWorkspacePage /></ProtectedRoute>} />
       <Route path="/classes" element={<ProtectedRoute requireRole="student"><ClassListPage /></ProtectedRoute>} />
       <Route path="/classes/materials" element={<ProtectedRoute requireRole="student"><LectureMaterialsPage /></ProtectedRoute>} />
       <Route path="/notes" element={<ProtectedRoute requireRole="student"><NotesPage /></ProtectedRoute>} />

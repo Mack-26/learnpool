@@ -411,6 +411,7 @@ class JoinGroupResponse(BaseModel):
 class GroupQuestionOut(QuestionOut):
     asker_name: str  # "Anonymous" when the question was asked anonymously
     is_mine: bool
+    comment_count: int = 0
 
 
 class HomeContinueItem(BaseModel):

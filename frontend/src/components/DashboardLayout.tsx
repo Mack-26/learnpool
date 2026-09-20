@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Bookmark, BookOpen, LogOut, Users, FileText, User } from 'lucide-react'
+import { Bookmark, BookOpen, Home, LogOut, Users, FileText, User, UsersRound } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { getProfessorCourses } from '@/api/professor'
@@ -21,9 +21,11 @@ function useIsMobile() {
 
 interface DashboardLayoutProps {
   children: React.ReactNode
+  /** Drop main-area padding so the page can own its full-height layout (e.g. group workspace). */
+  fullBleed?: boolean
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, fullBleed = false }: DashboardLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
@@ -62,6 +64,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { icon: FileText, label: 'Lecture Materials', shortLabel: 'Materials', path: '/instructor/materials' },
       ]
     : [
+        { icon: Home, label: 'Home', shortLabel: 'Home', path: '/home' },
+        { icon: UsersRound, label: 'My Groups', shortLabel: 'Groups', path: '/groups' },
         { icon: BookOpen, label: 'My Classes', shortLabel: 'Classes', path: '/classes' },
         { icon: FileText, label: 'Lecture Materials', shortLabel: 'Materials', path: '/classes/materials' },
         { icon: Bookmark, label: 'My Notes', shortLabel: 'Notes', path: '/notes' },
@@ -85,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Logo */}
           <div style={{ padding: '1.5rem 1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <button
-              onClick={() => navigate(isProfessor ? '/instructor' : '/classes')}
+              onClick={() => navigate(isProfessor ? '/instructor' : '/home')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
             >
               <HorizonLogo variant="dark" size="2.5rem" />
@@ -148,8 +152,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <main
-        className={`flex-1 overflow-auto ${isMobile ? 'p-4 pb-20' : 'p-8'}`}
-        style={{ background: '#f7f7fc' }}
+        className={`flex-1 overflow-auto ${fullBleed ? (isMobile ? 'pb-14' : '') : isMobile ? 'p-4 pb-20' : 'p-8'}`}
+        style={{ background: '#f7f7fc', ...(fullBleed && !isMobile ? { height: '100vh' } : {}) }}
       >
         {children}
       </main>

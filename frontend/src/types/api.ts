@@ -291,6 +291,7 @@ export interface JoinGroupResponse {
 export interface GroupQuestionOut extends QuestionOut {
   asker_name: string
   is_mine: boolean
+  comment_count: number
 }
 
 export interface HomeContinueItem {

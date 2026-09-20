@@ -248,7 +248,8 @@ async def list_group_questions(
         SELECT q.id AS question_id, q.content AS question_content, q.asked_at,
                q.student_id, q.anonymous, u.display_name,
                a.id AS answer_id, a.content AS answer_content,
-               a.model_used, a.generation_latency_ms
+               a.model_used, a.generation_latency_ms,
+               (SELECT COUNT(*) FROM question_comments qc WHERE qc.question_id = q.id) AS comment_count
         FROM questions q
         JOIN users u ON u.id = q.student_id
         LEFT JOIN answers a ON a.question_id = q.id
@@ -305,6 +306,7 @@ async def list_group_questions(
             answer=answer,
             asker_name="Anonymous" if (r["anonymous"] and not is_mine) else r["display_name"],
             is_mine=is_mine,
+            comment_count=int(r["comment_count"]),
         ))
     return results
 
